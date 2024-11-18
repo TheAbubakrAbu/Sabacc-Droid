@@ -1,0 +1,1 @@
+worker: python src/sabaac_droid.py
