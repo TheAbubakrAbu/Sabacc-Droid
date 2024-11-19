@@ -27,6 +27,8 @@ bot = commands.Bot(command_prefix='/', intents=intents)
 
 # Step 2: Sabaac Game Management
 class Player:
+    '''Initialize a Player with a Discord user.'''
+    
     def __init__(self, user):
         '''Initialize the player with a Discord User.'''
 
@@ -63,7 +65,7 @@ class Player:
     def get_cards_string(self) -> str:
         '''Get a string representation of the player's hand.'''
 
-        return ' | ' + ' | '.join(f'{'+' if c > 0 else ''}{c}' for c in self.cards) + ' |'
+        return ' | ' + ' | '.join(f"{'+' if c > 0 else ''}{c}" for c in self.cards) + ' |'
 
     def get_total(self) -> int:
         '''Calculate the total sum of the player's hand.'''
