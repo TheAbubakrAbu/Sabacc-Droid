@@ -22,7 +22,7 @@ This version of the game is inspired by the one found in _Solo: A Star Wars Stor
   - Automated game management and scoring.
   - View game rules directly in Discord.
   - Add bot to your server:
-  - https://discord.com/oauth2/authorize?client_id=1306557976592515163https://discord.com/oauth2/authorize?client_id=1306557976592515163
+  - [https://discord.com/oauth2/authorize?client_id=1306557976592515163https://discord.com/oauth2/authorize?client_id=1306557976592515163](https://discord.com/oauth2/authorize?client_id=1306557976592515163)
 
 ---
 
