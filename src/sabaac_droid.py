@@ -568,7 +568,7 @@ class CardSelectView(ui.View):
         '''Create buttons for each card in the player's hand.'''
 
         for idx, card in enumerate(self.player.cards):
-            button = ui.Button(label=f'{'+' if card > 0 else ''}{card}', style=ButtonStyle.primary)
+            button = ui.Button(label=f"{'+' if card > 0 else ''}{card}", style=ButtonStyle.primary)
             button.callback = self.make_callback(card, idx)
             self.add_item(button)
             if len(self.children) >= 25:
