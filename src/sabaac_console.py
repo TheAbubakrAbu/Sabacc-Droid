@@ -1,4 +1,4 @@
-# sabaac.py
+# sabaac_console.py
 
 import random
 from typing import List

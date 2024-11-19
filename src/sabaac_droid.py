@@ -1,9 +1,16 @@
+# sabaac_droid.py
+
 import random
 from dotenv import load_dotenv
 import os
+import logging
 from discord import Intents, Embed, ButtonStyle, ui, Interaction, app_commands
 from discord.ext import commands
 from typing import List, Optional, Tuple
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Step 0: Load Token
 load_dotenv()
@@ -11,6 +18,8 @@ TOKEN: str = os.getenv('DISCORD_TOKEN')
 
 if TOKEN is None:
     raise ValueError("DISCORD_TOKEN environment variable not found in .env file.")
+
+active_games = []
 
 # Step 1: Setup Bot
 intents: Intents = Intents.default()
@@ -109,13 +118,13 @@ class SabaacGameView(ui.View):
         self.rounds: int = 3  # Number of rounds
         self.num_cards: int = 2  # Starting number of cards
         self.message = None  # The game message in the channel
+        self.current_message = None  # The current game message
+        self.active_views: List[ui.View] = []  # Keep references to active views to prevent garbage collection
 
-        # Initialize the Play Turn button
-        self.play_turn_button = PlayTurnButton(self)
         # Initialize the View Rules button
         self.view_rules_button = ViewRulesButton()
-        # Keep track of the current message
-        self.current_message = None
+        # Add the View Rules button to the view
+        self.add_item(self.view_rules_button)
 
     async def reset_lobby(self, interaction: Interaction) -> None:
         """
@@ -129,12 +138,6 @@ class SabaacGameView(ui.View):
         self.current_player_index = -1
 
         # Reset buttons
-        self.clear_items()
-        self.add_item(self.play_game_button)
-        self.add_item(self.leave_game_button)
-        self.add_item(self.start_game_button)
-        self.add_item(self.view_rules_button)  # Add View Rules button to lobby
-
         self.play_game_button.disabled = False
         self.leave_game_button.disabled = False
         self.start_game_button.disabled = True  # Since no players have joined yet
@@ -166,18 +169,21 @@ class SabaacGameView(ui.View):
             description=description,
             color=0x964B00
         )
+        embed.set_thumbnail(url="https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png")
 
         # Remove previous message's buttons
         if self.current_message:
             try:
                 await self.current_message.edit(view=None)
-            except:
-                pass
+            except Exception as e:
+                logger.error(f"Error removing previous message buttons: {e}")
 
         # Send a new message with the player's mention
         self.clear_items()
-        self.add_item(self.play_turn_button)
-        self.add_item(self.view_rules_button)  # Add View Rules button during the game
+        # Add the Play Turn button
+        self.add_item(PlayTurnButton(self))
+        # Add the View Rules button during the game
+        self.add_item(self.view_rules_button)
         self.current_message = await self.message.channel.send(
             content=f"{current_player.user.mention}",
             embed=embed,
@@ -214,6 +220,8 @@ class SabaacGameView(ui.View):
             description=description,
             color=0x964B00
         )
+        embed.set_footer(text="Corellian Spike Sabaac")
+        embed.set_thumbnail(url="https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png")
 
         # Update the 'Start Game' and 'Play Game' buttons based on player count and game state
         self.start_game_button.disabled = len(self.players) < 2 or self.game_started
@@ -419,7 +427,7 @@ class SabaacGameView(ui.View):
                 0 if total > 0 else 1,  # Positive beats negative
                 -len(cards),  # More cards wins
                 -sum(positive_cards),  # Higher positive sum wins
-                -max(positive_cards) if positive_cards else float('-inf'),  # Highest single positive value
+                -max(positive_cards) if positive_cards else float('-inf'),  # Highest single positive card
             ]
 
         return (hand_rank, *tie_breakers), hand_type, total
@@ -437,15 +445,15 @@ class SabaacGameView(ui.View):
         # Sort the evaluated hands
         evaluated_hands.sort(key=lambda x: x[0])
 
-        # Check for tie
-        best_hand_value = evaluated_hands[0][0]
-        winners = [eh for eh in evaluated_hands if eh[0] == best_hand_value]
-
         # Prepare the final results
         results = "**Game Over!**\n\n**Final Hands:**\n"
         for eh in evaluated_hands:
             _, player, hand_type, total = eh
             results += f"{player.user.mention}: {player.get_cards_string()} (Total: {total}, Hand: {hand_type})\n"
+
+        # Determine the winners
+        best_hand_value = evaluated_hands[0][0]
+        winners = [eh for eh in evaluated_hands if eh[0] == best_hand_value]
 
         if len(winners) == 1:
             winner = winners[0][1]
@@ -458,15 +466,24 @@ class SabaacGameView(ui.View):
                 results += f" {player.user.mention}"
             results += "!"
 
-        # Send the final results
+        # Send the final results in a new message
         embed = Embed(
             title="Sabaac Game Over",
             description=results,
             color=0x964B00
         )
-        # Mention all players and edit the original message
+        embed.set_thumbnail(url="https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png")
         mentions = " ".join(player.user.mention for player in self.players)
-        await self.current_message.edit(content=f"{mentions}", embed=embed, view=None)
+        await self.message.channel.send(content=f"{mentions}", embed=embed)
+
+        if self.current_message:
+            try:
+                await self.current_message.delete()
+            except Exception as e:
+                logger.error(f"Error deleting current message: {e}")
+
+        if self in active_games:
+            active_games.remove(self)
 
 class PlayTurnButton(ui.Button):
     def __init__(self, game_view: SabaacGameView):
@@ -492,11 +509,14 @@ class PlayTurnButton(ui.Button):
             return
         # Send an ephemeral message with the player's hand and action buttons
         turn_view = TurnView(self.game_view, current_player)
+        # Keep a reference to the view to prevent garbage collection
+        self.game_view.active_views.append(turn_view)
         embed = Embed(
             title=f"Your Turn - Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}",
             description=f"**Your Hand:** {current_player.get_cards_string()}\n**Total:** {current_player.get_total()}",
             color=0x964B00
         )
+        embed.set_thumbnail(url="https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png")
         await interaction.response.send_message(embed=embed, view=turn_view, ephemeral=True)
 
 class TurnView(ui.View):
@@ -508,10 +528,9 @@ class TurnView(ui.View):
             game_view (SabaacGameView): The game view managing the game state.
             player (Player): The current player taking the turn.
         """
-        super().__init__(timeout=60)
+        super().__init__(timeout=30)  # Timeout set to 30 seconds
         self.game_view = game_view
         self.player = player
-        # Timeout is 60 seconds
 
     async def interaction_check(self, interaction: Interaction) -> bool:
         """
@@ -544,6 +563,7 @@ class TurnView(ui.View):
             description=f"**Your Hand:** {self.player.get_cards_string()}\n**Total:** {self.player.get_total()}",
             color=0x964B00
         )
+        embed.set_thumbnail(url="https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png")
         await interaction.response.edit_message(embed=embed, view=None)
         self.stop()
         await self.game_view.proceed_to_next_player()
@@ -562,11 +582,14 @@ class TurnView(ui.View):
             return
         # Send a message with buttons representing the player's cards
         card_select_view = CardSelectView(self, action='discard')
+        # Keep a reference to the view to prevent garbage collection
+        self.game_view.active_views.append(card_select_view)
         embed = Embed(
             title=f"Discard a Card - Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}",
             description="Click the button corresponding to the card you want to discard.",
             color=0x964B00
         )
+        embed.set_thumbnail(url="https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png")
         await interaction.response.send_message(embed=embed, view=card_select_view, ephemeral=True)
         self.stop()
 
@@ -581,11 +604,14 @@ class TurnView(ui.View):
         """
         # Send a message with buttons representing the player's cards
         card_select_view = CardSelectView(self, action='replace')
+        # Keep a reference to the view to prevent garbage collection
+        self.game_view.active_views.append(card_select_view)
         embed = Embed(
             title=f"Replace a Card - Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}",
             description="Click the button corresponding to the card you want to replace.",
             color=0x964B00
         )
+        embed.set_thumbnail(url="https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png")
         await interaction.response.send_message(embed=embed, view=card_select_view, ephemeral=True)
         self.stop()
 
@@ -603,6 +629,7 @@ class TurnView(ui.View):
             description=f"**Your Hand:** {self.player.get_cards_string()}\n**Total:** {self.player.get_total()}",
             color=0x964B00
         )
+        embed.set_thumbnail(url="https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png")
         await interaction.response.edit_message(embed=embed, view=None)
         self.stop()
         await self.game_view.proceed_to_next_player()
@@ -621,6 +648,7 @@ class TurnView(ui.View):
             description="You have given up and are out of the game.",
             color=0x964B00
         )
+        embed.set_thumbnail(url="https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png")
         await interaction.response.edit_message(embed=embed, view=None)
         # Remove player from the game
         self.game_view.players.remove(self.player)
@@ -635,10 +663,26 @@ class TurnView(ui.View):
         """
         Handles the scenario where a player does not make a move within the timeout period.
         """
-        channel = self.game_view.current_message.channel
-        await channel.send(f"{self.player.user.mention} took too long and will **stand** for this turn.")
-        self.stop()
-        await self.game_view.proceed_to_next_player()
+        try:
+            channel = self.game_view.current_message.channel
+            embed = Embed(
+                title="Turn Skipped",
+                description=f"{self.player.user.mention} took too long and their turn was skipped.",
+                color=0xFF0000
+            )
+            await channel.send(embed=embed)
+            self.stop()
+            await self.game_view.proceed_to_next_player()
+        except Exception as e:
+            logger.error(f"Error during timeout handling: {e}")
+
+    def stop(self) -> None:
+        """
+        Stops the view and removes it from the active views list.
+        """
+        super().stop()
+        if self in self.game_view.active_views:
+            self.game_view.active_views.remove(self)
 
 class CardSelectView(ui.View):
     def __init__(self, turn_view: TurnView, action: str):
@@ -651,10 +695,10 @@ class CardSelectView(ui.View):
         """
         super().__init__(timeout=30)
         self.turn_view = turn_view
+        self.game_view = turn_view.game_view
         self.player = turn_view.player
         self.action = action  # 'discard' or 'replace'
         self.create_buttons()
-        # Timeout is 30 seconds
 
     def create_buttons(self) -> None:
         """
@@ -699,9 +743,10 @@ class CardSelectView(ui.View):
                 )
             else:
                 embed = Embed(title="Unknown Action", description="An error occurred.", color=0xFF0000)
+            embed.set_thumbnail(url="https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png")
             await interaction.response.edit_message(embed=embed, view=None)
-            await self.turn_view.game_view.proceed_to_next_player()
             self.stop()
+            await self.turn_view.game_view.proceed_to_next_player()
         return callback
 
     async def interaction_check(self, interaction: Interaction) -> bool:
@@ -724,10 +769,26 @@ class CardSelectView(ui.View):
         """
         Handles the scenario where a player does not select a card within the timeout period.
         """
-        channel = self.turn_view.game_view.current_message.channel
-        await channel.send(f"{self.player.user.mention} took too long and will **stand** for this turn.")
-        self.stop()
-        await self.turn_view.game_view.proceed_to_next_player()
+        try:
+            channel = self.game_view.current_message.channel
+            embed = Embed(
+                title="Turn Skipped",
+                description=f"{self.player.user.mention} took too long and their turn was skipped.",
+                color=0xFF0000
+            )
+            await channel.send(embed=embed)
+            self.stop()
+            await self.turn_view.game_view.proceed_to_next_player()
+        except Exception as e:
+            logger.error(f"Error during timeout handling: {e}")
+
+    def stop(self) -> None:
+        """
+        Stops the view and removes it from the active views list.
+        """
+        super().stop()
+        if self in self.game_view.active_views:
+            self.game_view.active_views.remove(self)
 
 class ViewRulesButton(ui.Button):
     def __init__(self):
@@ -743,41 +804,52 @@ class ViewRulesButton(ui.Button):
         Args:
             interaction (Interaction): The interaction that triggered the button.
         """
-        rules_embed = Embed(
-            title="Sabaac Game Rules",
-            description="**Objective:**\nAchieve a hand with a total sum as close to zero as possible.\n\n"
-                        "**Gameplay:**\n- Each player starts with two cards.\n"
-                        "- On your turn, you can choose to **Draw**, **Discard**, **Replace**, **Stand**, or **Junk**.\n\n"
-                        "**Actions:**\n"
-                        "- **Draw Card:** Draw one card from the deck.\n"
-                        "- **Discard Card:** Remove one card from your hand.\n"
-                        "- **Replace Card:** Swap one card in your hand with a new one from the deck.\n"
-                        "- **Stand:** Keep your current hand without changes.\n"
-                        "- **Junk:** Give up and exit the game.\n\n"
-                        "**Winning Conditions:**\n"
-                        "1. **Special Hands (Total sum equals zero):**\n"
-                        "   - **Pure Sabacc:** Two zeros.\n"
-                        "   - **Full Sabacc:** +10, +10, -10, -10, 0.\n"
-                        "   - **Yee-Haa:** One pair and a zero.\n"
-                        "   - **Banthas Wild:** Three of a kind.\n"
-                        "   - **Rule of Two:** Two pairs.\n"
-                        "   - **Sabacc:** One pair (e.g., +5 and -5).\n"
-                        "   - *Note:* Lower integer values win ties.\n\n"
-                        "2. **Zero Sum Hands (Total sum equals zero):**\n"
-                        "   - Lower integer values win.\n"
-                        "   - Most cards win.\n"
-                        "   - Highest positive sum wins.\n"
-                        "   - Highest single positive card wins.\n\n"
-                        "3. **Nulrhek Hands (Total sum does not equal zero):**\n"
-                        "   - Closest to zero wins.\n"
-                        "   - Positive totals beat negative totals.\n"
-                        "   - Most cards win.\n"
-                        "   - Highest positive sum wins.\n"
-                        "   - Highest single positive card wins.\n\n"
-                        "The game lasts for 3 rounds. Good luck!",
-            color=0x964B00
-        )
+        rules_embed = get_rules_embed()
         await interaction.response.send_message(embed=rules_embed, ephemeral=True)
+
+def get_rules_embed() -> Embed:
+    """
+    Creates an embed containing the game rules, with the Sabaac logo.
+
+    Returns:
+        Embed: The embed containing the game rules.
+    """
+    rules_embed = Embed(
+        title="Sabaac Game Rules",
+        description="**Objective:**\nAchieve a hand with a total sum as close to zero as possible.\n\n"
+                    "**Gameplay:**\n- Each player starts with two cards.\n"
+                    "- On your turn, you can choose to **Draw**, **Discard**, **Replace**, **Stand**, or **Junk**.\n\n"
+                    "**Actions:**\n"
+                    "- **Draw Card:** Draw one card from the deck.\n"
+                    "- **Discard Card:** Remove one card from your hand.\n"
+                    "- **Replace Card:** Swap one card in your hand with a new one from the deck.\n"
+                    "- **Stand:** Keep your current hand without changes.\n"
+                    "- **Junk:** Give up and exit the game.\n\n"
+                    "**Winning Conditions:**\n"
+                    "1. **Special Hands (Total sum equals zero):**\n"
+                    "   - **Pure Sabacc:** Two zeros.\n"
+                    "   - **Full Sabacc:** +10, +10, -10, -10, 0.\n"
+                    "   - **Yee-Haa:** One pair and a zero.\n"
+                    "   - **Banthas Wild:** Three of a kind.\n"
+                    "   - **Rule of Two:** Two pairs.\n"
+                    "   - **Sabacc:** One pair (e.g., +5 and -5).\n"
+                    "   - *Note:* Lower integer values win ties.\n\n"
+                    "2. **Zero Sum Hands (Total sum equals zero):**\n"
+                    "   - Lower integer values win.\n"
+                    "   - Most cards win.\n"
+                    "   - Highest positive sum wins.\n"
+                    "   - Highest single positive card wins.\n\n"
+                    "3. **Nulrhek Hands (Total sum does not equal zero):**\n"
+                    "   - Closest to zero wins.\n"
+                    "   - Positive totals beat negative totals.\n"
+                    "   - Most cards win.\n"
+                    "   - Highest positive sum wins.\n"
+                    "   - Highest single positive card wins.\n\n"
+                    "The game lasts for 3 rounds. Good luck!",
+        color=0x964B00
+    )
+    rules_embed.set_thumbnail(url="https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png")
+    return rules_embed
 
 # Slash command to start the game
 @bot.tree.command(name="sabaac", description="Start a Sabaac game")
@@ -789,8 +861,6 @@ async def sabaac_command(interaction: Interaction) -> None:
         interaction (Interaction): The interaction that triggered the command.
     """
     view = SabaacGameView()
-    # Add View Rules button to the lobby
-    view.add_item(view.view_rules_button)
     embed = Embed(
         title="Sabaac Game Lobby",
         description="Click **Play Game** to join the game.\n\n"
@@ -799,8 +869,25 @@ async def sabaac_command(interaction: Interaction) -> None:
     )
     embed.set_footer(text="Corellian Spike Sabaac")
     embed.set_thumbnail(url="https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png")
-    await interaction.response.send_message(embed=embed, view=view)
-    view.message = await interaction.original_response()
+    try:
+        await interaction.response.send_message(embed=embed, view=view)
+        view.message = await interaction.original_response()
+        active_games.append(view)
+    except Exception as e:
+        await interaction.response.send_message("An error occurred while starting the game.", ephemeral=True)
+        logger.error(f"Error in sabaac_command: {e}")
+
+# Slash command to display rules publicly
+@bot.tree.command(name="help", description="Display the Sabaac game rules")
+async def help_command(interaction: Interaction) -> None:
+    """
+    Slash command to display the game rules publicly.
+
+    Args:
+        interaction (Interaction): The interaction that triggered the command.
+    """
+    rules_embed = get_rules_embed()
+    await interaction.response.send_message(embed=rules_embed)
 
 # Step 4: Handle Startup
 @bot.event
