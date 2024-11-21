@@ -75,16 +75,16 @@ class Player:
 class SabaacGameView(ui.View):
     '''Manage the game's state and UI components.'''
 
-    def __init__(self):
-        '''Initialize the game view.'''
+    def __init__(self, rounds: int = 3, num_cards: int = 2):
+        '''Initialize the game view with optional rounds and number of initial cards.'''
 
         super().__init__(timeout=None)
-        self.players: list[Player] = []  # List of Player objects
+        self.players: list[Player] = []
         self.game_started = False
         self.current_player_index = -1  # Start at -1 to proceed to player 0 on first turn
         self.deck: list[int] = []
-        self.rounds = 3
-        self.num_cards = 2
+        self.rounds = rounds
+        self.num_cards = num_cards
         self.message = None
         self.current_message = None
         self.active_views: list[ui.View] = []
@@ -105,8 +105,9 @@ class SabaacGameView(ui.View):
 
         embed = Embed(
             title='Sabaac Game Lobby',
-            description='Click **Play Game** to join the game.\n\n'
-                        'Once at least two players have joined, the **Start Game** button will be enabled.',
+            description=f'Click **Play Game** to join the game.\n\n'
+                    f'**Game Settings:**\n{self.rounds} rounds\n{self.num_cards} starting cards\n\n'
+                    'Once at least two players have joined, the **Start Game** button will be enabled.',
             color=0x964B00
         )
         embed.set_footer(text='Corellian Spike Sabaac')
@@ -148,7 +149,7 @@ class SabaacGameView(ui.View):
         )
 
     async def update_lobby_embed(self, interaction=None) -> None:
-        '''Update the lobby embed with the current list of players.'''
+        '''Update the lobby embed with the current list of players and custom settings.'''
 
         if len(self.players) == 0:
             if interaction:
@@ -162,10 +163,13 @@ class SabaacGameView(ui.View):
             description += 'The game has started!'
         elif len(self.players) >= 8:
             description += 'The game lobby is full.'
-        elif len(self.players) < 2:
-            description += 'Waiting for more players to join...'
+
+        description += f'**Game Settings:**\n{self.rounds} rounds\n{self.num_cards} starting cards\n\n'
+
+        if len(self.players) < 2:
+            description += 'Waiting for more players to join...\n'
         else:
-            description += 'Click **Start Game** to begin!'
+            description += 'Click **Start Game** to begin!\n'
 
         embed = Embed(
             title='Sabaac Game Lobby',
@@ -227,9 +231,10 @@ class SabaacGameView(ui.View):
             return
         if len(self.players) >= 2:
             self.game_started = True
+
             # Initialize the game
             self.deck = self.generate_deck()
-            random.shuffle(self.players)  # Randomize player order
+            random.shuffle(self.players)
 
             # Deal initial cards
             for player in self.players:
@@ -240,8 +245,9 @@ class SabaacGameView(ui.View):
             self.total_rounds = self.rounds
             self.rounds_completed = 1  # Start at round 1
             self.first_turn = True
-            # Send a confirmation to prevent 'interaction failed'
-            await interaction.response.send_message('The game has started!', ephemeral=True)
+
+            await interaction.response.defer()
+
             # Start the first turn
             await self.proceed_to_next_player()
         else:
@@ -683,21 +689,29 @@ def get_rules_embed() -> Embed:
                     '   - Most cards win.\n'
                     '   - Highest positive sum wins.\n'
                     '   - Highest single positive card wins.\n\n'
-                    'The game lasts for 3 rounds. Good luck!',
+                    'A default game lasts for 3 rounds. Good luck! May the Force be with you!',
         color=0x964B00
     )
     rules_embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
     return rules_embed
 
-# Slash command to start the game
-@bot.tree.command(name='sabaac', description='Start a Sabaac game')
-async def sabaac_command(interaction: Interaction) -> None:
-    '''Initiate a new Sabaac game.'''
+# Slash command to start the game with optional parameters
+@bot.tree.command(name='sabaac', description='Start a Sabaac game with optional custom settings')
+@app_commands.describe(
+    rounds='Number of rounds (default: 3, max: 5)',
+    num_cards='Number of initial cards (default: 2, max: 3)'
+)
+async def sabaac_command(interaction: Interaction, rounds: int = 3, num_cards: int = 2) -> None:
+    '''Initiate a new Sabaac game with optional custom settings.'''
 
-    view = SabaacGameView()
+    rounds = max(1, min(rounds, 5))
+    num_cards = max(1, min(num_cards, 3))
+
+    view = SabaacGameView(rounds=rounds, num_cards=num_cards)
     embed = Embed(
         title='Sabaac Game Lobby',
-        description='Click **Play Game** to join the game.\n\n'
+        description=f'Click **Play Game** to join the game.\n\n'
+                    f'**Game Settings:**\n{rounds} rounds\n{num_cards} starting cards\n\n'
                     'Once at least two players have joined, the **Start Game** button will be enabled.',
         color=0x964B00
     )
