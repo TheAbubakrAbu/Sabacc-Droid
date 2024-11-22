@@ -294,7 +294,6 @@ class SabaacGameView(ui.View):
             counts[card] = counts.get(card, 0) + 1
 
         positive_cards = [c for c in cards if c > 0]
-        negative_cards = [c for c in cards if c < 0]
         zeros = counts.get(0, 0)
 
         # Create counts of absolute card values
@@ -330,9 +329,12 @@ class SabaacGameView(ui.View):
                 hand_type = 'Rule of Two'
                 hand_rank = 5
                 tie_breakers = [min(abs(c) for c in cards)]  # Lower integer wins tie
-            # Sabacc (one pair)
-            elif any(count >= 2 for count in abs_counts.values()):
-                hand_type = 'Sabacc'
+            # Sabacc (one positive and one negative card of the same absolute value)
+            elif any(
+                counts.get(value, 0) >= 1 and counts.get(-value, 0) >= 1
+                for value in set(cards) if value > 0
+            ):
+                hand_type = 'Sabacc (Pair)'
                 hand_rank = 6
                 tie_breakers = [min(abs(c) for c in cards)]  # Lower integer wins tie
             else:
@@ -676,7 +678,7 @@ def get_rules_embed() -> Embed:
                     '   - **Yee-Haa:** One pair and a zero.\n'
                     '   - **Banthas Wild:** Three of a kind.\n'
                     '   - **Rule of Two:** Two pairs.\n'
-                    '   - **Sabacc:** One pair (e.g., +5 and -5).\n'
+                    '   - **Sabacc (Pair):** One pair (e.g., +5 and -5).\n'
                     '   - *Note:* Lower integer values win ties.\n\n'
                     '2. **Zero Sum Hands (Total sum equals zero):**\n'
                     '   - Lower integer values win.\n'
