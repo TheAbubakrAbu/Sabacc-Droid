@@ -4,7 +4,7 @@ import random
 from dotenv import load_dotenv
 import os
 import logging
-from discord import Intents, Embed, ButtonStyle, ui, Interaction, app_commands
+from discord import Intents, Embed, ButtonStyle, ui, Interaction, app_commands, Game
 from discord.ext import commands
 
 # Configure logging
@@ -23,7 +23,11 @@ active_games = []
 # Step 1: Setup Bot
 intents = Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix='/', intents=intents)
+bot = commands.Bot(
+    command_prefix='/',
+    intents=intents,
+    activity=Game(name='Corellian Spike Sabaac')
+)
 
 # Step 2: Sabaac Game Management
 class Player:
