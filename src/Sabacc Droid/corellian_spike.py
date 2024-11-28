@@ -1,38 +1,17 @@
-# sabaac_droid.py
+# corellian_spike.py
 
 import random
-from dotenv import load_dotenv
-import os
 import logging
-from discord import Intents, Embed, ButtonStyle, ui, Interaction, app_commands, Game
-from discord.ext import commands
+from discord import Embed, ButtonStyle, ui, Interaction
+from rules import get_corellian_spike_rules_embed
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Step 0: Load Token
-load_dotenv()
-TOKEN = os.getenv('DISCORD_TOKEN')
-
-if TOKEN is None:
-    raise ValueError('DISCORD_TOKEN environment variable not found in .env file.')
-
-active_games = []
-
-# Step 1: Setup Bot
-intents = Intents.default()
-intents.message_content = True
-bot = commands.Bot(
-    command_prefix='/',
-    intents=intents,
-    activity=Game(name='Corellian Spike Sabaac')
-)
-
-# Step 2: Sabaac Game Management
 class Player:
     '''Initialize a Player with a Discord user.'''
-    
+
     def __init__(self, user):
         '''Initialize the player with a Discord User.'''
 
@@ -76,10 +55,10 @@ class Player:
 
         return sum(self.cards)
 
-class SabaacGameView(ui.View):
+class CorelliaGameView(ui.View):
     '''Manage the game's state and UI components.'''
 
-    def __init__(self, rounds: int = 3, num_cards: int = 2):
+    def __init__(self, rounds: int = 3, num_cards: int = 2, active_games: list = None):
         '''Initialize the game view with optional rounds and number of initial cards.'''
 
         super().__init__(timeout=None)
@@ -92,6 +71,7 @@ class SabaacGameView(ui.View):
         self.message = None
         self.current_message = None
         self.active_views: list[ui.View] = []
+        self.active_games = active_games
 
         self.view_rules_button = ViewRulesButton()
         self.add_item(self.view_rules_button)
@@ -108,13 +88,13 @@ class SabaacGameView(ui.View):
         self.start_game_button.disabled = True
 
         embed = Embed(
-            title='Sabaac Game Lobby',
+            title='Sabacc Game Lobby',
             description=f'Click **Play Game** to join the game.\n\n'
-                    f'**Game Settings:**\n{self.rounds} rounds\n{self.num_cards} starting cards\n\n'
-                    'Once at least two players have joined, the **Start Game** button will be enabled.',
+                        f'**Game Settings:**\n{self.rounds} rounds\n{self.num_cards} starting cards\n\n'
+                        'Once at least two players have joined, the **Start Game** button will be enabled.',
             color=0x964B00
         )
-        embed.set_footer(text='Corellian Spike Sabaac')
+        embed.set_footer(text='Corellian Spike Sabacc')
         embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
 
         await interaction.response.edit_message(embed=embed, view=self)
@@ -130,7 +110,7 @@ class SabaacGameView(ui.View):
         description += 'Click **Play Turn** to take your turn.'
 
         embed = Embed(
-            title='Sabaac Game',
+            title='Corellian Spike Sabacc Game',
             description=description,
             color=0x964B00
         )
@@ -176,11 +156,11 @@ class SabaacGameView(ui.View):
             description += 'Click **Start Game** to begin!\n'
 
         embed = Embed(
-            title='Sabaac Game Lobby',
+            title='Corellian Spike Sabacc Game Lobby',
             description=description,
             color=0x964B00
         )
-        embed.set_footer(text='Corellian Spike Sabaac')
+        embed.set_footer(text='Corellian Spike Sabacc')
         embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
 
         self.start_game_button.disabled = len(self.players) < 2 or self.game_started
@@ -396,7 +376,7 @@ class SabaacGameView(ui.View):
             results += '!'
 
         embed = Embed(
-            title='Sabaac Game Over',
+            title='Game Over',
             description=results,
             color=0x964B00
         )
@@ -410,13 +390,13 @@ class SabaacGameView(ui.View):
             except Exception as e:
                 logger.error(f'Error deleting current message: {e}')
 
-        if self in active_games:
-            active_games.remove(self)
+        if self in self.active_games:
+            self.active_games.remove(self)
 
 class PlayTurnButton(ui.Button):
     '''Initialize the Play Turn button.'''
 
-    def __init__(self, game_view: SabaacGameView):
+    def __init__(self, game_view: CorelliaGameView):
         '''Initialize the button.'''
 
         super().__init__(label='Play Turn', style=ButtonStyle.primary)
@@ -443,7 +423,7 @@ class PlayTurnButton(ui.Button):
 class TurnView(ui.View):
     '''Provide action buttons for the player's turn.'''
 
-    def __init__(self, game_view: SabaacGameView, player: Player):
+    def __init__(self, game_view: CorelliaGameView, player: Player):
         '''Initialize the turn view.'''
 
         super().__init__(timeout=30)
@@ -489,8 +469,7 @@ class TurnView(ui.View):
             color=0x964B00
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
-        await interaction.response.send_message(embed=embed, view=card_select_view, ephemeral=True)
-        self.stop()
+        await interaction.response.edit_message(embed=embed, view=card_select_view)
 
     @ui.button(label='Replace Card', style=ButtonStyle.secondary)
     async def replace_card_button(self, interaction: Interaction, button: ui.Button) -> None:
@@ -505,8 +484,7 @@ class TurnView(ui.View):
             color=0x964B00
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
-        await interaction.response.send_message(embed=embed, view=card_select_view, ephemeral=True)
-        self.stop()
+        await interaction.response.edit_message(embed=embed, view=card_select_view)
 
     @ui.button(label='Stand', style=ButtonStyle.success)
     async def stand_button(self, interaction: Interaction, button: ui.Button) -> None:
@@ -586,6 +564,9 @@ class CardSelectView(ui.View):
             if len(self.children) >= 25:
                 break
 
+        # Add a "Go Back" button
+        self.add_item(GoBackButton(self))
+
     def make_callback(self, card_value: int, card_index: int):
         '''Create a callback function for a card button.'''
 
@@ -613,6 +594,7 @@ class CardSelectView(ui.View):
             embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
             await interaction.response.edit_message(embed=embed, view=None)
             self.stop()
+            self.turn_view.stop()
             await self.turn_view.game_view.proceed_to_next_player()
         return callback
 
@@ -636,6 +618,7 @@ class CardSelectView(ui.View):
             )
             await channel.send(embed=embed)
             self.stop()
+            self.turn_view.stop()
             await self.turn_view.game_view.proceed_to_next_player()
         except Exception as e:
             logger.error(f'Error during timeout handling: {e}')
@@ -647,6 +630,30 @@ class CardSelectView(ui.View):
         if self in self.game_view.active_views:
             self.game_view.active_views.remove(self)
 
+class GoBackButton(ui.Button):
+    '''Button to go back to the previous view.'''
+
+    def __init__(self, card_select_view: CardSelectView):
+        '''Initialize the Go Back button.'''
+
+        super().__init__(label='Go Back', style=ButtonStyle.secondary)
+        self.card_select_view = card_select_view
+
+    async def callback(self, interaction: Interaction) -> None:
+        '''Handle the Go Back button press.'''
+
+        # Re-display the TurnView
+        turn_view = self.card_select_view.turn_view
+        embed = Embed(
+            title=f'Your Turn - Round {turn_view.game_view.rounds_completed}/{turn_view.game_view.total_rounds}',
+            description=f'**Your Hand:** {turn_view.player.get_cards_string()}\n**Total:** {turn_view.player.get_total()}',
+            color=0x964B00
+        )
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
+        await interaction.response.edit_message(embed=embed, view=turn_view)
+        # Stop the CardSelectView
+        self.card_select_view.stop()
+
 class ViewRulesButton(ui.Button):
     '''Initialize the View Rules button.'''
 
@@ -656,102 +663,7 @@ class ViewRulesButton(ui.Button):
         super().__init__(label='View Rules', style=ButtonStyle.secondary)
 
     async def callback(self, interaction: Interaction) -> None:
-        '''Display the game rules when the button is pressed.'''
+        '''Display the Corellian Spike game rules when the button is pressed.'''
 
-        rules_embed = get_rules_embed()
+        rules_embed = get_corellian_spike_rules_embed()
         await interaction.response.send_message(embed=rules_embed, ephemeral=True)
-
-def get_rules_embed() -> Embed:
-    '''Create an embed containing the game rules.'''
-
-    rules_embed = Embed(
-        title='Sabaac Game Rules',
-        description='**Objective:**\nAchieve a hand with a total sum as close to zero as possible.\n\n'
-                    '**Gameplay:**\n- Each player starts with two cards.\n'
-                    '- On your turn, you can choose to **Draw**, **Discard**, **Replace**, **Stand**, or **Junk**.\n\n'
-                    '**Actions:**\n'
-                    '- **Draw Card:** Draw one card from the deck.\n'
-                    '- **Discard Card:** Remove one card from your hand.\n'
-                    '- **Replace Card:** Swap one card in your hand with a new one from the deck.\n'
-                    '- **Stand:** Keep your current hand without changes.\n'
-                    '- **Junk:** Give up and exit the game.\n\n'
-                    '**Winning Conditions:**\n'
-                    '1. **Special Hands (Total sum equals zero):**\n'
-                    '   - **Pure Sabacc:** Two zeros.\n'
-                    '   - **Full Sabacc:** +10, +10, -10, -10, 0.\n'
-                    '   - **Yee-Haa:** One pair and a zero.\n'
-                    '   - **Banthas Wild:** Three of a kind.\n'
-                    '   - **Rule of Two:** Two pairs.\n'
-                    '   - **Sabacc (Pair):** One pair (e.g., +5 and -5).\n'
-                    '   - *Note:* Lower integer values win ties.\n\n'
-                    '2. **Zero Sum Hands (Total sum equals zero):**\n'
-                    '   - Lower integer values win.\n'
-                    '   - Most cards win.\n'
-                    '   - Highest positive sum wins.\n'
-                    '   - Highest single positive card wins.\n\n'
-                    '3. **Nulrhek Hands (Total sum does not equal zero):**\n'
-                    '   - Closest to zero wins.\n'
-                    '   - Positive totals beat negative totals.\n'
-                    '   - Most cards win.\n'
-                    '   - Highest positive sum wins.\n'
-                    '   - Highest single positive card wins.\n\n'
-                    'A default game lasts for 3 rounds. Good luck! May the Force be with you!',
-        color=0x964B00
-    )
-    rules_embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
-    return rules_embed
-
-# Slash command to start the game with optional parameters
-@bot.tree.command(name='sabaac', description='Start a Sabaac game with optional custom settings')
-@app_commands.describe(
-    rounds='Number of rounds (default: 3, max: 5)',
-    num_cards='Number of initial cards (default: 2, max: 3)'
-)
-async def sabaac_command(interaction: Interaction, rounds: int = 3, num_cards: int = 2) -> None:
-    '''Initiate a new Sabaac game with optional custom settings.'''
-
-    rounds = max(1, min(rounds, 5))
-    num_cards = max(1, min(num_cards, 3))
-
-    view = SabaacGameView(rounds=rounds, num_cards=num_cards)
-    embed = Embed(
-        title='Sabaac Game Lobby',
-        description=f'Click **Play Game** to join the game.\n\n'
-                    f'**Game Settings:**\n{rounds} rounds\n{num_cards} starting cards\n\n'
-                    'Once at least two players have joined, the **Start Game** button will be enabled.',
-        color=0x964B00
-    )
-    embed.set_footer(text='Corellian Spike Sabaac')
-    embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
-    try:
-        await interaction.response.send_message(embed=embed, view=view)
-        view.message = await interaction.original_response()
-        active_games.append(view)
-    except Exception as e:
-        await interaction.response.send_message('An error occurred while starting the game.', ephemeral=True)
-        logger.error(f'Error in sabaac_command: {e}')
-
-# Slash command to display rules publicly
-@bot.tree.command(name='help', description='Display the Sabaac game rules')
-async def help_command(interaction: Interaction) -> None:
-    '''Display the game rules publicly.'''
-
-    rules_embed = get_rules_embed()
-    await interaction.response.send_message(embed=rules_embed)
-
-# Step 4: Handle Startup
-@bot.event
-async def on_ready() -> None:
-    '''Event handler for when the bot is ready.'''
-
-    await bot.tree.sync()  # Sync slash commands with Discord
-    print(f'{bot.user} is now running!')
-
-# Step 5: Run Bot
-def main() -> None:
-    '''Run the Discord bot.'''
-
-    bot.run(TOKEN)
-
-if __name__ == '__main__':
-    main()
