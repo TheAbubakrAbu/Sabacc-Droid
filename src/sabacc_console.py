@@ -1,4 +1,4 @@
-# sabaac_console.py
+# Sabacc_console.py
 
 import random
 from typing import List
@@ -134,12 +134,12 @@ class Game:
         player2.print_cards()
         print()
 
-        # Check for 'Pure Sabaac' (two zeros)
+        # Check for 'Pure Sabacc' (two zeros)
         if player1.cards == [0, 0]:
-            print(f'{player1.name} wins with Pure Sabaac!')
+            print(f'{player1.name} wins with Pure Sabacc!')
             return
         elif player2.cards == [0, 0]:
-            print(f'{player2.name} wins with Pure Sabaac!')
+            print(f'{player2.name} wins with Pure Sabacc!')
             return
 
         # Check for zero total
@@ -189,22 +189,22 @@ class Game:
         # Determine the winner
         self.determine_winner()
 
-def run_sabaac() -> None:
-    '''Runs the Sabaac game, handling user interaction and game setup.'''
+def run_Sabacc() -> None:
+    '''Runs the Sabacc game, handling user interaction and game setup.'''
 
-    print('Welcome to Sabaac (Corellian Spike Edition) - The game that led Han Solo to win the Millennium Falcon from Lando Calrissian!')
+    print('Welcome to Sabacc (Corellian Spike Edition) - The game that led Han Solo to win the Millennium Falcon from Lando Calrissian!')
     print('This version of the game is found in *Solo* and sold in Galaxy\'s Edge.')
 
     choice: str = get_input('Type "H" if you\'d like to learn the rules or "P" to play:').upper()
 
     if choice == 'H':
-        print('\nWelcome to the rules of Sabaac (Corellian Spike Edition):')
+        print('\nWelcome to the rules of Sabacc (Corellian Spike Edition):')
         print(
             '''
             1. The goal is to have the sum of your cards as close to zero as possible.
             2. Each player is dealt a certain number of cards to start with.
             3. During each turn, players can choose to draw a card, discard a card, replace a card, or stand.
-            4. Pure Sabaac (two zeros) wins automatically.
+            4. Pure Sabacc (two zeros) wins automatically.
             5. Other special rules apply when both players have a sum of zero:
             6. The game is based on the version seen in *Solo* and sold at Galaxy's Edge, where Han Solo famously won the Millennium Falcon from Lando Calrissian.
             
@@ -225,4 +225,4 @@ def run_sabaac() -> None:
         print_error_message()
 
 if __name__ == '__main__':
-    run_sabaac()
+    run_Sabacc()
