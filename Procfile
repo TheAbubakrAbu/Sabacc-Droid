@@ -1,1 +1,1 @@
-worker: python src/sabaac_droid/sabacc_droid.py
+worker: python src/sabacc_droid/sabacc_droid.py
