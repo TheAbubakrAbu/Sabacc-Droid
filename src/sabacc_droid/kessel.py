@@ -16,9 +16,9 @@ class Player:
     def __init__(self, user):
         '''Initialize the player with a Discord User.'''
         self.user = user
-        self.positive_card: int = None  # Positive card
-        self.negative_card: int = None  # Negative card
-        self.drawn_card: int = None     # Temporarily store the drawn card
+        self.positive_card: int = None
+        self.negative_card: int = None
+        self.drawn_card: int = None
         self.drawn_card_type: str = None  # 'positive' or 'negative'
         self.impostor_values = {}  # Store the values chosen for Impostor cards
         self.sylop_values = {}     # Store the values of Sylop cards
@@ -60,25 +60,25 @@ class Player:
         negative_value = self.negative_card_value()
 
         if positive_value is None or negative_value is None:
-            return None  # Hand is incomplete
+            return None
 
         return positive_value + negative_value
 
     def positive_card_value(self) -> int:
         '''Get the value of the positive card, considering Sylop and Impostor behavior.'''
         if self.positive_card == 'Impostor':
-            return self.impostor_values.get('positive', 0)  # Will be set after choice
+            return self.impostor_values.get('positive', 0)
         elif self.positive_card == 'Sylop':
-            return self.sylop_values.get('positive', 0)     # Will be set at game end
+            return self.sylop_values.get('positive', 0)
         else:
             return self.positive_card
 
     def negative_card_value(self) -> int:
         '''Get the value of the negative card, considering Sylop and Impostor behavior.'''
         if self.negative_card == 'Impostor':
-            return self.impostor_values.get('negative', 0)  # Will be set after choice
+            return self.impostor_values.get('negative', 0)
         elif self.negative_card == 'Sylop':
-            return self.sylop_values.get('negative', 0)     # Will be set at game end
+            return self.sylop_values.get('negative', 0)
         else:
             return self.negative_card
 
@@ -98,7 +98,7 @@ class KesselGameView(ui.View):
         self.current_message = None
         self.active_views: list[ui.View] = []
         self.active_games = active_games
-        self.channel = channel  # Set the channel
+        self.channel = channel
 
         self.view_rules_button = ViewRulesButton()
         self.add_item(self.view_rules_button)
@@ -142,7 +142,6 @@ class KesselGameView(ui.View):
         )
         embed.set_thumbnail(url='https://static.wikia.nocookie.net/starwars/images/9/90/Sylop.png/revision/latest?cb=20180530101050')
 
-        # Remove previous message's buttons
         if self.current_message:
             try:
                 await self.current_message.edit(view=None)
@@ -249,12 +248,11 @@ class KesselGameView(ui.View):
 
             # Initialize round counters
             self.total_rounds = self.rounds
-            self.rounds_completed = 0  # Start at round 0
+            self.rounds_completed = 0
             self.first_turn = True
 
             await interaction.response.defer()
 
-            # Start the first turn
             await self.proceed_to_next_player()
         else:
             await interaction.response.send_message('Not enough players to start the game.', ephemeral=True)
@@ -282,7 +280,6 @@ class KesselGameView(ui.View):
         if self.current_player_index == 0 and not self.first_turn:
             self.rounds_completed += 1
             if self.rounds_completed >= self.total_rounds:
-                # Game over
                 await self.end_game()
                 return
 
@@ -302,12 +299,12 @@ class KesselGameView(ui.View):
         total = positive_value + negative_value
         abs_values = [abs(positive_value), abs(negative_value)]
 
-        # Check for Sylop pair
+        # Pure Sabacc (Sylop, Sylop)
         if player.positive_card == 'Sylop' and player.negative_card == 'Sylop':
             hand_type = 'Pure Sabacc'
             hand_rank = 1
             tie_breakers = []
-        # Check for Sabacc hands
+        # Check for Standard Sabacc hands
         elif total == 0:
             # Prime Sabacc (+1, -1)
             if sorted(abs_values) == [1, 1]:
@@ -340,7 +337,6 @@ class KesselGameView(ui.View):
 
         # Assign values to Sylop cards
         for player in self.players:
-            # Sylop cards
             if player.positive_card == 'Sylop' and player.negative_card == 'Sylop':
                 # Both Sylops are zero
                 player.sylop_values['positive'] = 0
@@ -378,7 +374,6 @@ class KesselGameView(ui.View):
                     await player.user.send(embed=embed, view=choose_view)
                 except Exception as e:
                     logger.error(f'Error sending Impostor choice to {player.user}: {e}')
-                    # If unable to send message, assign random values
                     if player.positive_card == 'Impostor':
                         player.impostor_values['positive'] = random.randint(1, 6)
                         self.impostor_choices_pending -= 1
@@ -398,7 +393,6 @@ class KesselGameView(ui.View):
     async def evaluate_and_display_results(self):
         '''Evaluate hands and display the game over screen.'''
 
-        # Evaluate all players' hands
         evaluated_hands = []
         for player in self.players:
             hand_value, hand_type, total = self.evaluate_hand(player)
@@ -409,20 +403,19 @@ class KesselGameView(ui.View):
         results = '**Final Hands:**\n'
         for eh in evaluated_hands:
             _, player, hand_type, total = eh
-            # Show Impostor and Sylop card values
             card_info = ''
             if player.positive_card == 'Impostor':
                 impostor_value = player.impostor_values['positive']
-                card_info += f' (Ψ value: +{impostor_value})'
+                card_info += f' (Ψ value: +{impostor_value}) '
             if player.negative_card == 'Impostor':
                 impostor_value = player.impostor_values['negative']
-                card_info += f' (Ψ value: {impostor_value})'
+                card_info += f' (Ψ value: {impostor_value}) '
             if player.positive_card == 'Sylop':
                 sylop_value = player.sylop_values['positive']
-                card_info += f' (Ø value: +{sylop_value})'
+                card_info += f' (Ø value: +{sylop_value}) '
             if player.negative_card == 'Sylop':
                 sylop_value = player.sylop_values['negative']
-                card_info += f' (Ø value: {sylop_value})'
+                card_info += f' (Ø value: {sylop_value}) '
 
             results += f'{player.user.mention}: {player.get_cards_string()}{card_info} (Total: {total}, Hand: {hand_type})\n'
 
@@ -440,7 +433,6 @@ class KesselGameView(ui.View):
                 results += f' {player.user.mention}'
             results += '!'
 
-        # Append explanations for symbols
         results += '\n\n**Legend:**\nΨ Impostor card (you choose its value)\nØ Sylop card (special behavior)'
 
         embed = Embed(
@@ -471,7 +463,7 @@ class ChooseImpostorValueView(ui.View):
         self.player = player
         self.state = None  # 'positive' or 'negative' or 'done'
         self.dice_values = []
-        self.message = None  # Store the message to edit
+        self.message = None
 
         if player.positive_card == 'Impostor':
             self.state = 'positive'
@@ -489,7 +481,6 @@ class ChooseImpostorValueView(ui.View):
         elif self.state == 'negative':
             self.dice_values = [-random.randint(1, 6), -random.randint(1, 6)]
 
-        # Create buttons for the two dice values
         self.clear_items()
         button1 = ui.Button(label=str(abs(self.dice_values[0])), style=ButtonStyle.primary)
         button1.callback = self.make_callback(self.dice_values[0])
@@ -510,7 +501,6 @@ class ChooseImpostorValueView(ui.View):
                 if self.player.negative_card == 'Impostor':
                     self.state = 'negative'
                     self.roll_dice()
-                    # Update the embed message
                     embed = Embed(
                         title='Choose Your Negative Impostor Card Value',
                         description='Two dice have been rolled for your negative Impostor card. Choose your preferred value.',
@@ -543,13 +533,11 @@ class ChooseImpostorValueView(ui.View):
     async def on_timeout(self) -> None:
         '''Handle timeout by assigning random values to any remaining Impostor cards.'''
         if self.state == 'positive':
-            # Assign random value
             self.player.impostor_values['positive'] = random.choice(self.dice_values)
             self.game_view.impostor_choices_pending -= 1
             if self.player.negative_card == 'Impostor':
                 self.state = 'negative'
                 self.roll_dice()
-                # Try to send another message
                 try:
                     embed = Embed(
                         title='Choose Your Negative Impostor Card Value',
@@ -557,7 +545,7 @@ class ChooseImpostorValueView(ui.View):
                         color=0x964B00
                     )
                     await self.player.user.send(embed=embed, view=self)
-                    return  # Return here to wait for interaction
+                    return
                 except Exception as e:
                     logger.error(f'Error sending message to {self.player.user}: {e}')
                     self.player.impostor_values['negative'] = random.choice(self.dice_values)
@@ -583,7 +571,6 @@ class PlayTurnButton(ui.Button):
         if interaction.user.id != current_player.user.id:
             await interaction.response.send_message('It\'s not your turn.', ephemeral=True)
             return
-        # Send an ephemeral message with the player's hand and action buttons
         turn_view = TurnView(self.game_view, current_player)
         self.game_view.active_views.append(turn_view)
         embed = Embed(
@@ -591,7 +578,6 @@ class PlayTurnButton(ui.Button):
             description=f'**Your Hand:** {current_player.get_cards_string()}',
             color=0x964B00
         )
-        # Add explanations if the player has Impostor or Sylop cards
         explanations = ''
         if 'Ψ' in current_player.get_cards_string():
             explanations += '\nΨ You have an **Impostor** card. Its value will be determined at the end of the game.'
@@ -628,7 +614,6 @@ class TurnView(ui.View):
 
         self.player.draw_card(self.game_view.positive_deck, 'positive')
 
-        # Inform about Impostor or Sylop card
         special_info = ''
         if self.player.drawn_card == 'Impostor':
             special_info = '\n\nYou drew an **Impostor** card (Ψ)! You will choose its value at the end of the game.'
@@ -657,7 +642,6 @@ class TurnView(ui.View):
 
         self.player.draw_card(self.game_view.negative_deck, 'negative')
 
-        # Inform about Impostor or Sylop card
         special_info = ''
         if self.player.drawn_card == 'Impostor':
             special_info = '\n\nYou drew an **Impostor** card (Ψ)! You will choose its value at the end of the game.'
@@ -685,7 +669,6 @@ class TurnView(ui.View):
             description=f'**Your Hand:** {self.player.get_cards_string()}',
             color=0x964B00
         )
-        # Add explanations if the player has Impostor or Sylop cards
         explanations = ''
         if 'Ψ' in self.player.get_cards_string():
             explanations += '\nΨ You have an **Impostor** card. You will choose its value at the end of the game.'
@@ -794,32 +777,28 @@ class DiscardCardView(ui.View):
             if choice == 'keep_existing':
                 # Return the drawn card to the deck
                 if card_type == 'positive':
-                    self.game_view.positive_deck.append(drawn_card)
+                    self.game_view.positive_deck.insert(0, drawn_card)
                 else:
-                    self.game_view.negative_deck.append(drawn_card)
-                # No changes to player's existing card
+                    self.game_view.negative_deck.insert(0, drawn_card)
             elif choice == 'keep_drawn':
                 # Return the existing card to the deck
                 existing_card = getattr(self.player, f'{card_type}_card')
                 if card_type == 'positive':
                     if existing_card is not None:
-                        self.game_view.positive_deck.append(existing_card)
+                        self.game_view.positive_deck.insert(0, existing_card)
                     self.player.positive_card = drawn_card
                 else:
                     if existing_card is not None:
-                        self.game_view.negative_deck.append(existing_card)
+                        self.game_view.negative_deck.insert(0, existing_card)
                     self.player.negative_card = drawn_card
 
-            # Clear temporary drawn card
             self.player.discard_drawn_card()
 
-            # Proceed to next player
             embed = Embed(
                 title='Card Selected',
                 description=f'**Your Hand:** {self.player.get_cards_string()}',
                 color=0x964B00
             )
-            # Add explanations if the player has Impostor or Sylop cards
             explanations = ''
             if 'Ψ' in self.player.get_cards_string():
                 explanations += '\nΨ You have an **Impostor** card. You will choose its value at the end of the game.'
