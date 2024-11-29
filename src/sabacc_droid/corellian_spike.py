@@ -64,7 +64,7 @@ class CorelliaGameView(ui.View):
         super().__init__(timeout=None)
         self.players: list[Player] = []
         self.game_started = False
-        self.current_player_index = -1  # Start at -1 to proceed to player 0 on first turn
+        self.current_player_index = -1  # Start at -1 to go to player 0 on first turn
         self.deck: list[int] = []
         self.rounds = rounds
         self.num_cards = num_cards
@@ -227,7 +227,7 @@ class CorelliaGameView(ui.View):
 
             # Initialize round counters
             self.total_rounds = self.rounds
-            self.rounds_completed = 1  # Start at round 1
+            self.rounds_completed = 1
             self.first_turn = True
 
             await interaction.response.defer()
@@ -254,7 +254,6 @@ class CorelliaGameView(ui.View):
         if self.current_player_index == 0 and not self.first_turn:
             self.rounds_completed += 1
             if self.rounds_completed > self.total_rounds:
-                # Game over
                 await self.end_game()
                 return
 
@@ -286,13 +285,12 @@ class CorelliaGameView(ui.View):
             abs_card = abs(card)
             abs_counts[abs_card] = abs_counts.get(abs_card, 0) + 1
 
-        # Check for specialty hands (must total zero)
         if total == 0:
             # Pure Sabacc (two zeros)
             if zeros == 2 and len(cards) == 2:
                 hand_type = 'Pure Sabacc'
                 hand_rank = 1
-                tie_breakers = [min(abs(c) for c in cards if c != 0)]  # Lower integer wins tie
+                tie_breakers = []
             # Full Sabacc (+10, +10, -10, -10, 0)
             elif sorted(cards) == [-10, -10, 0, +10, +10]:
                 hand_type = 'Full Sabacc'
@@ -303,28 +301,23 @@ class CorelliaGameView(ui.View):
                 hand_type = 'Yee-Haa'
                 hand_rank = 3
                 tie_breakers = [min(abs(c) for c in cards if c != 0)]  # Lower integer wins tie
-            # Banthas Wild (three of a kind)
-            elif any(count >= 3 for count in abs_counts.values()):
-                hand_type = 'Banthas Wild'
-                hand_rank = 4
-                tie_breakers = [min(abs(c) for c in cards)]  # Lower integer wins tie
             # Rule of Two (two pairs)
             elif len([count for count in abs_counts.values() if count >= 2]) >= 2:
                 hand_type = 'Rule of Two'
-                hand_rank = 5
+                hand_rank = 4
                 tie_breakers = [min(abs(c) for c in cards)]  # Lower integer wins tie
-            # Sabacc (one positive and one negative card of the same absolute value)
+            # Sabacc Pair
             elif any(
                 counts.get(value, 0) >= 1 and counts.get(-value, 0) >= 1
                 for value in set(cards) if value > 0
             ):
-                hand_type = 'Sabacc (Pair)'
-                hand_rank = 6
+                hand_type = 'Sabacc Pair'
+                hand_rank = 5
                 tie_breakers = [min(abs(c) for c in cards)]  # Lower integer wins tie
             else:
                 # Non-specialty hand that equals zero
-                hand_type = 'Zero Sum Hand'
-                hand_rank = 7
+                hand_type = 'Sabacc'
+                hand_rank = 6
                 tie_breakers = [
                     min(abs(c) for c in cards),  # Lower integer wins
                     -len(cards),  # More cards wins
@@ -348,7 +341,6 @@ class CorelliaGameView(ui.View):
     async def end_game(self) -> None:
         '''Determine the winner of the game and end it.'''
 
-        # Evaluate all players' hands
         evaluated_hands = []
         for player in self.players:
             hand_value, hand_type, total = self.evaluate_hand(player)
@@ -409,7 +401,7 @@ class PlayTurnButton(ui.Button):
         if interaction.user.id != current_player.user.id:
             await interaction.response.send_message('It\'s not your turn.', ephemeral=True)
             return
-        # Send an ephemeral message with the player's hand and action buttons
+
         turn_view = TurnView(self.game_view, current_player)
         self.game_view.active_views.append(turn_view)
         embed = Embed(
@@ -460,7 +452,7 @@ class TurnView(ui.View):
         if len(self.player.cards) <= 1:
             await interaction.response.send_message('You cannot discard when you have only one card.', ephemeral=True)
             return
-        # Send a message with buttons representing the player's cards
+
         card_select_view = CardSelectView(self, action='discard')
         self.game_view.active_views.append(card_select_view)
         embed = Embed(
@@ -475,7 +467,6 @@ class TurnView(ui.View):
     async def replace_card_button(self, interaction: Interaction, button: ui.Button) -> None:
         '''Handle the Replace Card action.'''
 
-        # Send a message with buttons representing the player's cards
         card_select_view = CardSelectView(self, action='replace')
         self.game_view.active_views.append(card_select_view)
         embed = Embed(
@@ -564,7 +555,6 @@ class CardSelectView(ui.View):
             if len(self.children) >= 25:
                 break
 
-        # Add a "Go Back" button
         self.add_item(GoBackButton(self))
 
     def make_callback(self, card_value: int, card_index: int):
@@ -642,7 +632,6 @@ class GoBackButton(ui.Button):
     async def callback(self, interaction: Interaction) -> None:
         '''Handle the Go Back button press.'''
 
-        # Re-display the TurnView
         turn_view = self.card_select_view.turn_view
         embed = Embed(
             title=f'Your Turn - Round {turn_view.game_view.rounds_completed}/{turn_view.game_view.total_rounds}',
@@ -651,7 +640,7 @@ class GoBackButton(ui.Button):
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
         await interaction.response.edit_message(embed=embed, view=turn_view)
-        # Stop the CardSelectView
+        
         self.card_select_view.stop()
 
 class ViewRulesButton(ui.Button):

@@ -25,7 +25,6 @@ bot = commands.Bot(
     activity=Game(name='Sabacc')
 )
 
-# Active games list to keep track of ongoing games
 active_games = []
 
 @bot.tree.command(name='corellian_spike', description='Start a Corellian Spike Sabacc game with optional custom settings')
@@ -57,22 +56,20 @@ async def corellian_command(interaction: Interaction, rounds: int = 3, num_cards
         await interaction.response.send_message('An error occurred while starting the game.', ephemeral=True)
         print(f'Error in corellian_command: {e}')
 
-# Slash command to start a Kessel Sabacc game
 @bot.tree.command(name='kessel', description='Start a Kessel Sabacc game')
 async def kessel_command(interaction: Interaction) -> None:
     '''Initiate a new Kessel Sabacc game with optional custom settings.'''
-    rounds = 3
 
-    view = KesselGameView(rounds=rounds, active_games=active_games, channel=interaction.channel)
+    view = KesselGameView(rounds=3, active_games=active_games, channel=interaction.channel)
     embed = discord.Embed(
         title='Kessel Sabacc Game Lobby',
         description=f'Click **Play Game** to join the game.\n\n'
-                    f'**Game Settings:**\n{rounds} rounds\n\n'
+                    f'**Game Settings:**\n3 rounds\n\n'
                     'Once at least two players have joined, the **Start Game** button will be enabled.',
         color=0x964B00
     )
     embed.set_footer(text='Kessel Sabacc')
-    embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
+    embed.set_thumbnail(url='https://static.wikia.nocookie.net/starwars/images/9/90/Sylop.png/revision/latest?cb=20180530101050')
     try:
         await interaction.response.send_message(embed=embed, view=view)
         view.message = await interaction.original_response()
@@ -81,17 +78,21 @@ async def kessel_command(interaction: Interaction) -> None:
         await interaction.response.send_message('An error occurred while starting the game.', ephemeral=True)
         print(f'Error in kessel_command: {e}')
 
-# Slash command to display rules publicly
 @bot.tree.command(name='help', description='Display the Sabacc game rules')
 async def help_command(interaction: Interaction) -> None:
     '''Display the game rules publicly.'''
 
     embed = discord.Embed(
         title='Sabacc Droid',
-        description='Welcome to Sabacc Droid! Play either **Corellian Spike Sabacc** (from *Solo* and Galaxy\'s Edge) or **Kessel Sabacc** (from *Star Wars: Outlaws*).\n\n'
-                    'Both games focus on achieving a hand sum of zero or as close as possible, however there are many differences between the two.\n\n'
-                    'Default game settings are 3 rounds and 2 starting cards for both games.\n\n'
-                    'Created by **Abubakr Elmallah**.',
+        description=(
+            'Welcome to Sabacc Droid! Play either **Corellian Spike Sabacc** (from *Solo* and Galaxy\'s Edge) '
+            'or **Kessel Sabacc** (from *Star Wars: Outlaws*).\n\n'
+            'Both games focus on achieving a hand sum of zero or as close as possible, however there are many '
+            'differences between the two.\n\n'
+            'Default game settings are 3 rounds and 2 starting cards for both games.\n\n'
+            'Created by **Abubakr Elmallah**.\n\n'
+            '[📂 GitHub Repository](https://github.com/TheAbubakrAbu/Sabacc-Droid)'
+        ),
         color=0x964B00
     )
     embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
@@ -130,8 +131,8 @@ async def on_ready() -> None:
 
 # Run Bot
 def main() -> None:
-    '''Run the Discord bot.'''
 
+    '''Run the Discord bot.'''
     bot.run(TOKEN)
 
 if __name__ == '__main__':
