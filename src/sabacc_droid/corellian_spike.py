@@ -348,7 +348,7 @@ class CorelliaGameView(ui.View):
 
         evaluated_hands.sort(key=lambda x: x[0])
 
-        results = '**Game Over!**\n\n**Final Hands:**\n'
+        results = '**Final Hands:**\n'
         for eh in evaluated_hands:
             _, player, hand_type, total = eh
             results += f'{player.user.mention}: {player.get_cards_string()} (Total: {total}, Hand: {hand_type})\n'
