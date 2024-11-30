@@ -2,6 +2,8 @@
 
 import random
 import logging
+import os
+import discord
 from discord import Embed, ButtonStyle, ui, Interaction
 from rules import get_corellian_spike_rules_embed
 
@@ -103,12 +105,16 @@ class CorelliaGameView(ui.View):
         '''Update the game embed to reflect the current player's turn.'''
 
         current_player = self.players[self.current_player_index]
+        
         description = f'**Players:**\n' + '\n'.join(
             player.user.mention for player in self.players) + '\n\n'
         description += f'**Round {self.rounds_completed}/{self.total_rounds}**\n'
         description += f'It\'s now {current_player.user.mention}\'s turn.\n'
-        description += 'Click **Play Turn** to take your turn.'
+        description += 'Click **Play Turn** to take your turn.\n\n'
 
+        number_of_cards = len(current_player.cards)
+
+        # Create the embed with the updated description
         embed = Embed(
             title='Corellian Spike Sabacc Game',
             description=description,
@@ -116,7 +122,7 @@ class CorelliaGameView(ui.View):
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
 
-        # Remove previous message's buttons
+        # Remove previous message's buttons if any
         if self.current_message:
             try:
                 await self.current_message.edit(view=None)
@@ -126,9 +132,34 @@ class CorelliaGameView(ui.View):
         self.clear_items()
         self.add_item(PlayTurnButton(self))
         self.add_item(self.view_rules_button)
+
+        # Dynamically resolve the base directory
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        image_path = os.path.join(BASE_DIR, 'images', 'corellian_spike', 'back.png')
+
+        # Ensure the file exists
+        if not os.path.exists(image_path):
+            logger.error(f"Image not found: {image_path}")
+            await self.message.channel.send(f"Image not found: {image_path}")
+            return
+
+        try:
+            files = []
+            for i in range(1, number_of_cards + 1):
+                # Open the file for each iteration
+                with open(image_path, 'rb') as img_file:
+                    file = discord.File(fp=img_file, filename=f'back{i}.png')
+                    files.append(file)
+        except Exception as e:
+            logger.error(f"Error loading image {image_path}: {e}")
+            await self.message.channel.send(f"An error occurred while loading images.")
+            return
+
+        # Send the embed with the attached images
         self.current_message = await self.message.channel.send(
             content=f'{current_player.user.mention}',
             embed=embed,
+            files=files,
             view=self
         )
 
@@ -163,7 +194,8 @@ class CorelliaGameView(ui.View):
         embed.set_footer(text='Corellian Spike Sabacc')
         embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
 
-        self.start_game_button.disabled = len(self.players) < 2 or self.game_started
+# FIX THIS
+        self.start_game_button.disabled = len(self.players) < 1 or self.game_started
         self.play_game_button.disabled = len(self.players) >= 8 or self.game_started
 
         if interaction:
@@ -213,7 +245,8 @@ class CorelliaGameView(ui.View):
         if interaction.user.id not in [player.user.id for player in self.players]:
             await interaction.response.send_message('Only players in the game can start the game.', ephemeral=True)
             return
-        if len(self.players) >= 2:
+# FIX THIS
+        if len(self.players) >= 1:
             self.game_started = True
 
             # Initialize the game
