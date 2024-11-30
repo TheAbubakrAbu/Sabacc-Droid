@@ -117,7 +117,7 @@ class KesselGameView(ui.View):
         embed = Embed(
             title='Kessel Sabacc Game Lobby',
             description=f'Click **Play Game** to join the game.\n\n'
-                        f'**Game Settings:**\n{self.rounds} rounds\n\n'
+                        f'**Game Settings:**\n{self.rounds} rounds\n2 starting cards\n\n'
                         'Once at least two players have joined, the **Start Game** button will be enabled.',
             color=0x964B00
         )
@@ -172,7 +172,7 @@ class KesselGameView(ui.View):
         elif len(self.players) >= 8:
             description += 'The game lobby is full.'
 
-        description += f'**Game Settings:**\n{self.rounds} rounds\n\n'
+        description += f'**Game Settings:**\n{self.rounds} rounds\n2 starting cards\n\n'
 
         if len(self.players) < 2:
             description += 'Waiting for more players to join...\n'
