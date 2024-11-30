@@ -64,7 +64,7 @@ async def kessel_command(interaction: Interaction) -> None:
     embed = discord.Embed(
         title='Kessel Sabacc Game Lobby',
         description=f'Click **Play Game** to join the game.\n\n'
-                    f'**Game Settings:**\n3 rounds\n\n'
+                    f'**Game Settings:**\n3 rounds\n2 starting cards\n\n'
                     'Once at least two players have joined, the **Start Game** button will be enabled.',
         color=0x964B00
     )

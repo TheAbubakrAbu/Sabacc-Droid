@@ -444,12 +444,6 @@ class KesselGameView(ui.View):
         mentions = ' '.join(player.user.mention for player in self.players)
         await self.channel.send(content=f'{mentions}', embed=embed)
 
-        if self.current_message:
-            try:
-                await self.current_message.delete()
-            except Exception as e:
-                logger.error(f'Error deleting current message: {e}')
-
         if self in self.active_games:
             self.active_games.remove(self)
 
