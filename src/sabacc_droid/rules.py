@@ -151,3 +151,46 @@ def get_comparison_embed() -> Embed:
     comparison_embed.set_thumbnail(
         url='https://raw.githubusercontent.com/compycore/Sabacc/gh-pages/images/logo.png')
     return comparison_embed
+
+import requests
+from PIL import Image
+from io import BytesIO
+import tempfile
+
+def combine_card_images(card_image_urls: list[str], resize_width: int = 80, resize_height: int = 120, padding: int = 10) -> str:
+    '''Combine multiple card images horizontally into a single image with optional resizing and padding.'''
+    # Streamlining image loading and resizing
+    card_images = []
+    for url in card_image_urls:
+        try:
+            # Fetch and load the image in one step
+            response = requests.get(url, stream=True, timeout=5)  # Timeout to prevent hanging
+            response.raise_for_status()  # Raise an exception for HTTP errors
+            img = Image.open(BytesIO(response.content)).convert('RGBA')  # Ensure consistent mode
+            img = img.resize((resize_width, resize_height), Image.LANCZOS)
+            card_images.append(img)
+        except Exception as e:
+            # Log and continue without adding the faulty image
+            print(f"Error processing image from {url}: {e}")
+            continue
+
+    if not card_images:
+        raise ValueError("No valid images were provided to combine.")
+
+    # Pre-calculate dimensions for the combined image
+    total_width = sum(img.width for img in card_images) + padding * (len(card_images) - 1)
+    max_height = max(img.height for img in card_images)
+
+    # Create a blank canvas with the calculated dimensions
+    combined_image = Image.new('RGBA', (total_width, max_height), (255, 255, 255, 0))
+
+    # Paste images onto the canvas with padding
+    x_offset = 0
+    for img in card_images:
+        combined_image.paste(img, (x_offset, 0))
+        x_offset += img.width + padding
+
+    # Save the combined image to a temporary file
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
+    combined_image.save(temp_file.name, format='PNG')
+    return temp_file.name

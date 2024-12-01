@@ -40,10 +40,10 @@ async def corellian_command(interaction: Interaction, rounds: int = 3, num_cards
 
     view = CorelliaGameView(rounds=rounds, num_cards=num_cards, active_games=active_games)
     embed = discord.Embed(
-        title='Corellian Spike Sabacc Game Lobby',
-        description=f'Click **Play Game** to join the game.\n\n'
+        title='Sabacc Game Lobby',
+        description='Click **Play Game** to join the game.\n\n'
                     f'**Game Settings:**\n{rounds} rounds\n{num_cards} starting cards\n\n'
-                    'Once at least two players have joined, the **Start Game** button will be enabled.',
+                    'Once someone has joined, the **Start Game** button will be enabled.',
         color=0x964B00
     )
     embed.set_footer(text='Corellian Spike Sabacc')
@@ -62,14 +62,14 @@ async def kessel_command(interaction: Interaction) -> None:
 
     view = KesselGameView(rounds=3, active_games=active_games, channel=interaction.channel)
     embed = discord.Embed(
-        title='Kessel Sabacc Game Lobby',
-        description=f'Click **Play Game** to join the game.\n\n'
-                    f'**Game Settings:**\n3 rounds\n2 starting cards\n\n'
-                    'Once at least two players have joined, the **Start Game** button will be enabled.',
+        title='Sabacc Game Lobby',
+        description='Click **Play Game** to join the game.\n\n'
+                    '**Game Settings:**\n3 rounds\n2 starting cards\n\n'
+                    'Once someone has joined, the **Start Game** button will be enabled.',
         color=0x964B00
     )
     embed.set_footer(text='Kessel Sabacc')
-    embed.set_thumbnail(url='https://static.wikia.nocookie.net/starwars/images/9/90/Sylop.png/revision/latest?cb=20180530101050')
+    embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png')
     try:
         await interaction.response.send_message(embed=embed, view=view)
         view.message = await interaction.original_response()
@@ -90,6 +90,12 @@ async def help_command(interaction: Interaction) -> None:
             'Both games focus on achieving a hand sum of zero or as close as possible, however there are many '
             'differences between the two.\n\n'
             'Default game settings are 3 rounds and 2 starting cards for both games.\n\n'
+
+            'Credits for the Corellian Spike Sabacc Cards go to [Winz](https://cults3d.com/en/3d-model/game/sabacc-cards-and-spike-dice-printable)\n'
+            'Credits for the Kessel Sabacc Cards go to [u/Gold-Ad-4525](https://www.reddit.com/r/StarWarsSabacc/comments/1exatgi/kessel_sabaac_v3/)\n\n'
+
+            'This is a fan-made project and is not affiliated with or endorsed by Lucasfilm Ltd. or Disney. All trademarks are the property of their respective owners.\n\n'
+
             'Created by **Abubakr Elmallah**.\n\n'
             '[📂 GitHub Repository](https://github.com/TheAbubakrAbu/Sabacc-Droid)'
         ),
