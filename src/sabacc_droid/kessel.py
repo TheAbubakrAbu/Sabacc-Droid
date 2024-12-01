@@ -3,8 +3,11 @@
 import random
 import asyncio
 import logging
+import urllib.parse
+from urllib.parse import quote
+import discord
 from discord import Embed, ButtonStyle, ui, Interaction
-from rules import get_kessel_rules_embed
+from rules import get_kessel_rules_embed, combine_card_images
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -38,20 +41,21 @@ class Player:
 
     def get_cards_string(self) -> str:
         '''Get a string representation of the player's hand.'''
-        def card_to_str(card):
+        def card_to_str(card, card_type: str):
+            
             if card == 'Impostor':
-                return 'Ψ'
+                return f'{card_type}Ψ'
             elif card == 'Sylop':
-                return 'Ø'
+                return f'{card_type}Ø'
             elif isinstance(card, int) and card >= 0:
                 return f"+{card}"
             else:
                 return str(card)
         cards = []
         if self.positive_card is not None:
-            cards.append(card_to_str(self.positive_card))
+            cards.append(card_to_str(self.positive_card, '+'))
         if self.negative_card is not None:
-            cards.append(card_to_str(self.negative_card))
+            cards.append(card_to_str(self.negative_card, '-'))
         return ' | ' + ' | '.join(cards) + ' |'
 
     def get_total(self) -> int:
@@ -99,7 +103,7 @@ class KesselGameView(ui.View):
         self.active_views: list[ui.View] = []
         self.active_games = active_games
         self.channel = channel
-
+        self.solo_game = False
         self.view_rules_button = ViewRulesButton()
         self.add_item(self.view_rules_button)
         self.impostor_choices_pending = 0  # Counter for pending Impostor choices
@@ -115,32 +119,50 @@ class KesselGameView(ui.View):
         self.start_game_button.disabled = True
 
         embed = Embed(
-            title='Kessel Sabacc Game Lobby',
-            description=f'Click **Play Game** to join the game.\n\n'
+            title='Sabacc Game Lobby',
+            description='Click **Play Game** to join the game.\n\n'
                         f'**Game Settings:**\n{self.rounds} rounds\n2 starting cards\n\n'
-                        'Once at least two players have joined, the **Start Game** button will be enabled.',
+                        'Once someone has joined, the **Start Game** button will be enabled.',
             color=0x964B00
         )
         embed.set_footer(text='Kessel Sabacc')
-        embed.set_thumbnail(url='https://static.wikia.nocookie.net/starwars/images/9/90/Sylop.png/revision/latest?cb=20180530101050')
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png')
 
         await interaction.response.edit_message(embed=embed, view=self)
 
     async def update_game_embed(self) -> None:
         '''Update the game embed to reflect the current player's turn.'''
         current_player = self.players[self.current_player_index]
+
         description = f'**Players:**\n' + '\n'.join(
             player.user.mention for player in self.players) + '\n\n'
         description += f'**Round {self.rounds_completed + 1}/{self.total_rounds}**\n'
         description += f'It\'s now {current_player.user.mention}\'s turn.\n'
         description += 'Click **Play Turn** to take your turn.'
 
+        # Generate URLs for positive and negative card backs
+        positive_back_url = f'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/{urllib.parse.quote("+card.png")}'
+        negative_back_url = f'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/{urllib.parse.quote("-card.png")}'
+
+        # Combine the card back URLs
+        card_image_urls = [positive_back_url, negative_back_url]
+        combined_image_path = None
+
+        try:
+            combined_image_path = combine_card_images(card_image_urls)
+        except Exception as e:
+            logger.error(f'Failed to combine card images: {e}')
+
+        # Create embed
         embed = Embed(
-            title='Kessel Sabacc Game',
+            title='Sabacc Game',
             description=description,
             color=0x964B00
         )
-        embed.set_thumbnail(url='https://static.wikia.nocookie.net/starwars/images/9/90/Sylop.png/revision/latest?cb=20180530101050')
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png')
+
+        if combined_image_path:
+            embed.set_image(url='attachment://combined_cards.png')
 
         if self.current_message:
             try:
@@ -151,11 +173,21 @@ class KesselGameView(ui.View):
         self.clear_items()
         self.add_item(PlayTurnButton(self))
         self.add_item(self.view_rules_button)
-        self.current_message = await self.channel.send(
-            content=f'{current_player.user.mention}',
-            embed=embed,
-            view=self
-        )
+
+        if combined_image_path:
+            with open(combined_image_path, 'rb') as f:
+                self.current_message = await self.channel.send(
+                    content=f'{current_player.user.mention}',
+                    embed=embed,
+                    file=discord.File(f, filename='combined_cards.png'),
+                    view=self
+                )
+        else:
+            self.current_message = await self.channel.send(
+                content=f'{current_player.user.mention}',
+                embed=embed,
+                view=self
+            )
 
     async def update_lobby_embed(self, interaction=None) -> None:
         '''Update the lobby embed with the current list of players and custom settings.'''
@@ -176,18 +208,19 @@ class KesselGameView(ui.View):
 
         if len(self.players) < 2:
             description += 'Waiting for more players to join...\n'
+            description += 'Click **Start Game** if you want to play with an AI.\n'
         else:
             description += 'Click **Start Game** to begin!\n'
 
         embed = Embed(
-            title='Kessel Sabacc Game Lobby',
+            title='Sabacc Game Lobby',
             description=description,
             color=0x964B00
         )
         embed.set_footer(text='Kessel Sabacc')
-        embed.set_thumbnail(url='https://static.wikia.nocookie.net/starwars/images/9/90/Sylop.png/revision/latest?cb=20180530101050')
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png')
 
-        self.start_game_button.disabled = len(self.players) < 2 or self.game_started
+        self.start_game_button.disabled = len(self.players) < 1 or self.game_started
         self.play_game_button.disabled = len(self.players) >= 8 or self.game_started
 
         if interaction:
@@ -234,7 +267,7 @@ class KesselGameView(ui.View):
         if interaction.user.id not in [player.user.id for player in self.players]:
             await interaction.response.send_message('Only players in the game can start the game.', ephemeral=True)
             return
-        if len(self.players) >= 2:
+        if len(self.players) >= 1:
             self.game_started = True
 
             # Initialize the game
@@ -254,6 +287,9 @@ class KesselGameView(ui.View):
             await interaction.response.defer()
 
             await self.proceed_to_next_player()
+
+            if len(self.players) == 1:
+                self.solo_game = True
         else:
             await interaction.response.send_message('Not enough players to start the game.', ephemeral=True)
 
@@ -332,9 +368,9 @@ class KesselGameView(ui.View):
 
         return (hand_rank, *tie_breakers), hand_type, total
 
-    async def end_game(self) -> None:
+    async def end_game(self, interaction: Interaction=None) -> None:
         '''Determine the winner of the game and end it.'''
-
+        
         # Assign values to Sylop cards
         for player in self.players:
             if player.positive_card == 'Sylop' and player.negative_card == 'Sylop':
@@ -365,13 +401,16 @@ class KesselGameView(ui.View):
             for player in players_with_impostors:
                 choose_view = ChooseImpostorValueView(self, player)
                 self.active_views.append(choose_view)
+                embed = Embed(
+                    title='Choose Your Impostor Card Value',
+                    description='You have Impostor card(s). Two dice have been rolled for each Impostor card. Choose your preferred value.',
+                    color=0x964B00
+                )
                 try:
-                    embed = Embed(
-                        title='Choose Your Impostor Card Value',
-                        description='You have Impostor card(s). Two dice have been rolled for each Impostor card. Choose your preferred value.',
-                        color=0x964B00
-                    )
-                    await player.user.send(embed=embed, view=choose_view)
+                    if interaction:
+                        await interaction.response.send_message(content=f'{player.user.mention}', embed=embed, view=choose_view, ephemeral=True)
+                    else:
+                        await player.user.send(content=f'{player.user.mention}', embed=embed, view=choose_view)
                 except Exception as e:
                     logger.error(f'Error sending Impostor choice to {player.user}: {e}')
                     if player.positive_card == 'Impostor':
@@ -393,6 +432,52 @@ class KesselGameView(ui.View):
     async def evaluate_and_display_results(self):
         '''Evaluate hands and display the game over screen.'''
 
+        if self.solo_game:
+            # Add Lando Calrissian AI to the game
+            lando = Player(user=type('AIUser', (object,), {'mention': 'Lando Calrissian AI'})())
+
+            # Handle positive card
+            if all(card == 'Impostor' for card in self.positive_deck):
+                # If only Impostor cards are left, assign a random value
+                lando.positive_card = random.randint(1, 6)
+            else:
+                while True:
+                    lando_positive_card = self.positive_deck.pop()
+                    if lando_positive_card != 'Impostor':
+                        lando.positive_card = lando_positive_card
+                        break
+                    else:
+                        self.positive_deck.insert(0, lando_positive_card)  # Return the card to the deck
+
+            # Handle negative card
+            if all(card == 'Impostor' for card in self.negative_deck):
+                # If only Impostor cards are left, assign a random negative value
+                lando.negative_card = -random.randint(1, 6)
+            else:
+                while True:
+                    lando_negative_card = self.negative_deck.pop()
+                    if lando_negative_card != 'Impostor':
+                        lando.negative_card = lando_negative_card
+                        break
+                    else:
+                        self.negative_deck.insert(0, lando_negative_card)  # Return the card to the deck
+
+            self.players.append(lando)
+
+        if not self.players:
+            # Handle the case where all players junked
+            embed = Embed(
+                title='Game Over',
+                description='Nobody won because everyone junked!',
+                color=0x964B00
+            )
+            embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png')
+            await self.channel.send(embed=embed, view=EndGameView())
+
+            if self in self.active_games:
+                self.active_games.remove(self)
+            return
+
         evaluated_hands = []
         for player in self.players:
             hand_value, hand_type, total = self.evaluate_hand(player)
@@ -401,6 +486,7 @@ class KesselGameView(ui.View):
         evaluated_hands.sort(key=lambda x: x[0])
 
         results = '**Final Hands:**\n'
+        '''
         for eh in evaluated_hands:
             _, player, hand_type, total = eh
             card_info = ''
@@ -417,6 +503,20 @@ class KesselGameView(ui.View):
                 sylop_value = player.sylop_values['negative']
                 card_info += f' (Ø value: {sylop_value}) '
 
+            results += f'{player.user.mention}: {player.get_cards_string()}{card_info} (Total: {total}, Hand: {hand_type})\n'
+        '''
+
+        for eh in evaluated_hands:
+            _, player, hand_type, total = eh
+            card_info = ''
+            if player.positive_card == 'Sylop':
+                sylop_value = player.sylop_values.get('positive', None)
+                if sylop_value is not None:
+                    card_info += f' (Ø value: +{sylop_value}) '
+            if player.negative_card == 'Sylop':
+                sylop_value = player.sylop_values.get('negative', None)
+                if sylop_value is not None:
+                    card_info += f' (Ø value: {sylop_value}) '
             results += f'{player.user.mention}: {player.get_cards_string()}{card_info} (Total: {total}, Hand: {hand_type})\n'
 
         best_hand_value = evaluated_hands[0][0]
@@ -440,12 +540,21 @@ class KesselGameView(ui.View):
             description=results,
             color=0x964B00
         )
-        embed.set_thumbnail(url='https://static.wikia.nocookie.net/starwars/images/9/90/Sylop.png/revision/latest?cb=20180530101050')
-        mentions = ' '.join(player.user.mention for player in self.players)
-        await self.channel.send(content=f'{mentions}', embed=embed)
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png')
+        mentions = ' '.join(player.user.mention for player in self.players if 'AIUser' not in type(player.user).__name__)
+        await self.channel.send(content=f'{mentions}', embed=embed, view=EndGameView())
 
         if self in self.active_games:
             self.active_games.remove(self)
+
+class EndGameView(ui.View):
+    '''Provide buttons for actions after the game ends.'''
+
+    def __init__(self):
+        '''Initialize the view with a View Rules button.'''
+
+        super().__init__(timeout=None)
+        self.add_item(ViewRulesButton())
 
 class ChooseImpostorValueView(ui.View):
     '''View for players to choose their Impostor card values.'''
@@ -476,11 +585,11 @@ class ChooseImpostorValueView(ui.View):
             self.dice_values = [-random.randint(1, 6), -random.randint(1, 6)]
 
         self.clear_items()
-        button1 = ui.Button(label=str(abs(self.dice_values[0])), style=ButtonStyle.primary)
+        button1 = ui.Button(label=str(self.dice_values[0]), style=ButtonStyle.primary)
         button1.callback = self.make_callback(self.dice_values[0])
         self.add_item(button1)
 
-        button2 = ui.Button(label=str(abs(self.dice_values[1])), style=ButtonStyle.primary)
+        button2 = ui.Button(label=str(self.dice_values[1]), style=ButtonStyle.primary)
         button2.callback = self.make_callback(self.dice_values[1])
         self.add_item(button2)
 
@@ -532,16 +641,15 @@ class ChooseImpostorValueView(ui.View):
             if self.player.negative_card == 'Impostor':
                 self.state = 'negative'
                 self.roll_dice()
+                embed = Embed(
+                    title='Choose Your Negative Impostor Card Value',
+                    description='Two dice have been rolled for your negative Impostor card. Choose your preferred value.',
+                    color=0x964B00
+                )
                 try:
-                    embed = Embed(
-                        title='Choose Your Negative Impostor Card Value',
-                        description='Two dice have been rolled for your negative Impostor card. Choose your preferred value.',
-                        color=0x964B00
-                    )
-                    await self.player.user.send(embed=embed, view=self)
-                    return
+                    await self.message.edit(embed=embed, view=self)
                 except Exception as e:
-                    logger.error(f'Error sending message to {self.player.user}: {e}')
+                    logger.error(f'Error updating ephemeral message: {e}')
                     self.player.impostor_values['negative'] = random.choice(self.dice_values)
                     self.game_view.impostor_choices_pending -= 1
         elif self.state == 'negative':
@@ -561,12 +669,36 @@ class PlayTurnButton(ui.Button):
 
     async def callback(self, interaction: Interaction) -> None:
         '''Handle the Play Turn button press.'''
+
         current_player = self.game_view.players[self.game_view.current_player_index]
         if interaction.user.id != current_player.user.id:
             await interaction.response.send_message('It\'s not your turn.', ephemeral=True)
             return
-        turn_view = TurnView(self.game_view, current_player)
-        self.game_view.active_views.append(turn_view)
+
+        base_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/'
+
+        card_image_urls = []
+
+        if current_player.positive_card is not None:
+            if isinstance(current_player.positive_card, int):
+                card_image_urls.append(f'{base_url}{quote(f"+{current_player.positive_card}")}.png')
+            elif isinstance(current_player.positive_card, str):
+                card_image_urls.append(f'{base_url}{quote(f"+{current_player.positive_card.lower()}")}.png')
+
+        if current_player.negative_card is not None:
+            if isinstance(current_player.negative_card, int):
+                card_image_urls.append(f'{base_url}{quote(str(current_player.negative_card))}.png')
+            elif isinstance(current_player.negative_card, str):
+                card_image_urls.append(f'{base_url}{quote(f"-{current_player.negative_card.lower()}")}.png')
+
+        # Attempt to combine card images
+        combined_image_path = None
+        try:
+            combined_image_path = combine_card_images(card_image_urls)
+        except Exception as e:
+            logger.error(f'Failed to combine card images: {e}')
+
+        # Prepare the embed
         embed = Embed(
             title=f'Your Turn - Round {self.game_view.rounds_completed + 1}/{self.game_view.total_rounds}',
             description=f'**Your Hand:** {current_player.get_cards_string()}',
@@ -580,8 +712,33 @@ class PlayTurnButton(ui.Button):
         if explanations:
             embed.add_field(name='Note:', value=explanations.strip(), inline=False)
 
-        embed.set_thumbnail(url='https://static.wikia.nocookie.net/starwars/images/9/90/Sylop.png/revision/latest?cb=20180530101050')
-        await interaction.response.send_message(embed=embed, view=turn_view, ephemeral=True)
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png')
+
+        # Attach the combined image if it was created successfully
+        if combined_image_path:
+            embed.set_image(url='attachment://combined_cards.png')
+
+        # Create a turn view for player actions
+        turn_view = TurnView(self.game_view, current_player)
+        self.game_view.active_views.append(turn_view)
+
+        # Send the embed
+        if combined_image_path:
+            # Send with the combined image
+            with open(combined_image_path, 'rb') as f:
+                await interaction.response.send_message(
+                    embed=embed,
+                    view=turn_view,
+                    file=discord.File(f, filename='combined_cards.png'),
+                    ephemeral=True
+                )
+        else:
+            # Send without the combined image
+            await interaction.response.send_message(
+                embed=embed,
+                view=turn_view,
+                ephemeral=True
+            )
 
 class TurnView(ui.View):
     '''Provide action buttons for the player's turn.'''
@@ -617,6 +774,35 @@ class TurnView(ui.View):
         discard_view = DiscardCardView(self.game_view, self.player)
         self.game_view.active_views.append(discard_view)
 
+        base_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/'
+
+        card_image_urls = []
+
+        if self.player.positive_card is not None:
+            if isinstance(self.player.positive_card, int):
+                card_image_urls.append(f'{base_url}{quote(f"+{self.player.positive_card}")}.png')
+            elif isinstance(self.player.positive_card, str):
+                card_image_urls.append(f'{base_url}{quote(f"+{self.player.positive_card.lower()}")}.png')
+
+        if self.player.drawn_card is not None:
+            if isinstance(self.player.drawn_card, int):
+                card_image_urls.append(f'{base_url}{quote(f"+{self.player.drawn_card}")}.png')
+            elif isinstance(self.player.drawn_card, str):
+                card_image_urls.append(f'{base_url}{quote(f"+{self.player.drawn_card.lower()}")}.png')
+
+        if self.player.negative_card is not None:
+            if isinstance(self.player.negative_card, int):
+                card_image_urls.append(f'{base_url}{quote(str(self.player.negative_card))}.png')
+            elif isinstance(self.player.negative_card, str):
+                card_image_urls.append(f'{base_url}{quote(f"-{self.player.negative_card.lower()}")}.png')
+
+        # Attempt to combine card images
+        combined_image_path = None
+        try:
+            combined_image_path = combine_card_images(card_image_urls)
+        except Exception as e:
+            logger.error(f'Failed to combine card images: {e}')
+
         embed = Embed(
             title='You Drew a Positive Card',
             description=f'You drew: **{self.get_card_display(self.player.drawn_card)}**{special_info}\n\n'
@@ -624,7 +810,24 @@ class TurnView(ui.View):
                         'Choose which card to keep.',
             color=0x964B00
         )
-        await interaction.response.edit_message(embed=embed, view=discard_view)
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png')
+
+        if combined_image_path:
+            embed.set_image(url='attachment://combined_cards.png')
+            
+        # Send the embed
+        if combined_image_path:
+            # Send with the combined image
+            with open(combined_image_path, 'rb') as f:
+                await interaction.response.edit_message(
+                    embed=embed,
+                    view=discard_view,
+                    attachments=[discord.File(f, filename='combined_cards.png')]
+                )
+        else:
+            # Send without the combined image
+            await interaction.response.edit_message(embed=embed, view=discard_view)
+        #await interaction.response.edit_message(embed=embed, view=discard_view)
         self.stop()
 
     @ui.button(label='Draw Negative', style=ButtonStyle.primary)
@@ -645,6 +848,35 @@ class TurnView(ui.View):
         discard_view = DiscardCardView(self.game_view, self.player)
         self.game_view.active_views.append(discard_view)
 
+        base_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/'
+
+        card_image_urls = []
+
+        if self.player.positive_card is not None:
+            if isinstance(self.player.positive_card, int):
+                card_image_urls.append(f'{base_url}{quote(f"+{self.player.positive_card}")}.png')
+            elif isinstance(self.player.positive_card, str):
+                card_image_urls.append(f'{base_url}{quote(f"+{self.player.positive_card.lower()}")}.png')
+
+        if self.player.negative_card is not None:
+            if isinstance(self.player.negative_card, int):
+                card_image_urls.append(f'{base_url}{quote(str(self.player.negative_card))}.png')
+            elif isinstance(self.player.negative_card, str):
+                card_image_urls.append(f'{base_url}{quote(f"-{self.player.negative_card.lower()}")}.png')
+
+        if self.player.drawn_card is not None:
+            if isinstance(self.player.drawn_card, int):
+                card_image_urls.append(f'{base_url}{quote(str(self.player.drawn_card))}.png')
+            elif isinstance(self.player.drawn_card, str):
+                card_image_urls.append(f'{base_url}{quote(f"-{self.player.drawn_card.lower()}")}.png')
+
+        # Attempt to combine card images
+        combined_image_path = None
+        try:
+            combined_image_path = combine_card_images(card_image_urls)
+        except Exception as e:
+            logger.error(f'Failed to combine card images: {e}')
+
         embed = Embed(
             title='You Drew a Negative Card',
             description=f'You drew: **{self.get_card_display(self.player.drawn_card)}**{special_info}\n\n'
@@ -652,12 +884,52 @@ class TurnView(ui.View):
                         'Choose which card to keep.',
             color=0x964B00
         )
-        await interaction.response.edit_message(embed=embed, view=discard_view)
+        if combined_image_path:
+            embed.set_image(url='attachment://combined_cards.png')
+            
+        # Send the embed
+        if combined_image_path:
+            # Send with the combined image
+            with open(combined_image_path, 'rb') as f:
+                await interaction.response.edit_message(
+                    embed=embed,
+                    view=discard_view,
+                    attachments=[discord.File(f, filename='combined_cards.png')]
+                )
+        else:
+            # Send without the combined image
+            await interaction.response.edit_message(embed=embed, view=discard_view)
+
+        #await interaction.response.edit_message(embed=embed, view=discard_view)
         self.stop()
 
     @ui.button(label='Stand', style=ButtonStyle.success)
     async def stand_button(self, interaction: Interaction, button: ui.Button) -> None:
         '''Handle the Stand action.'''
+
+        base_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/'
+
+        card_image_urls = []
+
+        if self.player.positive_card is not None:
+            if isinstance(self.player.positive_card, int):
+                card_image_urls.append(f'{base_url}{quote(f"+{self.player.positive_card}")}.png')
+            elif isinstance(self.player.positive_card, str):
+                card_image_urls.append(f'{base_url}{quote(f"+{self.player.positive_card.lower()}")}.png')
+
+        if self.player.negative_card is not None:
+            if isinstance(self.player.negative_card, int):
+                card_image_urls.append(f'{base_url}{quote(str(self.player.negative_card))}.png')
+            elif isinstance(self.player.negative_card, str):
+                card_image_urls.append(f'{base_url}{quote(f"-{self.player.negative_card.lower()}")}.png')
+
+        # Attempt to combine card images
+        combined_image_path = None
+        try:
+            combined_image_path = combine_card_images(card_image_urls)
+        except Exception as e:
+            logger.error(f'Failed to combine card images: {e}')
+
         embed = Embed(
             title=f'You Chose to Stand - Round {self.game_view.rounds_completed + 1}/{self.game_view.total_rounds}',
             description=f'**Your Hand:** {self.player.get_cards_string()}',
@@ -671,25 +943,84 @@ class TurnView(ui.View):
         if explanations:
             embed.add_field(name='Note:', value=explanations.strip(), inline=False)
 
-        embed.set_thumbnail(url='https://static.wikia.nocookie.net/starwars/images/9/90/Sylop.png/revision/latest?cb=20180530101050')
-        await interaction.response.edit_message(embed=embed, view=None)
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png')
+
+        if combined_image_path:
+            embed.set_image(url='attachment://combined_cards.png')
+            
+        # Send the embed
+        if combined_image_path:
+            # Send with the combined image
+            with open(combined_image_path, 'rb') as f:
+                await interaction.response.edit_message(
+                    embed=embed,
+                    view=None,
+                    attachments=[discord.File(f, filename='combined_cards.png')]
+                )
+        else:
+            # Send without the combined image
+            await interaction.response.edit_message(
+                embed=embed,
+                view=None
+            )
         self.stop()
         await self.game_view.proceed_to_next_player()
 
     @ui.button(label='Junk', style=ButtonStyle.danger)
     async def junk_button(self, interaction: Interaction, button: ui.Button) -> None:
         '''Handle the Junk action, removing the player from the game.'''
+
+        base_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/'
+
+        card_image_urls = []
+
+        if self.player.positive_card is not None:
+            if isinstance(self.player.positive_card, int):
+                card_image_urls.append(f'{base_url}{quote(f"+{self.player.positive_card}")}.png')
+            elif isinstance(self.player.positive_card, str):
+                card_image_urls.append(f'{base_url}{quote(f"+{self.player.positive_card.lower()}")}.png')
+
+        if self.player.negative_card is not None:
+            if isinstance(self.player.negative_card, int):
+                card_image_urls.append(f'{base_url}{quote(str(self.player.negative_card))}.png')
+            elif isinstance(self.player.negative_card, str):
+                card_image_urls.append(f'{base_url}{quote(f"-{self.player.negative_card.lower()}")}.png')
+
+        # Attempt to combine card images
+        combined_image_path = None
+        try:
+            combined_image_path = combine_card_images(card_image_urls)
+        except Exception as e:
+            logger.error(f'Failed to combine card images: {e}')
+
         embed = Embed(
             title=f'You Chose to Junk - Round {self.game_view.rounds_completed + 1}/{self.game_view.total_rounds}',
             description='You have given up and are out of the game.',
             color=0x964B00
         )
-        embed.set_thumbnail(url='https://static.wikia.nocookie.net/starwars/images/9/90/Sylop.png/revision/latest?cb=20180530101050')
-        await interaction.response.edit_message(embed=embed, view=None)
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png')
+
+        if combined_image_path:
+            embed.set_image(url='attachment://combined_cards.png')
+
+        # Send the embed
+        if combined_image_path:
+            # Send with the combined image
+            with open(combined_image_path, 'rb') as f:
+                await interaction.response.edit_message(
+                    embed=embed,
+                    view=None,
+                    attachments=[discord.File(f, filename='combined_cards.png')]
+                )
+        else:
+            # Send without the combined image
+            await interaction.response.edit_message(embed=embed,view=None)
+        #await interaction.response.edit_message(embed=embed, view=None)
+
         self.game_view.players.remove(self.player)
         self.stop()
         if len(self.game_view.players) < 2:
-            await self.game_view.end_game()
+            await self.game_view.end_game(interaction=interaction)
         else:
             await self.game_view.proceed_to_next_player()
 
@@ -788,6 +1119,29 @@ class DiscardCardView(ui.View):
 
             self.player.discard_drawn_card()
 
+            base_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/'
+
+            card_image_urls = []
+
+            if self.player.positive_card is not None:
+                if isinstance(self.player.positive_card, int):
+                    card_image_urls.append(f'{base_url}{quote(f"+{self.player.positive_card}")}.png')
+                elif isinstance(self.player.positive_card, str):
+                    card_image_urls.append(f'{base_url}{quote(f"+{self.player.positive_card.lower()}")}.png')
+
+            if self.player.negative_card is not None:
+                if isinstance(self.player.negative_card, int):
+                    card_image_urls.append(f'{base_url}{quote(str(self.player.negative_card))}.png')
+                elif isinstance(self.player.negative_card, str):
+                    card_image_urls.append(f'{base_url}{quote(f"-{self.player.negative_card.lower()}")}.png')
+
+            # Attempt to combine card images
+            combined_image_path = None
+            try:
+                combined_image_path = combine_card_images(card_image_urls)
+            except Exception as e:
+                logger.error(f'Failed to combine card images: {e}')
+
             embed = Embed(
                 title='Card Selected',
                 description=f'**Your Hand:** {self.player.get_cards_string()}',
@@ -801,7 +1155,22 @@ class DiscardCardView(ui.View):
             if explanations:
                 embed.add_field(name='Note:', value=explanations.strip(), inline=False)
 
-            await interaction.response.edit_message(embed=embed, view=None)
+            if combined_image_path:
+                embed.set_image(url='attachment://combined_cards.png')
+
+            # Send the embed
+            if combined_image_path:
+                # Send with the combined image
+                with open(combined_image_path, 'rb') as f:
+                    await interaction.response.edit_message(
+                        embed=embed,
+                        view=None,
+                        attachments=[discord.File(f, filename='combined_cards.png')]
+                    )
+            else:
+                # Send without the combined image
+                await interaction.response.edit_message(embed=embed,view=None)
+
             self.stop()
             await self.game_view.proceed_to_next_player()
         return callback

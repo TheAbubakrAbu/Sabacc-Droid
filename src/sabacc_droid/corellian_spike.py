@@ -2,17 +2,10 @@
 
 import random
 import logging
-
-from PIL import Image
-import requests
-from io import BytesIO
-import tempfile
 from urllib.parse import quote
-
 import discord
 from discord import Embed, ButtonStyle, ui, Interaction
-
-from rules import get_corellian_spike_rules_embed
+from rules import get_corellian_spike_rules_embed, combine_card_images
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -64,32 +57,6 @@ class Player:
 
         return sum(self.cards)
 
-import tempfile
-
-def combine_card_images(card_image_urls: list[str], resize_width: int = 80, resize_height: int = 120, padding: int = 10) -> str:
-    '''Combine multiple card images horizontally into a single image with optional resizing and padding.'''
-    card_images = []
-    for url in card_image_urls:
-        response = requests.get(url, stream=True)
-        if response.status_code == 200:
-            img = Image.open(BytesIO(response.content))
-            img = img.resize((resize_width, resize_height), Image.Resampling.LANCZOS)
-            card_images.append(img)
-
-    total_width = sum(img.width for img in card_images) + padding * (len(card_images) - 1)
-    max_height = max(img.height for img in card_images)
-
-    combined_image = Image.new('RGBA', (total_width, max_height), (255, 255, 255, 0))
-    x_offset = 0
-    for img in card_images:
-        combined_image.paste(img, (x_offset, 0))
-        x_offset += img.width + padding
-
-    # Use a temporary file to save the image
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
-    combined_image.save(temp_file.name, format='PNG')
-    return temp_file.name
-
 class CorelliaGameView(ui.View):
     '''Manage the game's state and UI components.'''
 
@@ -107,7 +74,7 @@ class CorelliaGameView(ui.View):
         self.current_message = None
         self.active_views: list[ui.View] = []
         self.active_games = active_games
-
+        self.solo_game = False
         self.view_rules_button = ViewRulesButton()
         self.add_item(self.view_rules_button)
 
@@ -124,9 +91,9 @@ class CorelliaGameView(ui.View):
 
         embed = Embed(
             title='Sabacc Game Lobby',
-            description=f'Click **Play Game** to join the game.\n\n'
+            description='Click **Play Game** to join the game.\n\n'
                         f'**Game Settings:**\n{self.rounds} rounds\n{self.num_cards} starting cards\n\n'
-                        'Once at least two players have joined, the **Start Game** button will be enabled.',
+                        'Once someone has joined, the **Start Game** button will be enabled.',
             color=0x964B00
         )
         embed.set_footer(text='Corellian Spike Sabacc')
@@ -147,7 +114,7 @@ class CorelliaGameView(ui.View):
         description += 'Click **Play Turn** to take your turn.\n\n'
 
         # Attempt to create a list of card backs for the current player's card count
-        card_back_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike/back.png'
+        card_back_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike/card.png'
         card_image_urls = [card_back_url] * card_count
 
         combined_image_path = None  # Default to None in case image combination fails
@@ -160,7 +127,7 @@ class CorelliaGameView(ui.View):
 
         # Create embed
         embed = Embed(
-            title='Corellian Spike Sabacc Game',
+            title='Sabacc Game',
             description=description,
             color=0x964B00
         )
@@ -219,18 +186,18 @@ class CorelliaGameView(ui.View):
 
         if len(self.players) < 2:
             description += 'Waiting for more players to join...\n'
+            description += 'Click **Start Game** if you want to play with an AI.\n'
         else:
             description += 'Click **Start Game** to begin!\n'
 
         embed = Embed(
-            title='Corellian Spike Sabacc Game Lobby',
+            title='Sabacc Game Lobby',
             description=description,
             color=0x964B00
         )
         embed.set_footer(text='Corellian Spike Sabacc')
         embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
 
-# FIX THIS < 2
         self.start_game_button.disabled = len(self.players) < 1 or self.game_started
         self.play_game_button.disabled = len(self.players) >= 8 or self.game_started
 
@@ -281,7 +248,6 @@ class CorelliaGameView(ui.View):
         if interaction.user.id not in [player.user.id for player in self.players]:
             await interaction.response.send_message('Only players in the game can start the game.', ephemeral=True)
             return
-# FIX THIS >= 2
         if len(self.players) >= 1:
             self.game_started = True
 
@@ -303,6 +269,9 @@ class CorelliaGameView(ui.View):
 
             # Start the first turn
             await self.proceed_to_next_player()
+
+            if len(self.players) == 1:
+                self.solo_game = True
         else:
             await interaction.response.send_message('Not enough players to start the game.', ephemeral=True)
 
@@ -410,6 +379,27 @@ class CorelliaGameView(ui.View):
     async def end_game(self) -> None:
         '''Determine the winner of the game and end it.'''
 
+        if self.solo_game:
+            # Add Lando Calrissian AI to the game
+            lando = Player(user=type('AIUser', (object,), {'mention': 'Lando Calrissian AI'})())
+            lando.draw_card(self.deck)
+            lando.draw_card(self.deck)
+            self.players.append(lando)
+
+        if not self.players:
+            # Handle the case where all players junked
+            embed = Embed(
+                title='Game Over',
+                description='Nobody won because everyone junked!',
+                color=0x964B00
+            )
+            embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
+            await self.message.channel.send(embed=embed, view=EndGameView())
+
+            if self in self.active_games:
+                self.active_games.remove(self)
+            return
+
         evaluated_hands = []
         for player in self.players:
             hand_value, hand_type, total = self.evaluate_hand(player)
@@ -442,11 +432,20 @@ class CorelliaGameView(ui.View):
             color=0x964B00
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
-        mentions = ' '.join(player.user.mention for player in self.players)
-        await self.message.channel.send(content=f'{mentions}', embed=embed)
+        mentions = ' '.join(player.user.mention for player in self.players if 'AIUser' not in type(player.user).__name__)
+        await self.message.channel.send(content=f'{mentions}', embed=embed, view=EndGameView())
 
         if self in self.active_games:
             self.active_games.remove(self)
+
+class EndGameView(ui.View):
+    '''Provide buttons for actions after the game ends.'''
+
+    def __init__(self):
+        '''Initialize the view with a View Rules button.'''
+
+        super().__init__(timeout=None)
+        self.add_item(ViewRulesButton())
 
 class PlayTurnButton(ui.Button):
     '''Initialize the Play Turn button.'''
@@ -673,13 +672,44 @@ class TurnView(ui.View):
     async def stand_button(self, interaction: Interaction, button: ui.Button) -> None:
         '''Handle the Stand action.'''
 
+        # Generate card image URLs dynamically
+        base_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike/'
+        card_image_urls = [
+            f'{base_url}{quote(f"+{card}" if card > 0 else str(card))}.png'
+            for card in self.player.cards
+        ]
+
+        # Attempt to combine card images
+        combined_image_path = None
+        try:
+            combined_image_path = combine_card_images(card_image_urls)
+        except Exception as e:
+            logger.error(f'Failed to combine card images: {e}')
+            # Continue without an image
+
+        # Prepare the embed
         embed = Embed(
             title=f'You Chose to Stand - Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}',
             description=f'**Your Hand:** {self.player.get_cards_string()}\n**Total:** {self.player.get_total()}',
             color=0x964B00
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
-        await interaction.response.edit_message(embed=embed, view=None)
+
+        # Attach the combined image if it was created successfully
+        if combined_image_path:
+            embed.set_image(url='attachment://combined_cards.png')
+
+        # Send the embed
+        if combined_image_path:
+            with open(combined_image_path, 'rb') as f:
+                await interaction.response.edit_message(
+                    embed=embed,
+                    view=None,
+                    attachments=[discord.File(f, filename='combined_cards.png')]
+                )
+        else:
+            await interaction.response.edit_message(embed=embed, view=None)
+
         self.stop()
         await self.game_view.proceed_to_next_player()
 
@@ -687,15 +717,49 @@ class TurnView(ui.View):
     async def junk_button(self, interaction: Interaction, button: ui.Button) -> None:
         '''Handle the Junk action, removing the player from the game.'''
 
+        # Generate card image URLs dynamically (for the player's last hand)
+        base_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike/'
+        card_image_urls = [
+            f'{base_url}{quote(f"+{card}" if card > 0 else str(card))}.png'
+            for card in self.player.cards
+        ]
+
+        # Attempt to combine card images
+        combined_image_path = None
+        try:
+            combined_image_path = combine_card_images(card_image_urls)
+        except Exception as e:
+            logger.error(f'Failed to combine card images: {e}')
+            # Continue without an image
+
+        # Prepare the embed
         embed = Embed(
             title=f'You Chose to Junk - Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}',
             description='You have given up and are out of the game.',
             color=0x964B00
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
-        await interaction.response.edit_message(embed=embed, view=None)
+
+        # Attach the combined image if it was created successfully
+        if combined_image_path:
+            embed.set_image(url='attachment://combined_cards.png')
+
+        # Send the embed
+        if combined_image_path:
+            with open(combined_image_path, 'rb') as f:
+                await interaction.response.edit_message(
+                    embed=embed,
+                    view=None,
+                    attachments=[discord.File(f, filename='combined_cards.png')]
+                )
+        else:
+            await interaction.response.edit_message(embed=embed, view=None)
+
+        # Remove the player from the game
         self.game_view.players.remove(self.player)
         self.stop()
+
+        # Check if the game needs to end
         if len(self.game_view.players) < 2:
             await self.game_view.end_game()
         else:
