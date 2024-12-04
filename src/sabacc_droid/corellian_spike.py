@@ -276,13 +276,16 @@ class CorelliaGameView(ui.View):
             await interaction.response.send_message('Not enough players to start the game.', ephemeral=True)
 
     def generate_deck(self) -> list[int]:
-        '''Generate and shuffle a new deck for the game.'''
-
+        '''Generate and shuffle a new deck for the game. There are two decks in case there is a custom game'''
+        
         deck = [i for i in range(1, 11) for _ in range(3)]  # Positive cards
         deck += [-i for i in range(1, 11) for _ in range(3)]  # Negative cards
         deck += [0, 0]
+        second_deck = deck.copy()
         random.shuffle(deck)
-        return deck
+        random.shuffle(second_deck)
+        print(len(deck + second_deck))
+        return deck + second_deck
 
     async def proceed_to_next_player(self) -> None:
         '''Proceed to the next player's turn or end the round if necessary.'''
@@ -481,7 +484,7 @@ class PlayTurnButton(ui.Button):
 
         # Prepare the embed
         embed = Embed(
-            title=f'Your Turn - Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}',
+            title=f'Your Turn | Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}',
             description=f'**Your Hand:** {current_player.get_cards_string()}\n**Total:** {current_player.get_total()}',
             color=0x964B00
         )
@@ -553,7 +556,7 @@ class TurnView(ui.View):
             # Continue without an image
 
         embed = Embed(
-            title=f'You Drew a Card - Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}',
+            title=f'You Drew a Card | Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}',
             description=f'**Your Hand:** {self.player.get_cards_string()}\n**Total:** {self.player.get_total()}',
             color=0x964B00
         )
@@ -604,7 +607,7 @@ class TurnView(ui.View):
         card_select_view = CardSelectView(self, action='discard')
         self.game_view.active_views.append(card_select_view)
         embed = Embed(
-            title=f'Discard a Card - Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}',
+            title=f'Discard a Card | Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}',
             description='Click the button corresponding to the card you want to discard.',
             color=0x964B00
         )
@@ -647,7 +650,7 @@ class TurnView(ui.View):
         card_select_view = CardSelectView(self, action='replace')
         self.game_view.active_views.append(card_select_view)
         embed = Embed(
-            title=f'Replace a Card - Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}',
+            title=f'Replace a Card | Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}',
             description='Click the button corresponding to the card you want to replace.',
             color=0x964B00
         )
@@ -689,7 +692,7 @@ class TurnView(ui.View):
 
         # Prepare the embed
         embed = Embed(
-            title=f'You Chose to Stand - Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}',
+            title=f'You Chose to Stand | Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}',
             description=f'**Your Hand:** {self.player.get_cards_string()}\n**Total:** {self.player.get_total()}',
             color=0x964B00
         )
@@ -734,7 +737,7 @@ class TurnView(ui.View):
 
         # Prepare the embed
         embed = Embed(
-            title=f'You Chose to Junk - Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}',
+            title=f'You Chose to Junk | Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}',
             description='You have given up and are out of the game.',
             color=0x964B00
         )
@@ -822,11 +825,11 @@ class CardSelectView(ui.View):
                     await interaction.response.send_message('You cannot discard when you have only one card.', ephemeral=True)
                     return
                 self.player.cards.pop(card_index)
-                title = f'You Discarded {card_value} - Round {self.turn_view.game_view.rounds_completed}/{self.turn_view.game_view.total_rounds}'
+                title = f'You Discarded {card_value} | Round {self.turn_view.game_view.rounds_completed}/{self.turn_view.game_view.total_rounds}'
             elif self.action == 'replace':
                 self.player.cards.pop(card_index)
                 self.player.draw_card(self.turn_view.game_view.deck)
-                title = f'You Replaced {card_value} - Round {self.turn_view.game_view.rounds_completed}/{self.turn_view.game_view.total_rounds}'
+                title = f'You Replaced {card_value} | Round {self.turn_view.game_view.rounds_completed}/{self.turn_view.game_view.total_rounds}'
             else:
                 embed = Embed(title='Unknown Action', description='An error occurred.', color=0xFF0000)
                 await interaction.response.edit_message(embed=embed, view=None)
@@ -941,7 +944,7 @@ class GoBackButton(ui.Button):
 
         # Prepare the embed
         embed = Embed(
-            title=f'Your Turn - Round {turn_view.game_view.rounds_completed}/{turn_view.game_view.total_rounds}',
+            title=f'Your Turn | Round {turn_view.game_view.rounds_completed}/{turn_view.game_view.total_rounds}',
             description=f'**Your Hand:** {turn_view.player.get_cards_string()}\n**Total:** {turn_view.player.get_total()}',
             color=0x964B00
         )

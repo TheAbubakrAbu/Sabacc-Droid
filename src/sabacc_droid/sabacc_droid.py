@@ -29,14 +29,14 @@ active_games = []
 
 @bot.tree.command(name='corellian_spike', description='Start a Corellian Spike Sabacc game with optional custom settings')
 @app_commands.describe(
-    rounds='Number of rounds (default: 3, max: 5)',
-    num_cards='Number of initial cards (default: 2, max: 3)'
+    rounds='Number of rounds (default: 3, max: 10)',
+    num_cards='Number of initial cards (default: 2, max: 5)'
 )
 async def corellian_command(interaction: Interaction, rounds: int = 3, num_cards: int = 2) -> None:
     '''Initiate a new Corellian Spike Sabacc game with optional custom settings.'''
 
-    rounds = max(1, min(rounds, 4))
-    num_cards = max(1, min(num_cards, 3))
+    rounds = max(1, min(rounds, 10))
+    num_cards = max(1, min(num_cards, 5))
 
     view = CorelliaGameView(rounds=rounds, num_cards=num_cards, active_games=active_games)
     embed = discord.Embed(
@@ -57,14 +57,19 @@ async def corellian_command(interaction: Interaction, rounds: int = 3, num_cards
         print(f'Error in corellian_command: {e}')
 
 @bot.tree.command(name='kessel', description='Start a Kessel Sabacc game')
-async def kessel_command(interaction: Interaction) -> None:
+@app_commands.describe(
+    rounds='Number of rounds (default: 3, max: 10)'
+)
+async def kessel_command(interaction: Interaction, rounds: int = 3) -> None:
     '''Initiate a new Kessel Sabacc game with optional custom settings.'''
+
+    rounds = max(1, min(rounds, 10))
 
     view = KesselGameView(rounds=3, active_games=active_games, channel=interaction.channel)
     embed = discord.Embed(
         title='Sabacc Game Lobby',
         description='Click **Play Game** to join the game.\n\n'
-                    '**Game Settings:**\n3 rounds\n2 starting cards\n\n'
+                    f'**Game Settings:**\n{rounds} rounds\n2 starting cards\n\n'
                     'Once someone has joined, the **Start Game** button will be enabled.',
         color=0x964B00
     )

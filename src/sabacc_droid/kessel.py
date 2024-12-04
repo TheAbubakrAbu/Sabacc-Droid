@@ -299,15 +299,19 @@ class KesselGameView(ui.View):
         positive_deck = [i for i in range(1, 7) for _ in range(3)]  # Positive cards 1 to 6
         positive_deck += ['Impostor'] * 3  # Three Impostor cards
         positive_deck += ['Sylop']  # One Sylop card
+        second_p_deck = positive_deck.copy()
         random.shuffle(positive_deck)
+        random.shuffle(second_p_deck)
 
         # Negative Deck
         negative_deck = [-i for i in range(1, 7) for _ in range(3)]  # Negative cards -1 to -6
         negative_deck += ['Impostor'] * 3  # Three Impostor cards
         negative_deck += ['Sylop']  # One Sylop card
+        second_n_deck = negative_deck.copy()
         random.shuffle(negative_deck)
+        random.shuffle(second_n_deck)
 
-        return positive_deck, negative_deck
+        return (positive_deck + second_p_deck + ['Sylop']), (negative_deck + second_n_deck + ['Sylop'])
 
     async def proceed_to_next_player(self) -> None:
         '''Proceed to the next player's turn or end the round if necessary.'''
@@ -700,7 +704,7 @@ class PlayTurnButton(ui.Button):
 
         # Prepare the embed
         embed = Embed(
-            title=f'Your Turn - Round {self.game_view.rounds_completed + 1}/{self.game_view.total_rounds}',
+            title=f'Your Turn | Round {self.game_view.rounds_completed + 1}/{self.game_view.total_rounds}',
             description=f'**Your Hand:** {current_player.get_cards_string()}',
             color=0x964B00
         )
@@ -931,7 +935,7 @@ class TurnView(ui.View):
             logger.error(f'Failed to combine card images: {e}')
 
         embed = Embed(
-            title=f'You Chose to Stand - Round {self.game_view.rounds_completed + 1}/{self.game_view.total_rounds}',
+            title=f'You Chose to Stand | Round {self.game_view.rounds_completed + 1}/{self.game_view.total_rounds}',
             description=f'**Your Hand:** {self.player.get_cards_string()}',
             color=0x964B00
         )
@@ -994,7 +998,7 @@ class TurnView(ui.View):
             logger.error(f'Failed to combine card images: {e}')
 
         embed = Embed(
-            title=f'You Chose to Junk - Round {self.game_view.rounds_completed + 1}/{self.game_view.total_rounds}',
+            title=f'You Chose to Junk | Round {self.game_view.rounds_completed + 1}/{self.game_view.total_rounds}',
             description='You have given up and are out of the game.',
             color=0x964B00
         )
