@@ -24,38 +24,47 @@ def get_corellian_spike_rules_embed() -> Embed:
                     '- **Junk:** Give up and exit the game.\n\n'
                     '**Hand Value Calculation:**\n'
                     '- A player\'s hand value is the **sum** of all cards in their hand.\n'
-                    '- Players aim for a total hand value of zero.\n\n'
+                    '- Players aim for a total hand value of **zero**.\n\n'
                     '**Ranking Corellian Spike Hands (from best to worst):**\n\n'
-                    '**Special Hands:**\n'
-                    '- **Pure Sabacc:** Two Sylops (0).\n'
-                    '   - 0, 0\n'
-                    '- **Full Sabacc:** 2 +10s, 2 -10s, and a Sylop (0)\n'
-                    '   - +10, +10, -10, -10, 0\n'
-                    '- **Yee-Haa:** One Sabacc Pair and a Sylop (0).\n'
-                    '   - Follows the same rules as Sabacc Pairs (view below); lower integer wins.\n'
-                    '   - *Example:* +5, -5, 0 beats +8, -8, 0 \n'
-                    '- **Rule of Two:** Two Sabacc Pairs.\n'
-                    '   - Follows the same rules as Sabacc Pairs (view below); lower integer wins.\n'
-                    '   - *Example:* +3, -3, +7, -7 beats +4, -4, +5, -5\n'
-                    '- **Sabacc Pair:** Two cards where one positive and one negative card have the same absolute value.\n'
-                    '   - *Example:* +5, -5\n'
-                    '   - Sabacc Pair hands are ranked by the absolute values of their cards; lower integers are better.\n'
-                    '      - For example, a hand of +2 and -2 beats a hand of +3 and -3 because 2 is lower than 3.\n'
-                    '      - The best Sabacc Pair is **+1, -1**, and the worst is **+10, -10**.\n\n'
-                    '**Sabacc Hands (Sum equals 0):**\n'
-                    '- If no player has a Special hand, players with a Sabacc (sum of zero) are ranked next.\n'
-                    '- Tie-breakers (in order):\n'
-                    '   - Most cards win.\n'
-                    '   - Highest positive sum wins.\n'
-                    '   - Highest single positive card wins.\n\n'
-                    '**Nulrhek Hands (Sum does not equal 0):**\n'
-                    '- If no player has a total sum of 0, Nulrhek hands are considered.\n'
-                    '- Tie-breakers (in order):\n'
-                    '   - Closest to zero wins.\n'
-                    '   - Positive totals beat negative totals.\n'
-                    '   - Most cards win.\n'
-                    '   - Highest positive sum wins.\n'
-                    '   - Highest single positive card wins.\n\n'
+                    '1. **Pure Sabacc:** Two sylops (0): 0, 0.\n\n'
+                    '2. **Full Sabacc:** 0, +10, +10, -10, -10.\n\n'
+                    '3. **Fleet:** Sum zero, one sylop (0), and four of a kind.\n'
+                    '   - Tie-breaker: Lowest card value.\n'
+                    '   - Example: 0, +5, +5, -5, -5\n\n'
+                    '4. **Yee-Haa:** Sum zero, one sylop (0), and at least one pair.\n'
+                    '   - Tie-breaker: Lowest pair value.\n'
+                    '   - Example: 0, +4, -4, +8\n\n'
+                    '5. **Rhylet:** Sum zero, three of a kind, additional cards.\n'
+                    '   - Tie-breaker: Lowest three of a kind value.\n'
+                    '   - Example: +2, +2, +2, -6\n\n'
+                    '6. **Squadron:** Sum zero, four of a kind.\n'
+                    '   - Tie-breaker: Lowest card value.\n'
+                    '   - Example: +5, +5, -5, -5\n\n'
+                    '7. **Bantha\'s Wild:** Sum zero, three of a kind.\n'
+                    '   - Tie-breaker: Lowest card value.\n'
+                    '   - Example: +4, +4, +4, -12\n\n'
+                    '8. **Rule of Two:** Sum zero, two pairs.\n'
+                    '   - Tie-breaker: Lowest pair value.\n'
+                    '   - Example: +3, +3, -7, -7 or +3, -3, +7, -7\n\n'
+                    '9. **Sabacc Pair:** Sum zero, one pair (cards with the same absolute value).\n'
+                    '   - Pairs can be any sign: (+5, +5), (-5, -5), or (+5, -5).\n'
+                    '   - Tie-breaker: Lowest pair value.\n'
+                    '   - Example: +5, +5, -10 or +5, -5\n\n'
+                    '10. **Sabacc:** Sum zero, no special hands.\n'
+                    '   - Tie-breakers:\n'
+                    '     1. Lowest absolute card value.\n'
+                    '     2. Most cards in hand.\n'
+                    '     3. Highest positive sum.\n'
+                    '     4. Highest single positive card.\n'
+                    '   - Example: +1, +2, -3\n\n'
+                    '11. **Nulrhek:** Sum not zero.\n'
+                    '   - Tie-breakers:\n'
+                    '     1. Closest to zero (absolute value).\n'
+                    '     2. Positive totals beat negative if same distance.\n'
+                    '     3. Most cards in hand.\n'
+                    '     4. Highest positive sum.\n'
+                    '     5. Highest single positive card.\n'
+                    '   - Example: Total of +1 beats total of -1\n\n'
                     'Good luck! May the Force be with you!',
         color=0x964B00
     )
@@ -96,25 +105,24 @@ def get_kessel_rules_embed() -> Embed:
                     '   - A Sylop card takes the value of the other card in your hand.\n'
                     '   - If you have two Sylops, they both count as zero (best hand in the game).\n\n'
                     '**Ranking Kessel Hands (from best to worst):**\n\n'
-                    '**Sabacc Hands (Sum equals 0):**\n'
-                    '- **Pure Sabacc:** A pair of Sylops (both count as 0).\n'
-                    '   - 0, 0\n'
-                    '- **Prime Sabacc:** A pair of ones (+1 and -1).\n'
-                    '   - +1, -1\n'
-                    '- **Standard Sabacc:** Two cards where one positive and one negative card have the same absolute value.\n'
-                    '   - *Example:* +5, -5\n'
+                    '1. **Pure Sabacc:** A pair of Sylops (both count as 0).\n'
+                    '   - Example: 0, 0\n\n'
+                    '2. **Prime Sabacc:** A pair of ones (+1 and -1).\n'
+                    '   - Example: +1, -1\n\n'
+                    '3. **Standard Sabacc:** Two cards where one positive and one negative card have the same absolute value.\n'
                     '   - Standard Sabacc hands are ranked by the absolute values of their cards; lower integers are better.\n'
-                    '      - For example, a hand of +2 and -2 beats a hand of +3 and -3 because 2 is lower than 3.\n'
-                    '      - The best Sabacc is **+1, -1**, and the worst is **+6, -6**.\n'
-                    '- **Cheap Sabacc (worst Sabacc hand):** A pair of sixes.\n'
-                    '   - +6, -6\n'
-                    '   - This hand is the worst Sabacc hand, but is still better than Nulrhek Hands because the sum equals 0.\n\n'
-                    '**Nulrhek Hands (Sum does not equal 0):**\n'
-                    '- If no player has a Sabacc hand, Nulrhek hands are considered.\n'
-                    '- Tie-breakers (in order):\n'
-                    '   - Closest to zero wins.\n'
-                    '   - Positive totals beat negative totals.\n'
-                    '   - Highest positive card wins.\n\n'
+                    '     - For example, a hand of +2 and -2 beats a hand of +3 and -3 because 2 is lower than 3.\n'
+                    '     - The best Sabacc is **+1, -1**, and the worst is **+6, -6**.\n'
+                    '   - Example: +5, -5\n\n'
+                    '4. **Cheap Sabacc (worst Sabacc hand):** A pair of sixes.\n'
+                    '   - This hand is the worst Sabacc hand, but is still better than Nulrhek Hands because the sum equals 0.\n'
+                    '   - Example: +6, -6\n\n'
+                    '5. **Nulrhek Hands (Sum does not equal 0):**\n'
+                    '   - If no player has a Sabacc hand, Nulrhek hands are considered.\n'
+                    '   - Tie-breakers:\n'
+                    '     1. Closest to zero wins.\n'
+                    '     2. Positive totals beat negative totals.\n'
+                    '     3. Highest positive card wins.\n\n'
                     'Good luck! May the Force be with you!',
         color=0x964B00
     )
@@ -157,7 +165,7 @@ from PIL import Image
 from io import BytesIO
 import tempfile
 
-def combine_card_images(card_image_urls: list[str], resize_width: int = 80, resize_height: int = 120, padding: int = 10) -> str:
+def combine_card_imagess(card_image_urls: list[str], resize_width: int = 80, resize_height: int = 120, padding: int = 10) -> str:
     '''Combine multiple card images horizontally into a single image with optional resizing and padding.'''
     # Streamlining image loading and resizing
     card_images = []
@@ -171,11 +179,11 @@ def combine_card_images(card_image_urls: list[str], resize_width: int = 80, resi
             card_images.append(img)
         except Exception as e:
             # Log and continue without adding the faulty image
-            print(f"Error processing image from {url}: {e}")
+            print(f'Error processing image from {url}: {e}')
             continue
 
     if not card_images:
-        raise ValueError("No valid images were provided to combine.")
+        raise ValueError('No valid images were provided to combine.')
 
     # Pre-calculate dimensions for the combined image
     total_width = sum(img.width for img in card_images) + padding * (len(card_images) - 1)
@@ -194,3 +202,54 @@ def combine_card_images(card_image_urls: list[str], resize_width: int = 80, resi
     temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
     combined_image.save(temp_file.name, format='PNG')
     return temp_file.name
+
+import requests
+from PIL import Image
+from io import BytesIO
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+def download_and_process_image(url, resize_width, resize_height):
+    '''Download an image and resize it.'''
+    try:
+        response = requests.get(url, stream=True, timeout=5)
+        response.raise_for_status()
+        img = Image.open(BytesIO(response.content)).convert('RGBA')
+        img = img.resize((resize_width, resize_height), Image.LANCZOS)
+        return img
+    except Exception as e:
+        # Log and continue without adding the faulty image
+        print(f'Error processing image from {url}: {e}')
+        return None
+
+def combine_card_images(card_image_urls: list[str], resize_width: int = 80, resize_height: int = 120, padding: int = 10) -> BytesIO:
+    '''Combine multiple card images horizontally into a single image with optional resizing and padding.'''
+    # Download and process images in parallel
+    card_images = []
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = {executor.submit(download_and_process_image, url, resize_width, resize_height): url for url in card_image_urls}
+        for future in as_completed(futures):
+            img = future.result()
+            if img is not None:
+                card_images.append(img)
+    
+    if not card_images:
+        raise ValueError('No valid images were provided to combine.')
+    
+    # Pre-calculate dimensions for the combined image
+    total_width = sum(img.width for img in card_images) + padding * (len(card_images) - 1)
+    max_height = max(img.height for img in card_images)
+    
+    # Create a blank canvas with the calculated dimensions
+    combined_image = Image.new('RGBA', (total_width, max_height), (255, 255, 255, 0))
+    
+    # Paste images onto the canvas with padding
+    x_offset = 0
+    for img in card_images:
+        combined_image.paste(img, (x_offset, 0))
+        x_offset += img.width + padding
+    
+    # Save the combined image to a BytesIO object
+    image_bytes = BytesIO()
+    combined_image.save(image_bytes, format='PNG')
+    image_bytes.seek(0)
+    return image_bytes
