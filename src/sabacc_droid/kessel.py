@@ -53,7 +53,7 @@ class Player:
                 else:
                     return f'{sign}Ø'
             elif isinstance(card, int):
-                return f"{"+" if card >= 0 else ""}{card}"
+                return f"{'+' if card >= 0 else ''}{card}"
             else:
                 return str(card)
         cards = []
@@ -151,7 +151,7 @@ class Player:
         elif card == 'Sylop':
             return 'Ø'
         elif isinstance(card, int):
-            return f"{"+" if card >= 0 else ""}{card}"
+            return f"{'+' if card >= 0 else ''}{card}"
         else:
             return str(card)
 
