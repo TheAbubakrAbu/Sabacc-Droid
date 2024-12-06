@@ -103,43 +103,43 @@ class Player:
                 if isinstance(positive_card, int):
                     card_image_urls.append(f"{base_url}{quote('+' + str(positive_card))}.png")
                 elif isinstance(positive_card, str):
-                    card_image_urls.append(f'{base_url}{quote(f'+{positive_card.lower()}')}.png')
+                    card_image_urls.append(f"{base_url}{quote('+' + positive_card.lower())}.png")
             # Include drawn positive card
             drawn_card = self.drawn_card
             if isinstance(drawn_card, int):
-                card_image_urls.append(f'{base_url}{quote(f'+{drawn_card}')}.png')
+                card_image_urls.append(f"{base_url}{quote('+' + str(drawn_card))}.png")
             elif isinstance(drawn_card, str):
-                card_image_urls.append(f'{base_url}{quote(f'+{drawn_card.lower()}')}.png')
+                card_image_urls.append(f"{base_url}{quote('+' + drawn_card.lower())}.png")
             # Include negative card
             negative_card = self.negative_card
             if negative_card is not None:
                 if isinstance(negative_card, int):
-                    card_image_urls.append(f'{base_url}{quote(f'{negative_card}')}.png')
+                    card_image_urls.append(f"{base_url}{quote(str(negative_card))}.png")
                 elif isinstance(negative_card, str):
-                    card_image_urls.append(f'{base_url}{quote(f'-{negative_card.lower()}')}.png')
+                    card_image_urls.append(f"{base_url}{quote('-' + negative_card.lower())}.png")
         else:
             # Original code
             for card_attr, sign in [('positive_card', '+'), ('negative_card', '')]:
                 card = getattr(self, card_attr)
                 if card is not None:
                     if isinstance(card, int):
-                        card_image_urls.append(f'{base_url}{quote(f'{sign}{card}')}.png')
+                        card_image_urls.append(f"{base_url}{quote(sign + str(card))}.png")
                     elif isinstance(card, str):
                         if sign == '+':
-                            card_image_urls.append(f'{base_url}{quote(f'{sign}{card.lower()}')}.png')
+                            card_image_urls.append(f"{base_url}{quote(sign + card.lower())}.png")
                         else:
-                            card_image_urls.append(f'{base_url}{quote(f'-{card.lower()}')}.png')
+                            card_image_urls.append(f"{base_url}{quote('-' + card.lower())}.png")
 
             if include_drawn_card and self.drawn_card is not None:
                 drawn_card = self.drawn_card
                 sign = '+' if self.drawn_card_type == 'positive' else ''
                 if isinstance(drawn_card, int):
-                    card_image_urls.append(f'{base_url}{quote(f'{sign}{drawn_card}')}.png')
+                    card_image_urls.append(f"{base_url}{quote(sign + str(drawn_card))}.png")
                 elif isinstance(drawn_card, str):
                     if sign == '+':
-                        card_image_urls.append(f'{base_url}{quote(f'{sign}{drawn_card.lower()}')}.png')
+                        card_image_urls.append(f"{base_url}{quote(sign + drawn_card.lower())}.png")
                     else:
-                        card_image_urls.append(f'{base_url}{quote(f'-{drawn_card.lower()}')}.png')
+                        card_image_urls.append(f"{base_url}{quote('-' + drawn_card.lower())}.png")
 
         return card_image_urls
 
