@@ -38,7 +38,7 @@ async def corellian_command(interaction: Interaction, rounds: int = 3, num_cards
     rounds = max(1, min(rounds, 10))
     num_cards = max(1, min(num_cards, 5))
 
-    view = CorelliaGameView(rounds=rounds, num_cards=num_cards, active_games=active_games)
+    view = CorelliaGameView(rounds=rounds, num_cards=num_cards, active_games=active_games, channel=interaction.channel)
     embed = discord.Embed(
         title='Sabacc Game Lobby',
         description='Click **Play Game** to join the game.\n\n'
@@ -65,7 +65,7 @@ async def kessel_command(interaction: Interaction, rounds: int = 3) -> None:
 
     rounds = max(1, min(rounds, 10))
 
-    view = KesselGameView(rounds=3, active_games=active_games, channel=interaction.channel)
+    view = KesselGameView(rounds=rounds, active_games=active_games, channel=interaction.channel)
     embed = discord.Embed(
         title='Sabacc Game Lobby',
         description='Click **Play Game** to join the game.\n\n'
