@@ -101,7 +101,7 @@ class Player:
             positive_card = self.positive_card
             if positive_card is not None:
                 if isinstance(positive_card, int):
-                    card_image_urls.append(f'{base_url}{quote(f'+{positive_card}')}.png')
+                    card_image_urls.append(f"{base_url}{quote('+' + str(positive_card))}.png")
                 elif isinstance(positive_card, str):
                     card_image_urls.append(f'{base_url}{quote(f'+{positive_card.lower()}')}.png')
             # Include drawn positive card
