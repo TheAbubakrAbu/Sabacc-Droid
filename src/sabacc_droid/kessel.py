@@ -210,8 +210,8 @@ class KesselGameView(ui.View):
         description += 'Click **Play Turn** to take your turn.'
 
         # Generate URLs for positive and negative card backs
-        positive_back_url = f'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/{quote('+card.png')}'
-        negative_back_url = f'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/{quote('-card.png')}'
+        positive_back_url = f"https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/{quote('+card.png')}"
+        negative_back_url = f"https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/{quote('-card.png')}"
         card_image_urls = [positive_back_url, negative_back_url]
         combined_image_path = get_combined_image_path(card_image_urls)
 
