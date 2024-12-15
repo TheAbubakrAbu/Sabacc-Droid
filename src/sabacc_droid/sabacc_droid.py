@@ -142,8 +142,8 @@ async def on_ready() -> None:
 
 # Run Bot
 def main() -> None:
-
     '''Run the Discord bot.'''
+    
     bot.run(TOKEN)
 
 if __name__ == '__main__':
