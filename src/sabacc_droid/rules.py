@@ -27,44 +27,49 @@ def get_corellian_spike_rules_embed() -> Embed:
                     '- Players aim for a total hand value of **zero**.\n\n'
                     '**Ranking Corellian Spike Hands (from best to worst):**\n\n'
                     '1. **Pure Sabacc:** Two sylops (0): 0, 0.\n\n'
-                    '2. **Full Sabacc:** 0, +10, +10, -10, -10.\n\n'
-                    '3. **Fleet:** Sum zero, one sylop (0), and four of a kind.\n'
+                    '2. **Sarlacc Sabacc (Custom Hand that I made):** Sum zero, at least two sylops (0), any number of cards\n'
+                    '   - Example: 0, 0, +3, -3\n\n'
+                    '3. **Full Sabacc:** 0, +10, +10, -10, -10.\n\n'
+                    '4. **Fleet:** Sum zero, one sylop (0), and four of a kind.\n'
                     '   - Tie-breaker: Lowest card value.\n'
                     '   - Example: 0, +5, +5, -5, -5\n\n'
-                    '4. **Yee-Haa:** Sum zero, one sylop (0), and at least one pair.\n'
+                    '5. **Twin Sun (Custom Hand that I made):** Sum zero, one sylop (0), and at least two pairs.\n'
+                    '   - Tie-breaker: Lowest pair value.\n'
+                    '   - Example: 0, +5, -5, +3, -3\n\n'
+                    '6. **Yee-Haa:** Sum zero, one sylop (0), exactly 3 cards, and one pair.\n'
+                    '   - Tie-breaker: Lowest pair value.\n'
+                    '   - Example: 0, +5, -5\n\n'
+                    '7. **Kessel Run (Custom Hand that I made):** Sum zero, one sylop (0), and at least one pair (no card limit).\n'
                     '   - Tie-breaker: Lowest pair value.\n'
                     '   - Example: 0, +4, -4, +8\n\n'
-                    '5. **Rhylet:** Sum zero, three of a kind, additional cards.\n'
-                    '   - Tie-breaker: Lowest three of a kind value.\n'
-                    '   - Example: +2, +2, +2, -6\n\n'
-                    '6. **Squadron:** Sum zero, four of a kind.\n'
+                    '8. **Squadron:** Sum zero, four of a kind.\n'
                     '   - Tie-breaker: Lowest card value.\n'
                     '   - Example: +5, +5, -5, -5\n\n'
-                    '7. **Bantha\'s Wild:** Sum zero, three of a kind.\n'
+                    '9. **Bantha\'s Wild:** Sum zero, three of a kind.\n'
                     '   - Tie-breaker: Lowest card value.\n'
-                    '   - Example: +4, +4, +4, -12\n\n'
-                    '8. **Rule of Two:** Sum zero, two pairs.\n'
+                    '   - Example: +4, +4, +4, -3, -9 or +5, -5, +5, -3, -2\n\n'
+                    '10. **Rule of Two:** Sum zero, two pairs.\n'
                     '   - Tie-breaker: Lowest pair value.\n'
-                    '   - Example: +3, +3, -7, -7 or +3, -3, +7, -7\n\n'
-                    '9. **Sabacc Pair:** Sum zero, one pair (cards with the same absolute value).\n'
-                    '   - Pairs can be any sign: (+5, +5), (-5, -5), or (+5, -5).\n'
-                    '   - Tie-breaker: Lowest pair value.\n'
-                    '   - Example: +5, +5, -10 or +5, -5\n\n'
-                    '10. **Sabacc:** Sum zero, no special hands.\n'
-                    '   - Tie-breakers:\n'
-                    '     1. Lowest absolute card value.\n'
-                    '     2. Most cards in hand.\n'
-                    '     3. Highest positive sum.\n'
-                    '     4. Highest single positive card.\n'
-                    '   - Example: +1, +2, -3\n\n'
-                    '11. **Nulrhek:** Sum not zero.\n'
-                    '   - Tie-breakers:\n'
-                    '     1. Closest to zero (absolute value).\n'
-                    '     2. Positive totals beat negative if same distance.\n'
-                    '     3. Most cards in hand.\n'
-                    '     4. Highest positive sum.\n'
-                    '     5. Highest single positive card.\n'
-                    '   - Example: Total of +1 beats total of -1\n\n'
+                    '   - Example: +3, +3, -5, +5, -6 or +9, -9, +4, -4\n\n'
+                    '11. **Sabacc Pair:** Sum zero, one pair (cards with the same absolute value).\n'
+                    '    - Pairs can be any sign: (+5, +5), (-5, -5), or (+5, -5).\n'
+                    '    - Tie-breaker: Lowest pair value.\n'
+                    '    - Example: +5, +5, -10 or +5, -5\n\n'
+                    '12. **Sabacc:** Sum zero, no special hands.\n'
+                    '    - Tie-breakers:\n'
+                    '      1. Lowest absolute card value.\n'
+                    '      2. Most cards in hand.\n'
+                    '      3. Highest positive sum.\n'
+                    '      4. Highest single positive card.\n'
+                    '    - Example: +1, +2, -3\n\n'
+                    '13. **Nulrhek:** Sum not zero.\n'
+                    '    - Tie-breakers:\n'
+                    '      1. Closest to zero (absolute value).\n'
+                    '      2. Positive totals beat negative if same distance.\n'
+                    '      3. Most cards in hand.\n'
+                    '      4. Highest positive sum.\n'
+                    '      5. Highest single positive card.\n'
+                    '    - Example: Total of +1 beats total of -1\n\n'
                     'Good luck! May the Force be with you!',
         color=0x964B00
     )
@@ -159,97 +164,3 @@ def get_comparison_embed() -> Embed:
     comparison_embed.set_thumbnail(
         url='https://raw.githubusercontent.com/compycore/Sabacc/gh-pages/images/logo.png')
     return comparison_embed
-
-import requests
-from PIL import Image
-from io import BytesIO
-import tempfile
-
-def combine_card_imagess(card_image_urls: list[str], resize_width: int = 80, resize_height: int = 120, padding: int = 10) -> str:
-    '''Combine multiple card images horizontally into a single image with optional resizing and padding.'''
-    # Streamlining image loading and resizing
-    card_images = []
-    for url in card_image_urls:
-        try:
-            # Fetch and load the image in one step
-            response = requests.get(url, stream=True, timeout=5)  # Timeout to prevent hanging
-            response.raise_for_status()  # Raise an exception for HTTP errors
-            img = Image.open(BytesIO(response.content)).convert('RGBA')  # Ensure consistent mode
-            img = img.resize((resize_width, resize_height), Image.LANCZOS)
-            card_images.append(img)
-        except Exception as e:
-            # Log and continue without adding the faulty image
-            print(f'Error processing image from {url}: {e}')
-            continue
-
-    if not card_images:
-        raise ValueError('No valid images were provided to combine.')
-
-    # Pre-calculate dimensions for the combined image
-    total_width = sum(img.width for img in card_images) + padding * (len(card_images) - 1)
-    max_height = max(img.height for img in card_images)
-
-    # Create a blank canvas with the calculated dimensions
-    combined_image = Image.new('RGBA', (total_width, max_height), (255, 255, 255, 0))
-
-    # Paste images onto the canvas with padding
-    x_offset = 0
-    for img in card_images:
-        combined_image.paste(img, (x_offset, 0))
-        x_offset += img.width + padding
-
-    # Save the combined image to a temporary file
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
-    combined_image.save(temp_file.name, format='PNG')
-    return temp_file.name
-
-import requests
-from PIL import Image
-from io import BytesIO
-from concurrent.futures import ThreadPoolExecutor, as_completed
-
-def download_and_process_image(url, resize_width, resize_height):
-    '''Download an image and resize it.'''
-    try:
-        response = requests.get(url, stream=True, timeout=5)
-        response.raise_for_status()
-        img = Image.open(BytesIO(response.content)).convert('RGBA')
-        img = img.resize((resize_width, resize_height), Image.LANCZOS)
-        return img
-    except Exception as e:
-        # Log and continue without adding the faulty image
-        print(f'Error processing image from {url}: {e}')
-        return None
-
-def combine_card_images(card_image_urls: list[str], resize_width: int = 80, resize_height: int = 120, padding: int = 10) -> BytesIO:
-    '''Combine multiple card images horizontally into a single image with optional resizing and padding.'''
-    # Download and process images in parallel
-    card_images = []
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        futures = {executor.submit(download_and_process_image, url, resize_width, resize_height): url for url in card_image_urls}
-        for future in as_completed(futures):
-            img = future.result()
-            if img is not None:
-                card_images.append(img)
-    
-    if not card_images:
-        raise ValueError('No valid images were provided to combine.')
-    
-    # Pre-calculate dimensions for the combined image
-    total_width = sum(img.width for img in card_images) + padding * (len(card_images) - 1)
-    max_height = max(img.height for img in card_images)
-    
-    # Create a blank canvas with the calculated dimensions
-    combined_image = Image.new('RGBA', (total_width, max_height), (255, 255, 255, 0))
-    
-    # Paste images onto the canvas with padding
-    x_offset = 0
-    for img in card_images:
-        combined_image.paste(img, (x_offset, 0))
-        x_offset += img.width + padding
-    
-    # Save the combined image to a BytesIO object
-    image_bytes = BytesIO()
-    combined_image.save(image_bytes, format='PNG')
-    image_bytes.seek(0)
-    return image_bytes
