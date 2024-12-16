@@ -92,8 +92,7 @@ async def help_command(interaction: Interaction) -> None:
         description=(
             'Welcome to Sabacc Droid! Play either **Corellian Spike Sabacc** (from *Solo* and Galaxy\'s Edge) '
             'or **Kessel Sabacc** (from *Star Wars: Outlaws*).\n\n'
-            'Both games focus on achieving a hand sum of zero or as close as possible, however there are many '
-            'differences between the two.\n\n'
+            'Both games focus on achieving a hand sum of zero or as close as possible, however there are many differences between the two.\n\n'
             'Default game settings are 3 rounds and 2 starting cards for both games.\n\n'
 
             'Credits for the Corellian Spike Sabacc Cards go to [Winz](https://cults3d.com/en/3d-model/game/sabacc-cards-and-spike-dice-printable)\n'
@@ -101,7 +100,7 @@ async def help_command(interaction: Interaction) -> None:
 
             'This is a fan-made project and is not affiliated with or endorsed by Lucasfilm Ltd. or Disney. All trademarks are the property of their respective owners.\n\n'
 
-            'Created by **Abubakr Elmallah**.\n\n'
+            'Created by **[Abubakr Elmallah](https://abubakrelmallah.com/)**.\n\n'
             '[📂 GitHub Repository](https://github.com/TheAbubakrAbu/Sabacc-Droid)'
         ),
         color=0x964B00
