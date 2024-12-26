@@ -378,19 +378,19 @@ class CorelliaGameView(ui.View):
             self.first_turn = False
 
     def evaluate_hand(self, player: Player) -> tuple:
-        '''
+        """
         Evaluate a player's hand and return a tuple of sorting criteria, hand type, and total.
         Used for comparing final hands to determine the winner.
-        '''
+        """
         cards = player.cards
         total = sum(cards)
+
+        # Count how many times each card appears.
         counts = {}
         for card in cards:
             counts[card] = counts.get(card, 0) + 1
 
-        positive_cards = [c for c in cards if c > 0]
-        zeros = counts.get(0, 0)
-
+        # Count how many times each absolute value appears.
         abs_counts = {}
         for card in cards:
             abs_card = abs(card)
@@ -403,7 +403,18 @@ class CorelliaGameView(ui.View):
             return any(count >= 3 for count in abs_counts.values())
 
         def has_two_pairs():
-            return len([count for count in abs_counts.values() if count >= 2]) >= 2
+            return len([v for v, c in abs_counts.items() if c >= 2]) >= 2
+
+        zeros = counts.get(0, 0)
+        positive_cards = [c for c in cards if c > 0]
+
+        pairs = [v for v, c in abs_counts.items() if c >= 2]
+        trips = [v for v, c in abs_counts.items() if c >= 3]
+        quads = [v for v, c in abs_counts.items() if c >= 4]
+
+        lowest_pair_value = min(pairs) if pairs else None
+        lowest_trip_value = min(trips) if trips else None
+        lowest_quad_value = min(quads) if quads else None
 
         hand_type = None
         hand_rank = None
@@ -414,46 +425,81 @@ class CorelliaGameView(ui.View):
                 hand_type = 'Pure Sabacc'
                 hand_rank = 1
                 tie_breakers = []
-            elif zeros == 2:
+
+            elif zeros >= 2:
                 hand_type = 'Sarlacc Sabacc'
                 hand_rank = 2
                 tie_breakers = []
-            elif sorted(cards) == [-10, -10, 0, +10, +10]:
+
+            elif sorted(cards) == [-10, -10, 0, 10, 10]:
                 hand_type = 'Full Sabacc'
                 hand_rank = 3
                 tie_breakers = []
+
             elif zeros == 1 and has_four_of_a_kind():
                 hand_type = 'Fleet'
                 hand_rank = 4
-                tie_breakers = [min(abs(c) for c in cards if c != 0)]
+                if lowest_quad_value is not None:
+                    tie_breakers = [lowest_quad_value]
+                else:
+                    tie_breakers = [min(abs(c) for c in cards if c != 0)]
+
             elif zeros == 1 and has_two_pairs():
                 hand_type = 'Twin Sun'
                 hand_rank = 5
-                tie_breakers = [min(abs(c) for c in cards if c != 0)]
-            elif zeros == 1 and len(cards) == 3 and any(count >= 2 for value, count in abs_counts.items() if value != 0):
+                if len(pairs) >= 2:
+                    tie_breakers = [min(pairs)]
+                else:
+                    tie_breakers = [min(abs(c) for c in cards if c != 0)]
+
+            elif zeros == 1 and len(cards) == 3 and any(c >= 2 for v, c in abs_counts.items() if v != 0):
                 hand_type = 'Yee-Ha'
                 hand_rank = 6
-                tie_breakers = [min(abs(c) for c in cards if c != 0)]
-            elif zeros == 1 and any(count >= 2 for value, count in abs_counts.items() if value != 0):
+                if lowest_pair_value is not None:
+                    tie_breakers = [lowest_pair_value]
+                else:
+                    tie_breakers = [min(abs(c) for c in cards if c != 0)]
+
+            elif zeros == 1 and any(c >= 2 for v, c in abs_counts.items() if v != 0):
                 hand_type = 'Kessel Run'
                 hand_rank = 7
-                tie_breakers = [min(abs(c) for c in cards if c != 0)]
+                if lowest_pair_value is not None:
+                    tie_breakers = [lowest_pair_value]
+                else:
+                    tie_breakers = [min(abs(c) for c in cards if c != 0)]
+
             elif has_four_of_a_kind():
                 hand_type = 'Squadron'
                 hand_rank = 8
-                tie_breakers = [min(abs(c) for c in cards)]
+                if lowest_quad_value is not None:
+                    tie_breakers = [lowest_quad_value]
+                else:
+                    tie_breakers = [min(abs(c) for c in cards)]
+
             elif has_three_of_a_kind():
-                hand_type = 'Bantha\'s Wild'
+                hand_type = "Bantha's Wild"
                 hand_rank = 9
-                tie_breakers = [min(abs(c) for c in cards)]
+                if lowest_trip_value is not None:
+                    tie_breakers = [lowest_trip_value]
+                else:
+                    tie_breakers = [min(abs(c) for c in cards)]
+
             elif has_two_pairs():
                 hand_type = 'Rule of Two'
                 hand_rank = 10
-                tie_breakers = [min(abs(c) for c in cards)]
+                if len(pairs) >= 2:
+                    tie_breakers = [min(pairs)]
+                else:
+                    tie_breakers = [min(abs(c) for c in cards)]
+
             elif any(count >= 2 for count in abs_counts.values()):
                 hand_type = 'Sabacc Pair'
                 hand_rank = 11
-                tie_breakers = [min(abs(c) for c in cards)]
+                if lowest_pair_value is not None:
+                    tie_breakers = [lowest_pair_value]
+                else:
+                    tie_breakers = [min(abs(c) for c in cards)]
+
             else:
                 hand_type = 'Sabacc'
                 hand_rank = 12
