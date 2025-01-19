@@ -63,12 +63,6 @@ This project is licensed under the [MIT License](LICENSE). Feel free to use, mod
 
 ---
 
-## Acknowledgments
-
-Special thanks to the Star Wars community for inspiring this project and to everyone who contributed to making Aurebesh Translator a reality.
-
----
-
 ## Contact
 
 For feedback, feature requests, or questions, feel free to reach out:
