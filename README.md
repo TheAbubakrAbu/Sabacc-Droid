@@ -59,23 +59,21 @@ We welcome contributions to enhance the game and fix any issues. Please submit p
 
 ## License
 
-This project is licensed under the MIT License.
-
----
-
-## Disclaimer
-
-This is a fan-made project and is not affiliated with or endorsed by Lucasfilm Ltd. or Disney. All trademarks are the property of their respective owners.
+This project is licensed under the [MIT License](LICENSE). Feel free to use, modify, and distribute the code, but please provide attribution.
 
 ---
 
 ## Acknowledgments
 
-- **Star Wars Universe**: For providing the inspiration and lore behind the game.
-- **discord.py Community**: For their excellent library and support.
+Special thanks to the Star Wars community for inspiring this project and to everyone who contributed to making Aurebesh Translator a reality.
 
 ---
 
-Feel free to explore the game, invite friends, and immerse yourselves in the Star Wars universe through the exciting game of Sabacc! May the Force be with you!
+## Contact
 
-Created by Abubakr Elmallah.
+For feedback, feature requests, or questions, feel free to reach out:
+- **Email**: ammelmallah@icloud.com
+- **Website**: [abubakrelmallah.com](https://abubakrelmallah.wordpress.com/)
+- **LinkedIn**: [linkedin.com/abubakr](https://www.linkedin.com/in/abubakr-elmallah-416a0b273/)
+
+Created by Abubakr Elmallah
