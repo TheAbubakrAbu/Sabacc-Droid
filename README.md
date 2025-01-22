@@ -7,7 +7,7 @@ Welcome to the **Sabacc Droid**! This project brings the classic Star Wars card 
 1. **Console Version (`sabacc_console.py`)**: Play the Corellian Spike variant (prototype of Sabacc Droid) in your terminal or IDE.
 2. **Discord Bot Version (`sabacc_droid.py`)**: Play both Corellian Spike and Kessel variants on Discord with friends using a bot.
 
-Experience the thrill of Sabacc as seen in _Solo: A Star Wars Story_, where Han Solo famously won the Millennium Falcon from Lando Calrissian, and delve into the Kessel variant with its unique twists and strategic depth.
+Experience the thrill of Sabacc as seen in _Solo: A Star Wars Story_, where Han Solo famously won the Millennium Falcon from Lando Calrissian, and delve into the Kessel variant as seen in _Star Wars Outlaws_.
 
 
 ## Features
