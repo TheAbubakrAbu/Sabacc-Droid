@@ -1,6 +1,6 @@
 # Sabacc Droid - Discord Bot
 
-## Corellian Spike and Kessel Versions
+*Supports Corellian Spike and Kessel Sabacc*
 
 Welcome to the **Sabacc Droid**! This project brings the classic Star Wars card game Sabacc to life with two exciting versions:
 
