@@ -1,4 +1,6 @@
-# Sabacc Droid - Corellian Spike and Kessel Versions
+# Sabacc Droid - Discord Bot
+
+## Corellian Spike and Kessel Versions
 
 Welcome to the **Sabacc Droid**! This project brings the classic Star Wars card game Sabacc to life with two exciting versions:
 
@@ -7,7 +9,6 @@ Welcome to the **Sabacc Droid**! This project brings the classic Star Wars card 
 
 Experience the thrill of Sabacc as seen in _Solo: A Star Wars Story_, where Han Solo famously won the Millennium Falcon from Lando Calrissian, and delve into the Kessel variant with its unique twists and strategic depth.
 
----
 
 ## Features
 
@@ -26,11 +27,9 @@ Experience the thrill of Sabacc as seen in _Solo: A Star Wars Story_, where Han 
 - **Game Variants**:
   - **Corellian Spike Sabacc**: The classic variant with familiar rules.
   - **Kessel Sabacc**: A variant featuring Impostor and Sylop cards with special mechanics.
-- **Timeout Handling**: Automatic progression if a player takes too long on their turn.
 - **Rulebook Access**: View game rules directly in Discord for both variants.
 - **Add the Bot to Your Server**: [Invite Link](https://discord.com/oauth2/authorize?client_id=YOUR_BOT_CLIENT_ID&permissions=0&scope=bot%20applications.commands)
 
----
 
 ## Getting Started
 
@@ -49,25 +48,20 @@ Experience the thrill of Sabacc as seen in _Solo: A Star Wars Story_, where Han 
 
 - If you want to make your own Discord Sabacc bot watch this video: https://www.youtube.com/watch?v=UYJDKSah-Ww&t=330s then simply replace the .py files that you made with the modules in src.
 
----
-
-## Contributing
-
-We welcome contributions to enhance the game and fix any issues. Please submit pull requests or open issues on the project's GitHub repository.
-
----
 
 ## License
 
 This project is licensed under the [MIT License](LICENSE). Feel free to use, modify, and distribute the code, but please provide attribution.
 
----
+## Feedback
+
+I would love to hear your thoughts and suggestions! Feel free to open an issue or contact me.
 
 ## Contact
 
 For feedback, feature requests, or questions, feel free to reach out:
 - **Email**: ammelmallah@icloud.com
-- **Website**: [abubakrelmallah.com](https://abubakrelmallah.wordpress.com/)
+- **Website**: [abubakrelmallah.com](https://abubakrelmallah.com/)
 - **LinkedIn**: [linkedin.com/abubakr](https://www.linkedin.com/in/abubakr-elmallah-416a0b273/)
 
 Created by Abubakr Elmallah
