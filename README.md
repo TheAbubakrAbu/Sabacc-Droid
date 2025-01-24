@@ -9,6 +9,8 @@ Welcome to the **Sabacc Droid**! This project brings the classic Star Wars card 
 
 Experience the thrill of Sabacc as seen in _Solo: A Star Wars Story_, where Han Solo famously won the Millennium Falcon from Lando Calrissian, and delve into the Kessel variant as seen in _Star Wars Outlaws_.
 
+Created on November 17, 2024.
+
 
 ## Features
 
