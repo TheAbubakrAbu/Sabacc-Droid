@@ -5,11 +5,11 @@
 Welcome to the **Sabacc Droid**! This project brings the classic Star Wars card game Sabacc to life with two exciting versions:
 
 1. **Console Version (`sabacc_console.py`)**: Play the Corellian Spike variant (prototype of Sabacc Droid) in your terminal or IDE.
-2. **Discord Bot Version (`sabacc_droid.py`)**: Play both Corellian Spike and Kessel variants on Discord with friends using a bot.
+2. **Discord Bot Version (`sabacc_droid.py`)**: Play both Corellian Spike and Kessel variants by creating your own Discord bot. Or simply invite the bot to your server here: [**Invite Link**](https://discord.ly/sabaac-droid)
 
 Experience the thrill of Sabacc as seen in _Solo: A Star Wars Story_, where Han Solo famously won the Millennium Falcon from Lando Calrissian, and delve into the Kessel variant as seen in _Star Wars Outlaws_.
 
-Created on November 14, 2024.
+Created on **November 14, 2024**.
 
 
 ## Features
@@ -30,7 +30,7 @@ Created on November 14, 2024.
   - **Corellian Spike Sabacc**: The classic variant with familiar rules.
   - **Kessel Sabacc**: A variant featuring Impostor and Sylop cards with special mechanics.
 - **Rulebook Access**: View game rules directly in Discord for both variants.
-- **Add the Bot to Your Server**: [Invite Link](https://discord.com/oauth2/authorize?client_id=YOUR_BOT_CLIENT_ID&permissions=0&scope=bot%20applications.commands)
+- **Add the Bot to Your Server**: [Invite Link](https://discord.ly/sabaac-droid)
 
 
 ## Getting Started
@@ -46,7 +46,7 @@ Created on November 14, 2024.
 
 ### Discord Bot Version
 
-- **Add the Bot to Your Server**: [Invite Link](https://discord.com/oauth2/authorize?client_id=YOUR_BOT_CLIENT_ID&permissions=0&scope=bot%20applications.commands)
+- **Add the Bot to Your Server**: [Invite Link](https://discord.ly/sabaac-droid)
 
 - If you want to make your own Discord Sabacc bot watch this video: https://www.youtube.com/watch?v=UYJDKSah-Ww&t=330s then simply replace the .py files that you made with the modules in src.
 
@@ -66,4 +66,4 @@ For feedback, feature requests, or questions, feel free to reach out:
 - **Website**: [abubakrelmallah.com](https://abubakrelmallah.com/)
 - **LinkedIn**: [linkedin.com/abubakr](https://www.linkedin.com/in/abubakr-elmallah-416a0b273/)
 
-Created by Abubakr Elmallah
+Created by **Abubakr Elmallah**
