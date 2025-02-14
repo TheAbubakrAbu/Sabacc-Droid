@@ -85,35 +85,40 @@ async def kessel_command(interaction: Interaction, rounds: int = 3) -> None:
         print(f'Error in kessel_command: {e}')
 
 
-@bot.tree.command(name='coruscant_shift', description='Start a Coruscant Shift Sabacc game with optional custom settings')
-@app_commands.describe(
-    rounds='Number of rounds (default: 3, max: 10)'
-)
-async def coruscant_shift_command(interaction: Interaction, rounds: int = 3) -> None:
-    '''Initiate a new Coruscant Shift Sabacc game with optional custom settings.'''
-    
-    rounds = max(1, min(rounds, 10))
-    
-    view = CoruscantGameView(rounds=rounds, active_games=active_games, channel=interaction.channel)
+@bot.tree.command(name='coruscant_shift', description='Start a Coruscant Shift Sabacc game')
+async def coruscant_shift_command(interaction: Interaction) -> None:
+    '''
+    Initiate a new Coruscant Shift Sabacc game.
+    This version is fixed to 2 rounds by default.
+    '''
+    view = CoruscantGameView(
+        active_games=active_games,
+        channel=interaction.channel
+    )
+
     embed = discord.Embed(
         title='Sabacc Game Lobby',
         description=(
-            'Click **Play Game** to join the game.\n\n'
-            f'**Game Settings:**\n'
-            f'{rounds} rounds\n'
-            '5 starting cards\n\n'
+            'Click **Play Game** to join the Coruscant Shift Sabacc game.\n\n'
+            '**Game Settings:**\n'
+            '• 2 Rounds (fixed)\n'
+            '• 5 starting cards\n\n'
             'Once someone has joined, the **Start Game** button will be enabled.'
         ),
         color=0x964B00
     )
     embed.set_footer(text='Coruscant Shift Sabacc')
     embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
+
     try:
         await interaction.response.send_message(embed=embed, view=view)
         view.message = await interaction.original_response()
         active_games.append(view)
     except Exception as e:
-        await interaction.response.send_message('An error occurred while starting the game.', ephemeral=True)
+        await interaction.response.send_message(
+            'An error occurred while starting the Coruscant Shift game.',
+            ephemeral=True
+        )
         print(f'Error in coruscant_shift_command: {e}')
 
 
