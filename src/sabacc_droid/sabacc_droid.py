@@ -101,7 +101,7 @@ async def coruscant_shift_command(interaction: Interaction, rounds: int = 3) -> 
             'Click **Play Game** to join the game.\n\n'
             f'**Game Settings:**\n'
             f'{rounds} rounds\n'
-            '5 starting cards (2-phase round: Selection & Shift, then Final Selection)\n\n'
+            '5 starting cards\n\n'
             'Once someone has joined, the **Start Game** button will be enabled.'
         ),
         color=0x964B00
