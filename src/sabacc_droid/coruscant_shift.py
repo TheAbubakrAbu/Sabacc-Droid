@@ -157,7 +157,7 @@ class CoruscantGameView(ui.View):
     Coruscant Shift Sabacc:
     - 2 phases total
     - At the end, whoever is closest to target_number wins
-    - Ties break by # of cards matching target_suit (Sylop counts for all)
+    - Ties break by number of cards matching target_suit (Sylop counts for all)
     '''
     def __init__(self, rounds: int = 2, active_games=None, channel=None):
         super().__init__(timeout=None)
@@ -219,7 +219,7 @@ class CoruscantGameView(ui.View):
 
         embed = Embed(title='Sabacc Game Lobby', description=desc, color=0x964B00)
         embed.set_footer(text='Coruscant Shift Sabacc')
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
 
         self.start_game_button.disabled = (len(self.players) < 1 or self.game_started)
         self.play_game_button.disabled = (len(self.players) >= 8 or self.game_started)
@@ -255,7 +255,7 @@ class CoruscantGameView(ui.View):
             color=0x964B00
         )
         embed.set_footer(text='Coruscant Shift Sabacc')
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
 
         await interaction.response.edit_message(embed=embed, view=self)
 
@@ -325,7 +325,7 @@ class CoruscantGameView(ui.View):
             for val in range(1, 11):
                 deck.append(Card(val, s))
                 deck.append(Card(-val, s))
-        # 2 sylop
+        
         deck.append(Card(0, 'Sylop'))
         deck.append(Card(0, 'Sylop'))
         return deck
@@ -334,14 +334,12 @@ class CoruscantGameView(ui.View):
         if not self.game_started:
             return
 
-        # If we've gone through all players this phase
         if self.current_player_index >= len(self.players):
             self.rounds_completed += 1
             if self.phase == 1:
                 self.phase = 2
                 self.current_player_index = 0
                 await self.channel.send('Phase 1 complete. Proceeding to Final Selection & Reveal.')
-                # Immediately proceed to the next player's turn in Phase 2
                 if self.players:
                     await self.show_player_turn_view(self.players[self.current_player_index])
             else:
@@ -371,7 +369,7 @@ class CoruscantGameView(ui.View):
             logger.error(f'Failed to combine card images: {e}')
 
         embed = Embed(title='Sabacc Game', description=desc, color=0x964B00)
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
 
         turn_view = PlayTurnView(self)
         if image_bytes:
@@ -383,7 +381,6 @@ class CoruscantGameView(ui.View):
 
     async def end_game(self) -> None:
         if len(self.players) == 1:
-            # Insert optional "Lando AI" if you want a 2-player scenario.
             lando_exists = any(pl.user.name == 'Lando Calrissian AI' for pl in self.players)
             if not lando_exists:
                 lando_user = type('AIUser', (object,), {
@@ -398,7 +395,7 @@ class CoruscantGameView(ui.View):
 
         if not self.players:
             embed = Embed(title='Game Over', description='Nobody won because everyone junked!', color=0x964B00)
-            embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
+            embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
             await self.channel.send(embed=embed, view=EndGameView(self.active_games, self.channel))
             if self in self.active_games:
                 self.active_games.remove(self)
@@ -409,7 +406,7 @@ class CoruscantGameView(ui.View):
         for pl in self.players:
             total = pl.total_value()
             diff = abs(total - self.target_number)
-            # Tie-break: # of cards in the target suit
+
             suit_count = sum(1 for c in pl.hand if c.suit == self.target_suit or c.suit == 'Sylop')
             evaluations.append((diff, -suit_count, pl, total))
             results += f'{pl.user.mention}: {pl.get_hand_string()} (Total: {total})\n'
@@ -424,7 +421,7 @@ class CoruscantGameView(ui.View):
             results += '\nIt’s a tie between: ' + ', '.join(w[2].user.mention for w in winners)
 
         embed = Embed(title='Game Over', description=results, color=0x964B00)
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
         mentions = ' '.join(pl.user.mention for pl in self.players if 'AIUser' not in type(pl.user).__name__)
         await self.channel.send(content=mentions, embed=embed, view=EndGameView(self.active_games, self.channel))
 
@@ -472,7 +469,7 @@ class PlayTurnButton(ui.Button):
             title=title,
             description=desc,
             cards=current_player.hand,
-            thumbnail_url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png'
+            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png'
         )
 
         selection_view = SelectionPhaseView(self.game_view, current_player)
@@ -542,19 +539,13 @@ class SelectionPhaseView(ui.View):
             await interaction.response.send_message('Not your turn.', ephemeral=True)
             return
 
-        # The player junks their hand. We remove them from self.game_view.players
         self.game_view.players.remove(self.player)
 
         await interaction.response.send_message('You junked your hand.', ephemeral=True)
 
-        # If fewer than 2 remain, game ends; otherwise proceed
         if len(self.game_view.players) < 2:
             await self.game_view.end_game()
         else:
-            # If we junked, the next player's index is still the same
-            # but we've removed this player from the list. So do not increment index.
-            # The next call to proceed_to_next_player will show the same index
-            # but now points to the next person.
             self.stop()
             await self.game_view.proceed_to_next_player()
 
