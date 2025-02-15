@@ -143,47 +143,45 @@ def get_coruscant_shift_rules_embed() -> Embed:
 
     rules_embed = Embed(
         title='Coruscant Shift Sabacc Game Rules',
-        description=(
-            '**Objective:**\n'
-            'Achieve a final hand (between **1 and 5 cards**) whose total is as close as possible to the target number determined by the gold die.'
-            'If there is a tie, the winner is determined by who has the most cards matching the target suit (from the silver die).'
-            'Further ties are decided by highest positive “added total,” then highest single positive card, and if still tied, sudden death draws.\n\n'
+        description='**Objective:**\n'
+                'Achieve a final hand (between **1 and 5 cards**) whose total is as close as possible to the target number determined by the gold die.'
+                'If there is a tie, the winner is determined by who has the most cards matching the target suit (from the silver die).'
+                'Further ties are decided by highest positive “added total,” then highest single positive card, and if still tied, sudden death draws.\n\n'
 
-            '**Deck Composition:**\n'
-            '- **62 cards** total.\n'
-            '- **3 suits** (●, ▲, ■), each containing **20 cards**: +1..+10 and -1..-10.\n'
-            '- **2 Sylop (0)** cards act as wild/wildcard suits.\n\n'
+                '**Deck Composition:**\n'
+                '- **62 cards** total.\n'
+                '- **3 suits** (●, ▲, ■), each containing **20 cards**: +1..+10 and -1..-10.\n'
+                '- **2 Sylop (0)** cards act as wild/wildcard suits.\n\n'
 
-            '**Gameplay Mechanics:**\n'
-            '- You start each round with **5 cards**.\n'
-            '- The **gold die** (faces: -10, 10, -5, 5, 0, 0) sets the target number.\n'
-            '- The **silver die** (faces: two each of ●, ▲, ■) sets the target suit.\n\n'
+                '**Gameplay Mechanics:**\n'
+                '- You start each round with **5 cards**.\n'
+                '- The **gold die** (faces: -10, 10, -5, 5, 0, 0) sets the target number.\n'
+                '- The **silver die** (faces: two each of ●, ▲, ■) sets the target suit.\n\n'
 
-            '**Rounds:**\n'
-            '- By default, Coruscant Shift is played over **2 rounds** of card selection.\n'
-            '- **Round 1 – Selection & Shift:**\n'
-            '  1. Each player is dealt 5 cards.\n'
-            '  2. In turn order, choose which cards you want to keep (face down). Any unkept cards are discarded.\n'
-            '  3. Draw new cards equal to the number discarded, returning you to 5 cards.\n\n'
-            '- **Round 2 – Final Selection & Reveal:**\n'
-            '  1. Each player again selects which cards to keep.\n'
-            '  2. You **cannot** discard any card you kept from Round 1. You may only discard newly drawn cards.\n'
-            '  3. Draw replacements so that you end up with anywhere from **1 to 5 cards**.\n'
-            '  4. Reveal all final hands.\n\n'
+                '**Rounds:**\n'
+                '- By default, Coruscant Shift is played over **2 rounds** of card selection.\n'
+                '- **Round 1 – Selection & Shift:**\n'
+                '  1. Each player is dealt 5 cards.\n'
+                '  2. In turn order, choose which cards you want to keep (face down). Any unkept cards are discarded.\n'
+                '  3. Draw new cards equal to the number discarded, returning you to 5 cards.\n\n'
+                '- **Round 2 – Final Selection & Reveal:**\n'
+                '  1. Each player again selects which cards to keep.\n'
+                '  2. You **cannot** discard any card you kept from Round 1. You may only discard newly drawn cards.\n'
+                '  3. Draw replacements so that you end up with anywhere from **1 to 5 cards**.\n'
+                '  4. Reveal all final hands.\n\n'
 
-            '**Hand Value Calculation:**\n'
-            '- Each card contributes its face value (+ or -). Sylops (0) can count as any suit.\n'
-            '- Your final total is simply the sum of all cards you kept.\n\n'
+                '**Hand Value Calculation:**\n'
+                '- Each card contributes its face value (+ or -). Sylops (0) can count as any suit.\n'
+                '- Your final total is simply the sum of all cards you kept.\n\n'
 
-            '**Tie-Breakers:**\n'
-            '1. Closest to the target number (absolute difference).\n'
-            '2. Most cards matching the target suit.\n'
-            '3. Highest positive “added total.”\n'
-            '4. Highest single positive card.\n'
-            '5. Else it\'s a tie.\n\n'
+                '**Tie-Breakers:**\n'
+                '1. Closest to the target number (absolute difference).\n'
+                '2. Most cards matching the target suit.\n'
+                '3. Highest positive “added total.”\n'
+                '4. Highest single positive card.\n'
+                '5. Else it\'s a tie.\n\n'
 
-            'Good luck! May the Force be with you!',
-        ),
+                'Good luck! May the Force be with you!',
         color=0x964B00
     )
 
