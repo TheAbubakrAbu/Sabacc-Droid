@@ -74,7 +74,7 @@ def get_corellian_spike_rules_embed() -> Embed:
         color=0x964B00
     )
     rules_embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/compycore/Sabacc/gh-pages/images/logo.png')
+        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png')
     return rules_embed
 
 def get_kessel_rules_embed() -> Embed:
@@ -132,86 +132,113 @@ def get_kessel_rules_embed() -> Embed:
         color=0x964B00
     )
     rules_embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/compycore/Sabacc/gh-pages/images/logo.png')
+        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png')
     return rules_embed
 
 def get_coruscant_shift_rules_embed() -> Embed:
-    '''Create an embed containing the Coruscant Shift Sabacc game rules.'''
-    
+    '''
+    Create an embed containing the Coruscant Shift Sabacc game rules,
+    formatted similarly to Corellian Spike and Kessel.
+    '''
+
     rules_embed = Embed(
         title='Coruscant Shift Sabacc Game Rules',
         description=(
-            "**Objective:**\n"
-            "Achieve a final 5‑card hand whose total is as close as possible to the target number rolled on the gold die.\n"
-            "If there’s a tie, the hand with the most cards matching the target suit (from the silver die) wins.\n\n"
-            "**Deck Composition:**\n"
-            "- **Total Cards:** 62 cards\n"
-            "- **Suits:** 3 suits – **Circles**, **Triangles**, and **Squares**\n"
-            "  - Each suit contains **20 cards**: half with positive values (+1 to +10) and half with negative values (-1 to -10).\n"
-            "- **Sylop Cards:** 2 zero cards (0) that act as wildcards (count as any suit).\n\n"
-            "**Dice:**\n"
-            "- **Gold Die (Numbered):** Faces: -10, 10, -5, 5, 0, 0 (sets the target number)\n"
-            "- **Silver Die (Suit):** 6 faces with 2 of each suit (Circles, Triangles, Squares) (sets the target suit for tie-breakers)\n\n"
-            "**Gameplay Overview:**\n"
-            "The game is played over **2 rounds** using a full hand of 5 cards.\n\n"
-            "**Round 1 – Selection & Shift:**\n"
-            "1. **Initial Deal:** Each player is dealt 5 cards.\n"
-            "2. **Select:** Choose any number of cards from your hand that best work toward achieving a total near the target number.\n"
-            "3. **Shift:** Discard the cards you did not select, then draw new cards from the draw pile equal to the number discarded. \n"
-            "   (This refreshes your hand back to 5 cards.)\n\n"
-            "**Round 2 – Final Selection & Reveal:**\n"
-            "1. **Final Select:** Look at your current 5‑card hand (post-shift) and choose again which cards to keep.\n"
-            "2. **Discard & Draw:** For every card you discard, draw a replacement so that you end with a complete 5‑card hand.\n"
-            "3. **Reveal:** All players reveal their final hands.\n\n"
-            "**Winning:**\n"
-            "- The player whose hand total is closest to the target number (gold die) wins.\n"
-            "- In the event of a tie, the winner is determined by who has the most cards in the target suit (silver die).\n\n"
-            "**No Gambling:**\n"
-            "This version of Coruscant Shift Sabacc is played without betting, focusing entirely on strategic card selection."
+            '**Objective:**\n'
+            'Achieve a final hand (between **1 and 5 cards**) whose total is as close as possible to the target number determined by the gold die.'
+            'If there is a tie, the winner is determined by who has the most cards matching the target suit (from the silver die).'
+            'Further ties are decided by highest positive “added total,” then highest single positive card, and if still tied, sudden death draws.\n\n'
+
+            '**Deck Composition:**\n'
+            '- **62 cards** total.\n'
+            '- **3 suits** (●, ▲, ■), each containing **20 cards**: +1..+10 and -1..-10.\n'
+            '- **2 Sylop (0)** cards act as wild/wildcard suits.\n\n'
+
+            '**Gameplay Mechanics:**\n'
+            '- You start each round with **5 cards**.\n'
+            '- The **gold die** (faces: -10, 10, -5, 5, 0, 0) sets the target number.\n'
+            '- The **silver die** (faces: two each of ●, ▲, ■) sets the target suit.\n\n'
+
+            '**Rounds:**\n'
+            '- By default, Coruscant Shift is played over **2 rounds** of card selection.\n'
+            '- **Round 1 – Selection & Shift:**\n'
+            '  1. Each player is dealt 5 cards.\n'
+            '  2. In turn order, choose which cards you want to keep (face down). Any unkept cards are discarded.\n'
+            '  3. Draw new cards equal to the number discarded, returning you to 5 cards.\n\n'
+            '- **Round 2 – Final Selection & Reveal:**\n'
+            '  1. Each player again selects which cards to keep.\n'
+            '  2. You **cannot** discard any card you kept from Round 1. You may only discard newly drawn cards.\n'
+            '  3. Draw replacements so that you end up with anywhere from **1 to 5 cards**.\n'
+            '  4. Reveal all final hands.\n\n'
+
+            '**Hand Value Calculation:**\n'
+            '- Each card contributes its face value (+ or -). Sylops (0) can count as any suit.\n'
+            '- Your final total is simply the sum of all cards you kept.\n\n'
+
+            '**Tie-Breakers:**\n'
+            '1. Closest to the target number (absolute difference).\n'
+            '2. Most cards matching the target suit.\n'
+            '3. Highest positive “added total.”\n'
+            '4. Highest single positive card.\n'
+            '5. Else it\'s a tie.\n\n'
+
+            'Good luck! May the Force be with you!',
         ),
         color=0x964B00
     )
+
     rules_embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/compycore/Sabacc/gh-pages/images/logo.png'
+        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png'
     )
+
     return rules_embed
 
 def get_comparison_embed() -> Embed:
-    '''Create an embed comparing Corellian Spike, Kessel, and Coruscant Shift Sabacc game modes.'''
-
+    '''
+    Create an updated embed comparing Corellian Spike, Kessel, and Coruscant Shift Sabacc game modes,
+    reflecting the latest Coruscant Shift rules changes.
+    '''
     comparison_embed = Embed(
         title='Sabacc Game Modes Comparison',
         description=(
-            "**Similarities:**\n"
-            "- All modes aim for a hand total as close as possible to a target (zero or a dice-determined number).\n"
-            "- Each game uses unique decks that include wild Sylop (0) cards.\n"
-            "- Strategic card selection is at the heart of gameplay.\n\n"
-            "**Differences:**\n\n"
-            "**Corellian Spike Sabacc:**\n"
-            "- **Deck Composition:** A single deck of 62 cards ranging from -10 to +10 (excluding 0), plus 2 Sylops (0).\n"
-            "- **Hand Limit:** No fixed hand size; players can accumulate multiple cards.\n"
-            "- **Actions:** Options include drawing, discarding, replacing, standing, and junking.\n"
-            "- **Special Hands:** Includes unique combinations like Pure Sabacc, Full Sabacc, Yee-Haa, etc.\n\n"
-            "**Kessel Sabacc:**\n"
-            "- **Deck Composition:** Two separate decks (Sand for positives and Blood for negatives) with 22 cards each (44 total), plus Sylops.\n"
-            "- **Hand Limit:** Exactly 2 cards (one positive and one negative).\n"
-            "- **Actions:** Limited to drawing, standing, and junking, with special mechanics for Impostor cards.\n"
-            "- **Special Hands:** Ranked by the absolute values of paired cards (e.g., Pure Sabacc, Prime Sabacc).\n\n"
-            "**Coruscant Shift Sabacc:**\n"
-            "- **Deck Composition:** Standard 62‑card deck with 3 suits (Circles, Triangles, Squares), each suit having 20 cards (+1 to +10 and -1 to -10), plus 2 Sylop (0) cards.\n"
-            "- **Dice Mechanics:**\n"
-            "   - **Gold Die:** Determines the target number (-10, 10, -5, 5, 0, 0).\n"
-            "   - **Silver Die:** Determines the target suit (2 of each suit) for tie-breakers.\n"
-            "- **Gameplay:** Played in 2 rounds:\n"
-            "   1. **Round 1 – Selection & Shift:** Choose cards to keep, discard the rest, and draw replacements to refill your 5‑card hand.\n"
-            "   2. **Round 2 – Final Selection:** Discard unwanted cards and draw to finish with a final 5‑card hand before revealing.\n"
-            "- **Winning:** The hand closest to the gold die’s target number wins; ties are broken by the count of cards in the silver die’s target suit.\n"
-            "- **No Gambling:** This mode is purely strategic with no betting involved.\n\n"
-            "Choose your preferred game mode and may the Force be with you!"
+            '**Similarities:**\n'
+            '- All modes aim for a hand total as close as possible to a specific target (zero or dice‑determined).\n'
+            '- Each includes Sylop (0) cards with special properties.\n'
+            '- Strategic card selection is key to winning.\n\n'
+
+            '**Differences:**\n\n'
+            '**Corellian Spike Sabacc:**\n'
+            '- **Deck Composition:** A single 62‑card deck ranging from −10 to +10 (no zero), plus 2 Sylops (0).\n'
+            '- **Hand Limit:** No fixed limit; players can accumulate multiple cards.\n'
+            '- **Rounds:** Typically 3 rounds.\n'
+            '- **Actions:** Draw, Discard, Replace, Stand, or Junk.\n'
+            '- **Special Hands:** Complex ranking system (Pure Sabacc, Fleet, Yee‑Haa, etc.).\n\n'
+
+            '**Kessel Sabacc:**\n'
+            '- **Deck Composition:** Two separate decks (Sand for positives, Blood for negatives), 22 cards each (44 total), plus Sylops.\n'
+            '- **Hand Limit:** Exactly 2 cards (1 positive, 1 negative).\n'
+            '- **Rounds:** Typically 3 rounds.\n'
+            '- **Actions:** Draw (then discard to maintain 2 cards), Stand, or Junk.\n'
+            '- **Impostor Cards (Ψ):** Roll dice to assign or modify values.\n'
+            '- **Sylop (Ø) Cards:** Mirror the value of the other card in hand.\n'
+            '- **Special Hands:** Includes Pure Sabacc, Prime Sabacc, etc., all aimed at total 0.\n\n'
+
+            '**Coruscant Shift Sabacc:**\n'
+            '- **Deck Composition:** Standard 62‑card deck (+1..+10, −1..−10 for suits ●, ▲, ■; plus 2 Sylops).\n'
+            '- **Dice Mechanics:**\n'
+            '  • **Gold Die:** Sets target number (−10, +10, −5, +5, 0, 0).\n'
+            '  • **Silver Die:** Sets target suit (●, ▲, or ■) for tie‑breakers.\n'
+            '- **Rounds:** Played in 2 “phases” of card selection.\n'
+            '  1. **Round 1 – Selection & Shift:** Each player discards unwanted cards from their initial 5, draws replacements back to 5.\n'
+            '  2. **Round 2 – Final Selection & Reveal:** Players choose again, but cannot discard any cards they kept from Round 1. '
+            'They may discard newly drawn cards, aiming for **1–5 total** in their final hand.\n'
+            '- **Tie-Breakers:** Closest to the gold die target → most cards of silver die suit → highest positive “added total” → highest single positive card → sudden death.\n'
+            '- **No Gambling:** Purely strategic selection.\n\n'
+            'Choose your preferred mode—may the Force be with you!'
         ),
         color=0x964B00
     )
     comparison_embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/compycore/Sabacc/gh-pages/images/logo.png'
+        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png'
     )
     return comparison_embed
