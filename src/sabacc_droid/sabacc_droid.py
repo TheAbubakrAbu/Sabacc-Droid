@@ -8,7 +8,7 @@ from discord.ext import commands
 from corellian_spike import CorelliaGameView
 from kessel import KesselGameView
 from coruscant_shift import CoruscantGameView
-from rules import get_corellian_spike_rules_embed, get_kessel_rules_embed, get_comparison_embed
+from rules import get_corellian_spike_rules_embed, get_kessel_rules_embed, get_coruscant_shift_rules_embed, get_comparison_embed
 
 # Load Token
 load_dotenv()
@@ -124,29 +124,43 @@ async def coruscant_shift_command(interaction: Interaction) -> None:
 
 @bot.tree.command(name='help', description='Display the Sabacc game rules')
 async def help_command(interaction: Interaction) -> None:
-    '''Display the game rules publicly.'''
+    '''
+    Display a public message summarizing the available Sabacc game modes
+    (Corellian Spike, Kessel Sabacc, and Coruscant Shift),
+    along with credits and repository links.
+    '''
 
     embed = discord.Embed(
         title='Sabacc Droid',
         description=(
-            'Welcome to Sabacc Droid! Play either **Corellian Spike Sabacc** (from *Solo* and Galaxy\'s Edge) '
-            'or **Kessel Sabacc** (from *Star Wars: Outlaws*).\n\n'
-            'Both games focus on achieving a hand sum of zero or as close as possible, however there are many differences between the two.\n\n'
-            'Default game settings are 3 rounds and 2 starting cards for both games.\n\n'
+            'Welcome to **Sabacc Droid**! You can play any of the following Sabacc variations:\n\n'
+            '• **Corellian Spike** (famously seen in *Solo* and at Galaxy\'s Edge)\n'
+            '• **Kessel Sabacc** (inspired by *Star Wars: Outlaws*)\n'
+            '• **Coruscant Shift** (a dice‑based mode featuring target numbers and suits)\n\n'
 
-            'Credits for the Corellian Spike Sabacc Cards go to [Winz](https://cults3d.com/en/3d-model/game/sabacc-cards-and-spike-dice-printable)\n'
-            'Credits for the Kessel Sabacc Cards go to [u/Gold-Ad-4525](https://www.reddit.com/r/StarWarsSabacc/comments/1exatgi/kessel_sabaac_v3/)\n\n'
+            'All modes aim for a hand sum near their target (zero or a dice‑determined value), but each uses unique decks and rules:\n'
+            '- **Corellian Spike**: 62 cards, can hold multiple cards, 3 rounds, specialized hands.\n'
+            '- **Kessel**: Two separate decks (positive & negative), strictly 2 cards, Impostor & Sylop mechanics.\n'
+            '- **Coruscant Shift**: 62 cards, 2 rounds with 5 initial cards, gold/silver dice set a target number & suit. '
+            'Final hand can be 1–5 cards.\n\n'
 
-            'This is a fan-made project and is not affiliated with or endorsed by Lucasfilm Ltd. or Disney. All trademarks are the property of their respective owners.\n\n'
+            'By default, Corellian Spike and Kessel each have 3 rounds (2 starting cards), while Coruscant Shift has 2 rounds (5 starting cards).\n\n'
 
+            '**Credits & Disclaimers:**\n'
+            '• **Corellian Spike Cards:** [Winz](https://cults3d.com/en/3d-model/game/sabacc-cards-and-spike-dice-printable)\n'
+            '• **Kessel Sabacc Cards:** [u/Gold-Ad-4525](https://www.reddit.com/r/StarWarsSabacc/comments/1exatgi/kessel_sabaac_v3/)\n'
+            '• All other creative content is fan-made, not affiliated with or endorsed by Lucasfilm/Disney.\n\n'
             'Created by **[Abubakr Elmallah](https://abubakrelmallah.com/)**.\n\n'
-            '[📂 GitHub Repository](https://github.com/TheAbubakrAbu/Sabacc-Droid)'
+            '[📂 GitHub Repository](https://github.com/TheAbubakrAbu/Sabacc-Droid)\n\n'
+            'May the Force be with you—choose a game mode and have fun!'
         ),
         color=0x964B00
     )
-    embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png')
+    embed.set_thumbnail(
+        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png'
+    )
 
-    view = HelpView()
+    view = HelpView()  # Your existing view that offers buttons to see each ruleset, etc.
     await interaction.response.send_message(embed=embed, view=view)
 
 class HelpView(ui.View):
@@ -155,17 +169,22 @@ class HelpView(ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @ui.button(label='View Corellian Spike Rules', style=discord.ButtonStyle.primary)
+    @ui.button(label='Corellian Rules', style=discord.ButtonStyle.primary)
     async def corellian_spike_button(self, interaction: Interaction, button: ui.Button):
         rules_embed = get_corellian_spike_rules_embed()
         await interaction.response.send_message(embed=rules_embed, ephemeral=True)
 
-    @ui.button(label='View Kessel Rules', style=discord.ButtonStyle.primary)
+    @ui.button(label='Kessel Rules', style=discord.ButtonStyle.primary)
     async def kessel_button(self, interaction: Interaction, button: ui.Button):
         rules_embed = get_kessel_rules_embed()
         await interaction.response.send_message(embed=rules_embed, ephemeral=True)
 
-    @ui.button(label='View Comparison', style=discord.ButtonStyle.secondary)
+    @ui.button(label='Coruscant Rules', style=discord.ButtonStyle.primary)
+    async def coruscant_button(self, interaction: Interaction, button: ui.Button):
+        rules_embed = get_coruscant_shift_rules_embed()
+        await interaction.response.send_message(embed=rules_embed, ephemeral=True)
+
+    @ui.button(label='Comparison', style=discord.ButtonStyle.secondary)
     async def comparison_button(self, interaction: Interaction, button: ui.Button):
         comparison_embed = get_comparison_embed()
         await interaction.response.send_message(embed=comparison_embed, ephemeral=True)
