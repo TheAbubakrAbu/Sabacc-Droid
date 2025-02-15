@@ -12,7 +12,6 @@ from rules import get_coruscant_shift_rules_embed
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
 class Card:
     '''
     Represents a Coruscant Shift Sabacc card.
