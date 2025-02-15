@@ -47,7 +47,7 @@ async def corellian_command(interaction: Interaction, rounds: int = 3, num_cards
         color=0x964B00
     )
     embed.set_footer(text='Corellian Spike Sabacc')
-    embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
+    embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png')
     try:
         await interaction.response.send_message(embed=embed, view=view)
         view.message = await interaction.original_response()
@@ -108,7 +108,7 @@ async def coruscant_shift_command(interaction: Interaction) -> None:
         color=0x964B00
     )
     embed.set_footer(text='Coruscant Shift Sabacc')
-    embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
+    embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
 
     try:
         await interaction.response.send_message(embed=embed, view=view)
@@ -144,7 +144,7 @@ async def help_command(interaction: Interaction) -> None:
         ),
         color=0x964B00
     )
-    embed.set_thumbnail(url='https://raw.githubusercontent.com/compycore/sabacc/gh-pages/images/logo.png')
+    embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png')
 
     view = HelpView()
     await interaction.response.send_message(embed=embed, view=view)
