@@ -86,29 +86,34 @@ async def kessel_command(interaction: Interaction, rounds: int = 3) -> None:
 
 
 @bot.tree.command(name='coruscant_shift', description='Start a Coruscant Shift Sabacc game')
-async def coruscant_shift_command(interaction: Interaction) -> None:
-    '''
-    Initiate a new Coruscant Shift Sabacc game.
-    This version is fixed to 2 rounds by default.
-    '''
+@app_commands.describe(rounds='Number of rounds (default: 2, max: 10)', num_cards='Number of starting cards (default: 5, max: 5)')
+async def coruscant_shift_command(interaction: Interaction, rounds: int = 2, num_cards: int = 5) -> None:
+    '''Initiate a new Coruscant Shift Sabacc game with optional custom settings.'''
+    
+    rounds = max(1, min(rounds, 10))
+    num_cards = max(1, min(num_cards, 5))
+
     view = CoruscantGameView(
+        rounds=rounds,
+        num_cards=num_cards,
         active_games=active_games,
         channel=interaction.channel
     )
-
     embed = discord.Embed(
         title='Sabacc Game Lobby',
         description=(
             'Click **Play Game** to join the Coruscant Shift Sabacc game.\n\n'
-            '**Game Settings:**\n'
-            '• 2 Rounds (fixed)\n'
-            '• 5 starting cards\n\n'
+            f'**Game Settings:**\n'
+            f'{rounds} rounds\n'
+            f'{num_cards} starting cards\n\n'
             'Once someone has joined, the **Start Game** button will be enabled.'
         ),
         color=0x964B00
     )
     embed.set_footer(text='Coruscant Shift Sabacc')
-    embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
+    embed.set_thumbnail(
+        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png'
+    )
 
     try:
         await interaction.response.send_message(embed=embed, view=view)
