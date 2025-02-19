@@ -164,10 +164,10 @@ class CorelliaGameView(ui.View):
         self.start_game_button.disabled = True
 
         embed = Embed(
-            title='Sabacc Game Lobby',
-            description=('Click **Play Game** to join the game.\n\n'
+            title='Corellian Spike Sabacc Lobby',
+            description=('Click **Play Game** to join the game!\n\n'
                          f'**Game Settings:**\n{self.rounds} rounds\n{self.num_cards} starting cards\n\n'
-                         'Once someone has joined, the **Start Game** button will be enabled.'),
+                         'Once someone has joined, **Start Game** will be enabled.'),
             color=0x964B00
         )
         embed.set_footer(text='Corellian Spike Sabacc')
@@ -201,7 +201,7 @@ class CorelliaGameView(ui.View):
             logger.error(f'Failed to combine card images: {e}')
 
         embed = Embed(
-            title='Sabacc Game',
+            title='Corellian Spike Sabacc',
             description=description,
             color=0x964B00
         )
@@ -254,7 +254,7 @@ class CorelliaGameView(ui.View):
             description += 'Click **Start Game** to begin!\n'
 
         embed = Embed(
-            title='Sabacc Game Lobby',
+            title='Corellian Spike Sabacc Lobby',
             description=description,
             color=0x964B00
         )

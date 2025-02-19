@@ -1,19 +1,22 @@
-# sabacc_droid.py
-
 import os
 import discord
 from dotenv import load_dotenv
 from discord import Intents, Interaction, Game, app_commands, ui
 from discord.ext import commands
+
 from corellian_spike import CorelliaGameView
 from kessel import KesselGameView
 from coruscant_shift import CoruscantGameView
-from rules import get_corellian_spike_rules_embed, get_kessel_rules_embed, get_coruscant_shift_rules_embed, get_comparison_embed
+from rules import (
+    get_corellian_spike_rules_embed,
+    get_kessel_rules_embed,
+    get_coruscant_shift_rules_embed,
+    get_comparison_embed
+)
 
-# Load Token
+# Load the bot token
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
-
 if TOKEN is None:
     raise ValueError('DISCORD_TOKEN environment variable not found in .env file.')
 
@@ -27,6 +30,153 @@ bot = commands.Bot(
 
 active_games = []
 
+async def _send_sabacc_lobby(
+    interaction: Interaction,
+    view: ui.View,
+    active_games_list: list,
+    *,
+    title: str,
+    description: str,
+    footer: str,
+    thumbnail_url: str,
+    defer_first: bool = False
+):
+    '''
+    DRY helper to send a new game lobby embed + view, append to active_games,
+    and handle any exceptions. If 'defer_first' is True, we assume the interaction
+    was already deferred, so we use 'interaction.channel.send'; otherwise we use
+    'interaction.response.send_message'.
+    '''
+
+    embed = discord.Embed(
+        title=title,
+        description=description,
+        color=0x964B00
+    )
+    embed.set_footer(text=footer)
+    embed.set_thumbnail(url=thumbnail_url)
+
+    try:
+        if defer_first:
+            lobby_msg = await interaction.channel.send(embed=embed, view=view)
+        else:
+            await interaction.response.send_message(embed=embed, view=view)
+            lobby_msg = await interaction.original_response()
+
+        view.message = lobby_msg
+        active_games_list.append(view)
+
+    except Exception as e:
+        await interaction.response.send_message(
+            f'An error occurred while starting the game: {e}',
+            ephemeral=True
+        )
+
+@bot.tree.command(name='sabacc', description='Select a Sabacc variant to play!')
+async def sabacc_command(interaction: Interaction):
+    '''
+    Presents a menu with buttons for the three Sabacc variants:
+    - Corellian Spike (defaults: 3 rounds, 2 starting cards)
+    - Kessel (defaults: 3 rounds)
+    - Coruscant Shift (defaults: 2 rounds, 5 starting cards)
+    '''
+
+    embed = discord.Embed(
+        title='Choose Your Sabacc Variant',
+        description=(
+            'Select one of the three modes below to start a new game in this channel.\n\n'
+            '**Corellian Spike** (3 rounds / 2 cards)\n'
+            '**Kessel** (3 rounds / 2 cards)\n'
+            '**Coruscant Shift** (2 rounds / 5 cards)\n\n'
+            'Click a button to immediately start a lobby with default settings.'
+        ),
+        color=0x964B00
+    )
+    embed.set_thumbnail(
+        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png'
+    )
+    embed.set_footer(text='Sabacc Droid')
+
+    view = SabaccChoiceView()
+    await interaction.response.send_message(embed=embed, view=view)
+
+
+class SabaccChoiceView(ui.View):
+    '''
+    View with three buttons to start one of the Sabacc variants using default settings.
+    '''
+
+    @ui.button(label='Start Corellian Spike', style=discord.ButtonStyle.primary)
+    async def start_corellian_spike(self, interaction: Interaction, button: ui.Button):
+        await interaction.response.defer()
+        corellian_view = CorelliaGameView(
+            rounds=3,
+            num_cards=2,
+            active_games=active_games,
+            channel=interaction.channel
+        )
+        desc = (
+            'Click **Play Game** to join.\n\n'
+            '**Game Settings:**\n3 rounds\n2 starting cards\n\n'
+            'Once someone has joined, **Start Game** will be enabled.'
+        )
+        await _send_sabacc_lobby(
+            interaction,
+            corellian_view,
+            active_games,
+            title='Sabacc Game Lobby',
+            description=desc,
+            footer='Corellian Spike Sabacc',
+            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png',
+            defer_first=True
+        )
+
+    @ui.button(label='Start Kessel', style=discord.ButtonStyle.primary)
+    async def start_kessel(self, interaction: Interaction, button: ui.Button):
+        await interaction.response.defer()
+        kessel_view = KesselGameView(rounds=3, active_games=active_games, channel=interaction.channel)
+        desc = (
+            'Click **Play Game** to join.\n\n'
+            '**Game Settings:**\n3 rounds\n2 starting cards\n\n'
+            'Once someone has joined, **Start Game** will be enabled.'
+        )
+        await _send_sabacc_lobby(
+            interaction,
+            kessel_view,
+            active_games,
+            title='Sabacc Game Lobby',
+            description=desc,
+            footer='Kessel Sabacc',
+            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png',
+            defer_first=True
+        )
+
+    @ui.button(label='Start Coruscant Shift', style=discord.ButtonStyle.danger)
+    async def start_coruscant_shift(self, interaction: Interaction, button: ui.Button):
+        await interaction.response.defer()
+        coruscant_view = CoruscantGameView(
+            rounds=2,
+            num_cards=5,
+            active_games=active_games,
+            channel=interaction.channel
+        )
+        desc = (
+            'Click **Play Game** to join the Coruscant Shift Sabacc game.\n\n'
+            '**Game Settings:**\n2 rounds\n5 starting cards\n\n'
+            'Once someone has joined, the **Start Game** button will be enabled.'
+        )
+        await _send_sabacc_lobby(
+            interaction,
+            coruscant_view,
+            active_games,
+            title='Sabacc Game Lobby',
+            description=desc,
+            footer='Coruscant Shift Sabacc',
+            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png',
+            defer_first=True
+        )
+
+
 @bot.tree.command(name='corellian_spike', description='Start a Corellian Spike Sabacc game with optional custom settings')
 @app_commands.describe(
     rounds='Number of rounds (default: 3, max: 10)',
@@ -34,27 +184,30 @@ active_games = []
 )
 async def corellian_command(interaction: Interaction, rounds: int = 3, num_cards: int = 2) -> None:
     '''Initiate a new Corellian Spike Sabacc game with optional custom settings.'''
-
     rounds = max(1, min(rounds, 10))
     num_cards = max(1, min(num_cards, 5))
 
-    view = CorelliaGameView(rounds=rounds, num_cards=num_cards, active_games=active_games, channel=interaction.channel)
-    embed = discord.Embed(
-        title='Sabacc Game Lobby',
-        description='Click **Play Game** to join the game.\n\n'
-                    f'**Game Settings:**\n{rounds} rounds\n{num_cards} starting cards\n\n'
-                    'Once someone has joined, the **Start Game** button will be enabled.',
-        color=0x964B00
+    view = CorelliaGameView(
+        rounds=rounds,
+        num_cards=num_cards,
+        active_games=active_games,
+        channel=interaction.channel
     )
-    embed.set_footer(text='Corellian Spike Sabacc')
-    embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png')
-    try:
-        await interaction.response.send_message(embed=embed, view=view)
-        view.message = await interaction.original_response()
-        active_games.append(view)
-    except Exception as e:
-        await interaction.response.send_message('An error occurred while starting the game.', ephemeral=True)
-        print(f'Error in corellian_command: {e}')
+    desc = (
+        'Click **Play Game** to join the game.\n\n'
+        f'**Game Settings:**\n{rounds} rounds\n{num_cards} starting cards\n\n'
+        'Once someone has joined, the **Start Game** button will be enabled.'
+    )
+    await _send_sabacc_lobby(
+        interaction,
+        view,
+        active_games,
+        title='Sabacc Game Lobby',
+        description=desc,
+        footer='Corellian Spike Sabacc',
+        thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png',
+        defer_first=False
+    )
 
 
 @bot.tree.command(name='kessel', description='Start a Kessel Sabacc game')
@@ -63,35 +216,35 @@ async def corellian_command(interaction: Interaction, rounds: int = 3, num_cards
 )
 async def kessel_command(interaction: Interaction, rounds: int = 3) -> None:
     '''Initiate a new Kessel Sabacc game with optional custom settings.'''
-
     rounds = max(1, min(rounds, 10))
-
     view = KesselGameView(rounds=rounds, active_games=active_games, channel=interaction.channel)
-    embed = discord.Embed(
-        title='Sabacc Game Lobby',
-        description='Click **Play Game** to join the game.\n\n'
-                    f'**Game Settings:**\n{rounds} rounds\n2 starting cards\n\n'
-                    'Once someone has joined, the **Start Game** button will be enabled.',
-        color=0x964B00
+
+    desc = (
+        'Click **Play Game** to join the game.\n\n'
+        f'**Game Settings:**\n{rounds} rounds\n2 starting cards\n\n'
+        'Once someone has joined, the **Start Game** button will be enabled.'
     )
-    embed.set_footer(text='Kessel Sabacc')
-    embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png')
-    try:
-        await interaction.response.send_message(embed=embed, view=view)
-        view.message = await interaction.original_response()
-        active_games.append(view)
-    except Exception as e:
-        await interaction.response.send_message('An error occurred while starting the game.', ephemeral=True)
-        print(f'Error in kessel_command: {e}')
+    await _send_sabacc_lobby(
+        interaction,
+        view,
+        active_games,
+        title='Sabacc Game Lobby',
+        description=desc,
+        footer='Kessel Sabacc',
+        thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png',
+        defer_first=False
+    )
 
 
-@bot.tree.command(name='coruscant_shift', description='Start a Coruscant Shift Sabacc game')
-@app_commands.describe(rounds='Number of rounds (default: 2, max: 10)', num_cards='Number of starting cards (default: 5, max: 5)')
+@bot.tree.command(name='coruscant_shift', description='Start a Coruscant Shift Sabacc game with optional custom settings')
+@app_commands.describe(
+    rounds='Number of rounds (default: 2, max: 10)',
+    num_cards='Number of starting cards (default: 5, max: 10)'
+)
 async def coruscant_shift_command(interaction: Interaction, rounds: int = 2, num_cards: int = 5) -> None:
     '''Initiate a new Coruscant Shift Sabacc game with optional custom settings.'''
-    
     rounds = max(1, min(rounds, 10))
-    num_cards = max(1, min(num_cards, 5))
+    num_cards = max(1, min(num_cards, 10))
 
     view = CoruscantGameView(
         rounds=rounds,
@@ -99,32 +252,21 @@ async def coruscant_shift_command(interaction: Interaction, rounds: int = 2, num
         active_games=active_games,
         channel=interaction.channel
     )
-    embed = discord.Embed(
+    desc = (
+        'Click **Play Game** to join the Coruscant Shift Sabacc game.\n\n'
+        f'**Game Settings:**\n{rounds} rounds\n{num_cards} starting cards\n\n'
+        'Once someone has joined, the **Start Game** button will be enabled.'
+    )
+    await _send_sabacc_lobby(
+        interaction,
+        view,
+        active_games,
         title='Sabacc Game Lobby',
-        description=(
-            'Click **Play Game** to join the Coruscant Shift Sabacc game.\n\n'
-            f'**Game Settings:**\n'
-            f'{rounds} rounds\n'
-            f'{num_cards} starting cards\n\n'
-            'Once someone has joined, the **Start Game** button will be enabled.'
-        ),
-        color=0x964B00
+        description=desc,
+        footer='Coruscant Shift Sabacc',
+        thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png',
+        defer_first=False
     )
-    embed.set_footer(text='Coruscant Shift Sabacc')
-    embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png'
-    )
-
-    try:
-        await interaction.response.send_message(embed=embed, view=view)
-        view.message = await interaction.original_response()
-        active_games.append(view)
-    except Exception as e:
-        await interaction.response.send_message(
-            'An error occurred while starting the Coruscant Shift game.',
-            ephemeral=True
-        )
-        print(f'Error in coruscant_shift_command: {e}')
 
 
 @bot.tree.command(name='help', description='Display the Sabacc game rules')
@@ -134,7 +276,6 @@ async def help_command(interaction: Interaction) -> None:
     (Corellian Spike, Kessel Sabacc, and Coruscant Shift),
     along with credits and repository links.
     '''
-
     embed = discord.Embed(
         title='Sabacc Droid',
         description=(
@@ -149,7 +290,8 @@ async def help_command(interaction: Interaction) -> None:
             '- **Coruscant Shift**: 62 cards, 2 rounds with 5 initial cards, gold/silver dice set a target number & suit. '
             'Final hand can be 1–5 cards.\n\n'
 
-            'By default, Corellian Spike and Kessel each have 3 rounds (2 starting cards), while Coruscant Shift has 2 rounds (5 starting cards).\n\n'
+            'By default, Corellian Spike and Kessel each have 3 rounds (2 starting cards), '
+            'while Coruscant Shift has 2 rounds (5 starting cards).\n\n'
 
             '**Credits & Disclaimers:**\n'
             '• **Corellian Spike Cards:** [Winz](https://cults3d.com/en/3d-model/game/sabacc-cards-and-spike-dice-printable)\n'
@@ -165,8 +307,9 @@ async def help_command(interaction: Interaction) -> None:
         url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png'
     )
 
-    view = HelpView()  # Your existing view that offers buttons to see each ruleset, etc.
+    view = HelpView()
     await interaction.response.send_message(embed=embed, view=view)
+
 
 class HelpView(ui.View):
     '''View containing buttons to display rules for different game modes.'''
@@ -194,18 +337,15 @@ class HelpView(ui.View):
         comparison_embed = get_comparison_embed()
         await interaction.response.send_message(embed=comparison_embed, ephemeral=True)
 
-# Handle Startup
+
 @bot.event
 async def on_ready() -> None:
     '''Event handler for when the bot is ready.'''
-
     await bot.tree.sync()
     print(f'{bot.user} is now running!')
 
-# Run Bot
 def main() -> None:
     '''Run the Discord bot.'''
-    
     bot.run(TOKEN)
 
 if __name__ == '__main__':

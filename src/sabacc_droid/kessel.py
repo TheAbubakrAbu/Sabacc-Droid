@@ -252,10 +252,10 @@ class KesselGameView(ui.View):
         self.start_game_button.disabled = True
 
         embed = Embed(
-            title='Sabacc Game Lobby',
-            description='Click **Play Game** to join the game.\n\n'
+            title='Kessel Sabacc Lobby',
+            description='Click **Play Game** to join the game!\n\n'
                         f'**Game Settings:**\n{self.rounds} rounds\n2 starting cards\n\n'
-                        'Once someone has joined, the **Start Game** button will be enabled.',
+                        'Once someone has joined, **Start Game** will be enabled.',
             color=0x964B00
         )
         embed.set_footer(text='Kessel Sabacc')
@@ -281,7 +281,7 @@ class KesselGameView(ui.View):
         image_bytes = combine_card_images(card_image_urls)
 
         embed = Embed(
-            title='Sabacc Game',
+            title='Kessel Sabacc',
             description=description,
             color=0x964B00
         )
@@ -331,7 +331,7 @@ class KesselGameView(ui.View):
             description += 'Click **Start Game** to begin!\n'
 
         embed = Embed(
-            title='Sabacc Game Lobby',
+            title='Kessel Sabacc Lobby',
             description=description,
             color=0x964B00
         )
