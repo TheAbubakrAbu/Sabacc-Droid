@@ -170,7 +170,6 @@ class CorelliaGameView(ui.View):
                          'Once someone has joined, **Start Game** will be enabled.'),
             color=0x964B00
         )
-        embed.set_footer(text='Corellian Spike Sabacc')
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png')
 
         await interaction.response.edit_message(embed=embed, view=self)
@@ -258,7 +257,6 @@ class CorelliaGameView(ui.View):
             description=description,
             color=0x964B00
         )
-        embed.set_footer(text='Corellian Spike Sabacc')
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png')
 
         self.start_game_button.disabled = len(self.players) < 1 or self.game_started
@@ -385,12 +383,10 @@ class CorelliaGameView(ui.View):
         cards = player.cards
         total = sum(cards)
 
-        # Count how many times each card appears.
         counts = {}
         for card in cards:
             counts[card] = counts.get(card, 0) + 1
 
-        # Count how many times each absolute value appears.
         abs_counts = {}
         for card in cards:
             abs_card = abs(card)
