@@ -566,7 +566,7 @@ async def ephemeral_hand_embed(player: Player, game_view: CoruscantGameView, tog
     try:
         buf = combine_card_images(image_urls)
         emb = Embed(
-            title=f"Select Your Cards | Round {game_view.current_round}/{game_view.rounds}",
+            title=f"Your Turn | Round {game_view.current_round}/{game_view.rounds}",
             description=desc,
             color=0x964B00
         )
@@ -577,7 +577,7 @@ async def ephemeral_hand_embed(player: Player, game_view: CoruscantGameView, tog
     except Exception as e:
         logger.error(f"ephemeral_hand_embed: {e}")
         emb = Embed(
-            title="Select Your Cards",
+            title="Your Turn",
             description=desc,
             color=0x964B00
         )
