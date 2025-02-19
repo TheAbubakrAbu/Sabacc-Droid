@@ -258,7 +258,6 @@ class KesselGameView(ui.View):
                         'Once someone has joined, **Start Game** will be enabled.',
             color=0x964B00
         )
-        embed.set_footer(text='Kessel Sabacc')
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png')
 
         await interaction.response.edit_message(embed=embed, view=self)
@@ -335,7 +334,6 @@ class KesselGameView(ui.View):
             description=description,
             color=0x964B00
         )
-        embed.set_footer(text='Kessel Sabacc')
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png')
 
         if self.game_started:
