@@ -272,7 +272,7 @@ class KesselGameView(ui.View):
             player.user.mention for player in self.players) + '\n\n'
         description += f'**Round {self.rounds_completed + 1}/{self.rounds}**\n'
         description += f'It\'s now {current_player.user.mention}\'s turn.\n'
-        description += 'Click **Play Turn** to take your turn.'
+        description += 'Click **Play Turn** to proceed.'
 
         positive_back_url = "https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/%2Bcard.png"
         negative_back_url = "https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/-card.png"

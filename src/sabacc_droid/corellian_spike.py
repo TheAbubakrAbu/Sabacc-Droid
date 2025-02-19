@@ -188,7 +188,7 @@ class CorelliaGameView(ui.View):
             player.user.mention for player in self.players) + '\n\n'
         description += f'**Round {self.rounds_completed}/{self.total_rounds}**\n'
         description += f'It\'s now {current_player.user.mention}\'s turn.\n'
-        description += 'Click **Play Turn** to take your turn.\n\n'
+        description += 'Click **Play Turn** to proceed.\n\n'
 
         card_back_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/corellian_spike/card.png'
         card_image_urls = [card_back_url] * card_count
