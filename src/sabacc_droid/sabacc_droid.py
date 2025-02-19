@@ -72,13 +72,14 @@ async def _send_sabacc_lobby(
             ephemeral=True
         )
 
-@bot.tree.command(name='sabacc', description='Select a Sabacc variant to play!')
+@bot.tree.command(name='sabacc', description='Select a Sabacc variant to play')
 async def sabacc_command(interaction: Interaction):
     '''
     Presents a menu with buttons for the three Sabacc variants:
     - Corellian Spike (defaults: 3 rounds, 2 starting cards)
-    - Kessel (defaults: 3 rounds)
+    - Kessel (defaults: 3 rounds, 2 starting cards)
     - Coruscant Shift (defaults: 2 rounds, 5 starting cards)
+    Plus a "View Rules" button to show /help info.
     '''
 
     embed = discord.Embed(
@@ -88,7 +89,8 @@ async def sabacc_command(interaction: Interaction):
             '**Corellian Spike** (3 rounds / 2 cards)\n'
             '**Kessel** (3 rounds / 2 cards)\n'
             '**Coruscant Shift** (2 rounds / 5 cards)\n\n'
-            'Click a button to immediately start a lobby with default settings.'
+            'Click a button to immediately start a lobby with default settings.\n\n'
+            'Or click **View Rules** to see an overview of Sabacc and its variations.'
         ),
         color=0x964B00
     )
@@ -103,7 +105,11 @@ async def sabacc_command(interaction: Interaction):
 
 class SabaccChoiceView(ui.View):
     '''
-    View with three buttons to start one of the Sabacc variants using default settings.
+    View with four buttons:
+    - Corellian Spike (3 rounds, 2 cards)
+    - Kessel (3 rounds, 2 cards)
+    - Coruscant Shift (2 rounds, 5 cards)
+    - View Rules (ephemeral help info)
     '''
 
     @ui.button(label='Start Corellian Spike', style=discord.ButtonStyle.primary)
@@ -124,7 +130,7 @@ class SabaccChoiceView(ui.View):
             interaction,
             corellian_view,
             active_games,
-            title='Sabacc Game Lobby',
+            title='Corellian Spike Sabacc Lobby',
             description=desc,
             footer='Corellian Spike Sabacc',
             thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png',
@@ -144,7 +150,7 @@ class SabaccChoiceView(ui.View):
             interaction,
             kessel_view,
             active_games,
-            title='Sabacc Game Lobby',
+            title='Kessel Sabacc Lobby',
             description=desc,
             footer='Kessel Sabacc',
             thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png',
@@ -161,20 +167,56 @@ class SabaccChoiceView(ui.View):
             channel=interaction.channel
         )
         desc = (
-            'Click **Play Game** to join the Coruscant Shift Sabacc game.\n\n'
+            'Click **Play Game** to join.\n\n'
             '**Game Settings:**\n2 rounds\n5 starting cards\n\n'
-            'Once someone has joined, the **Start Game** button will be enabled.'
+            'Once someone has joined, **Start Game** will be enabled.'
         )
         await _send_sabacc_lobby(
             interaction,
             coruscant_view,
             active_games,
-            title='Sabacc Game Lobby',
+            title='Coruscant Shift Sabacc Lobby',
             description=desc,
             footer='Coruscant Shift Sabacc',
             thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png',
             defer_first=True
         )
+
+    @ui.button(label='View Rules', style=discord.ButtonStyle.secondary)
+    async def view_rules(self, interaction: Interaction, button: ui.Button):
+        '''Shows the same info as the /help command.'''
+        embed = discord.Embed(
+            title='Sabacc Droid',
+            description=(
+                'Welcome to **Sabacc Droid**! You can play any of the following Sabacc variations:\n\n'
+                '• **Corellian Spike** (famously seen in *Solo* and at Galaxy\'s Edge)\n'
+                '• **Kessel Sabacc** (inspired by *Star Wars: Outlaws*)\n'
+                '• **Coruscant Shift** (a dice‑based mode featuring target numbers and suits)\n\n'
+
+                'All modes aim for a hand sum near their target (zero or a dice‑determined value), '
+                'but each uses unique decks and rules:\n'
+                '- **Corellian Spike**: 62 cards, can hold multiple cards, 3 rounds, specialized hands.\n'
+                '- **Kessel**: Two separate decks (positive & negative), strictly 2 cards, Impostor & Sylop mechanics.\n'
+                '- **Coruscant Shift**: 62 cards, 2 rounds with 5 initial cards, gold/silver dice set a target number & suit. '
+                'Final hand can be 1–5 cards.\n\n'
+
+                'By default, Corellian Spike and Kessel each have 3 rounds (2 starting cards), '
+                'while Coruscant Shift has 2 rounds (5 starting cards).\n\n'
+
+                '**Credits & Disclaimers:**\n'
+                '• **Corellian Spike Cards:** [Winz](https://cults3d.com/en/3d-model/game/sabacc-cards-and-spike-dice-printable)\n'
+                '• **Kessel Sabacc Cards:** [u/Gold-Ad-4525](https://www.reddit.com/r/StarWarsSabacc/comments/1exatgi/kessel_sabaac_v3/)\n'
+                '• All other creative content is fan-made, not affiliated with or endorsed by Lucasfilm/Disney.\n\n'
+                'Created by **[Abubakr Elmallah](https://abubakrelmallah.com/)**.\n\n'
+                '[📂 GitHub Repository](https://github.com/TheAbubakrAbu/Sabacc-Droid)\n\n'
+                'May the Force be with you—choose a game mode and have fun!'
+            ),
+            color=0x964B00
+        )
+        embed.set_thumbnail(
+            url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png'
+        )
+        await interaction.response.send_message(embed=embed)
 
 
 @bot.tree.command(name='corellian_spike', description='Start a Corellian Spike Sabacc game with optional custom settings')
@@ -202,7 +244,7 @@ async def corellian_command(interaction: Interaction, rounds: int = 3, num_cards
         interaction,
         view,
         active_games,
-        title='Sabacc Game Lobby',
+        title='Corellian Spike Sabacc Lobby',
         description=desc,
         footer='Corellian Spike Sabacc',
         thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png',
@@ -210,7 +252,7 @@ async def corellian_command(interaction: Interaction, rounds: int = 3, num_cards
     )
 
 
-@bot.tree.command(name='kessel', description='Start a Kessel Sabacc game')
+@bot.tree.command(name='kessel', description='Start a Kessel Sabacc game with optional custom settings')
 @app_commands.describe(
     rounds='Number of rounds (default: 3, max: 10)'
 )
@@ -228,7 +270,7 @@ async def kessel_command(interaction: Interaction, rounds: int = 3) -> None:
         interaction,
         view,
         active_games,
-        title='Sabacc Game Lobby',
+        title='Kessel Sabacc Lobby',
         description=desc,
         footer='Kessel Sabacc',
         thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png',
@@ -253,7 +295,7 @@ async def coruscant_shift_command(interaction: Interaction, rounds: int = 2, num
         channel=interaction.channel
     )
     desc = (
-        'Click **Play Game** to join the Coruscant Shift Sabacc game.\n\n'
+        'Click **Play Game** to join.\n\n'
         f'**Game Settings:**\n{rounds} rounds\n{num_cards} starting cards\n\n'
         'Once someone has joined, the **Start Game** button will be enabled.'
     )
@@ -261,7 +303,7 @@ async def coruscant_shift_command(interaction: Interaction, rounds: int = 2, num
         interaction,
         view,
         active_games,
-        title='Sabacc Game Lobby',
+        title='Coruscant Shift Sabacc Lobby',
         description=desc,
         footer='Coruscant Shift Sabacc',
         thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png',
@@ -269,7 +311,7 @@ async def coruscant_shift_command(interaction: Interaction, rounds: int = 2, num
     )
 
 
-@bot.tree.command(name='help', description='Display the Sabacc game rules')
+@bot.tree.command(name='help', description='Display Sabacc rules')
 async def help_command(interaction: Interaction) -> None:
     '''
     Display a public message summarizing the available Sabacc game modes
@@ -284,7 +326,8 @@ async def help_command(interaction: Interaction) -> None:
             '• **Kessel Sabacc** (inspired by *Star Wars: Outlaws*)\n'
             '• **Coruscant Shift** (a dice‑based mode featuring target numbers and suits)\n\n'
 
-            'All modes aim for a hand sum near their target (zero or a dice‑determined value), but each uses unique decks and rules:\n'
+            'All modes aim for a hand sum near their target (zero or a dice‑determined value), '
+            'but each uses unique decks and rules:\n'
             '- **Corellian Spike**: 62 cards, can hold multiple cards, 3 rounds, specialized hands.\n'
             '- **Kessel**: Two separate decks (positive & negative), strictly 2 cards, Impostor & Sylop mechanics.\n'
             '- **Coruscant Shift**: 62 cards, 2 rounds with 5 initial cards, gold/silver dice set a target number & suit. '
