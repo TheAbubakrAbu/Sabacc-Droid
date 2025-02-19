@@ -365,7 +365,7 @@ class CoruscantGameView(ui.View):
         '''
         Announces whose turn it is (mention + embed).
         '''
-        desc = f"**Players:**"
+        desc = f"**Players:**\n"
         desc += "\n".join(p.user.mention for p in self.players)
         desc += f"\n\n**Round {self.current_round}/{self.rounds}**\n"
         desc += f"It's now {player.user.mention}'s turn.\n"
