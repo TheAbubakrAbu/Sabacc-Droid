@@ -101,7 +101,7 @@ async def sabacc_command(interaction: Interaction):
     - Corellian Spike (defaults: 3 rounds, 2 starting cards)
     - Coruscant Shift (defaults: 2 rounds, 5 starting cards)
     - Kessel (defaults: 3 rounds, 2 starting cards)
-    Plus a "View Rules" button to show /help in fo.
+    Plus a View Rules button to show /help in fo.
     '''
 
     embed = discord.Embed(
