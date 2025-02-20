@@ -20,7 +20,7 @@ def get_card_image_urls(cards: list[int]) -> list[str]:
     Positive cards are prefixed with '+', negative as-is, and zero as '0'.
     '''
     base_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/corellian_spike/'
-    return [f'{base_url}{quote(f"+{card}" if card > 0 else str(card))}.png' for card in cards]
+    return [f'''{base_url}{quote(f'+{card}' if card > 0 else str(card))}.png''' for card in cards]
 
 def download_and_process_image(url: str, resize_width: int, resize_height: int) -> Image.Image:
     '''
@@ -112,7 +112,7 @@ class Player:
         '''
         Return a formatted string of the player's cards with separators.
         '''
-        return ' | ' + ' | '.join(f'{("+" if c > 0 else "")}{c}' for c in self.cards) + ' |'
+        return ' | ' + ' | '.join(f'''{('+' if c > 0 else '')}{c}''' for c in self.cards) + ' |'
 
     def get_total(self) -> int:
         '''
@@ -376,10 +376,10 @@ class CorelliaGameView(ui.View):
             self.first_turn = False
 
     def evaluate_hand(self, player: Player) -> tuple:
-        """
+        '''
         Evaluate a player's hand and return a tuple of sorting criteria, hand type, and total.
         Used for comparing final hands to determine the winner.
-        """
+        '''
         cards = player.cards
         total = sum(cards)
 
@@ -473,7 +473,7 @@ class CorelliaGameView(ui.View):
                     tie_breakers = [min(abs(c) for c in cards)]
 
             elif has_three_of_a_kind():
-                hand_type = "Bantha's Wild"
+                hand_type = 'Bantha\'s Wild'
                 hand_rank = 9
                 if lowest_trip_value is not None:
                     tie_breakers = [lowest_trip_value]
@@ -867,7 +867,7 @@ class CardSelectView(ui.View):
         Create a button for each card to select for discard/replace, plus a Go Back button.
         '''
         for idx, card in enumerate(self.player.cards):
-            button_label = f'{("+" if card > 0 else "")}{card}'
+            button_label = f'''{('+' if card > 0 else '')}{card}'''
             button = ui.Button(label=button_label, style=ButtonStyle.primary)
             button.callback = self.make_callback(card, idx)
             self.add_item(button)

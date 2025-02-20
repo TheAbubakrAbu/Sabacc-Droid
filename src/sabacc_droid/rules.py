@@ -157,7 +157,7 @@ def get_kessel_rules_embed() -> Embed:
                     '- **Junk:** Give up and exit the game.\n\n'
                     '**Hand Value Calculation:**\n'
                     '- A player\'s hand value is the **sum** of their two cards (positive plus negative).\n'
-                    '- Players aim for a hand value of zero for a "Sabacc" hand.\n'
+                    '- Players aim for a hand value of zero for a Sabacc hand.\n'
                     '- **Impostor (Ψ) Cards:**\n'
                     '   - At the end of each round, every player who has an Impostor card will roll two dice and choose one of the rolled values to assign to their Impostor card.\n'
                     '   - If a player has two Impostor cards (one positive and one negative), they will perform this action twice, rolling a total of four dice.\n'
