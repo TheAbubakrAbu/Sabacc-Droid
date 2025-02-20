@@ -1,4 +1,4 @@
 .DS_Store
 .env
 venv/
-src/sabacc_droid/__pycache__/
+__pycache__/
