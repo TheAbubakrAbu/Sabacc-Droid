@@ -415,12 +415,14 @@ class CoruscantGameView(ui.View):
         '''
         End the game, evaluate final results, mention all non-AI players.
         If solo_game = True and there's only 1 real player, add Lando if not present.
-        
-        Tie-breakers:
-        1) closest to self.target_number  => smaller diff
-        2) most suit matches              => bigger suit_count
-        3) highest total                  => bigger total
-        4) highest single positive card   => bigger largest_pos_card
+
+        Pure Sabacc:
+        - Exactly 2 cards, both Sylops => auto-win over non-Pure-Sabacc.
+        Tie-breakers (if no Pure Sabacc):
+        1) closest to target_number (lowest abs diff)
+        2) most suit matches
+        3) highest total
+        4) highest single positive card
         5) otherwise tie
         '''
         if self.game_ended:
@@ -441,61 +443,81 @@ class CoruscantGameView(ui.View):
 
         if not self.players:
             emb = Embed(
-                title='Game Over',
-                description='Nobody won because everyone junked!',
+                title="Game Over",
+                description="Nobody won because everyone junked!",
                 color=0x964B00
             )
-            emb.set_thumbnail(
-                url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png'
-            )
+            emb.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
             await self.channel.send(embed=emb, view=EndGameView(self.active_games, self.channel))
             if self in self.active_games:
                 self.active_games.remove(self)
             return
 
         result_text = (
-            f'**Target Number:** {self.target_number} | **Target Suit:** {self.target_suit}\n\n'
-            '**Final Hands:**\n'
+            f"**Target Number:** {self.target_number} | **Target Suit:** {self.target_suit}**\n\n"
+            "**Final Hands:**\n"
         )
 
-        evals = []
+        pure_sabacc_players = []
+        display_lines = {}
+        suit_counts = {}
+
         for pl in self.players:
-            total = pl.total_value()
-            diff = abs(total - self.target_number)
-
             suit_count = sum(1 for c in pl.hand if c.suit == self.target_suit or c.suit == 'Sylop')
+            suit_counts[pl] = suit_count
 
-            largest_pos_card = max([0] + [c.value for c in pl.hand if c.value > 0])
+            if len(pl.hand) == 2 and all(c.suit == 'Sylop' for c in pl.hand):
+                pure_sabacc_players.append(pl)
+                line1 = f"{pl.user.mention}: {pl.get_hand_string()}"
+                line2 = f"• Total: Pure Sabacc | Suit Matches: {suit_count}"
+                display_lines[pl] = f"{line1}\n{line2}\n"
+            else:
+                total = pl.total_value()
+                line1 = f"{pl.user.mention}: {pl.get_hand_string()}"
+                line2 = f"• Total: {total} | Suit Matches: {suit_count}"
+                display_lines[pl] = f"{line1}\n{line2}\n"
 
-            evals.append((diff, -suit_count, -total, -largest_pos_card, pl, total))
+        for pl in self.players:
+            result_text += display_lines[pl]
 
-            result_text += f'{pl.user.mention}: {pl.get_hand_string()} (Total: {total})\n'
-
-        evals.sort(key=lambda x: (x[0], x[1], x[2], x[3]))
-
-        best_key = evals[0][:4]
-        winners = [e for e in evals if e[:4] == best_key]
-
-        if len(winners) == 1:
-            wpl = winners[0][4]
-            result_text += f'\n🎉 {wpl.user.mention} wins!'
+        if pure_sabacc_players:
+            if len(pure_sabacc_players) == 1:
+                winner = pure_sabacc_players[0]
+                result_text += f"\n🎉 {winner.user.mention} wins with **Pure Sabacc**!"
+            else:
+                tie_names = ", ".join(pl.user.mention for pl in pure_sabacc_players)
+                result_text += f"\nIt's a tie between: {tie_names} (all **Pure Sabacc**)"
         else:
-            tie_names = ', '.join(e[4].user.mention for e in winners)
-            result_text += f'\nIt\'s a tie between: {tie_names}'
+            evals = []
+            for pl in self.players:
+                total = pl.total_value()
+                diff = abs(total - self.target_number)
+                sc = suit_counts[pl]
 
-        emb = Embed(title='Game Over', description=result_text, color=0x964B00)
+                largest_pos_card = max([0] + [c.value for c in pl.hand if c.value > 0])
+
+                evals.append((diff, -sc, -total, -largest_pos_card, pl))
+
+            evals.sort(key=lambda x: (x[0], x[1], x[2], x[3]))
+            best_key = evals[0][:4]
+            winners = [e for e in evals if e[:4] == best_key]
+
+            if len(winners) == 1:
+                wpl = winners[0][4]
+                result_text += f"\n🎉 {wpl.user.mention} wins!"
+            else:
+                tie_names = ", ".join(e[4].user.mention for e in winners)
+                result_text += f"\nIt's a tie between: {tie_names}"
+
+        emb = Embed(title="Game Over", description=result_text, color=0x964B00)
         emb.set_thumbnail(
             url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png'
         )
 
-        mention_line = ' '.join(
-            pl.user.mention for pl in self.players if 'AIUser' not in type(pl.user).__name__
+        mention_line = " ".join(
+            pl.user.mention for pl in self.players if "AIUser" not in type(pl.user).__name__
         )
-        await self.channel.send(
-            content=mention_line,
-            embed=emb,
-            view=EndGameView(self.active_games, self.channel)
-        )
+        await self.channel.send(content=mention_line, embed=emb, view=EndGameView(self.active_games, self.channel))
 
         if self in self.active_games:
             self.active_games.remove(self)
