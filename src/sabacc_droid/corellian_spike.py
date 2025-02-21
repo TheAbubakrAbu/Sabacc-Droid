@@ -564,7 +564,7 @@ class CorelliaGameView(ui.View):
             _, player, hand_type, total = eh
             
             line1 = f'{player.user.mention}: {player.get_cards_string()}'
-            line2 = f'\u200B      • Total: {total} | Hand: {hand_type}'
+            line2 = f'    - Total: {total} | Hand: {hand_type}'
             
             results += f'{line1}\n{line2}\n'
 

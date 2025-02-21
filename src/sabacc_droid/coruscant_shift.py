@@ -443,8 +443,8 @@ class CoruscantGameView(ui.View):
 
         if not self.players:
             emb = Embed(
-                title="Game Over",
-                description="Nobody won because everyone junked!",
+                title='Game Over',
+                description='Nobody won because everyone junked!',
                 color=0x964B00
             )
             emb.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
@@ -454,8 +454,8 @@ class CoruscantGameView(ui.View):
             return
 
         result_text = (
-            f"**Target Number:** {self.target_number} | **Target Suit:** {self.target_suit}**\n\n"
-            "**Final Hands:**\n"
+            f'**Target Number:** {self.target_number} | **Target Suit:** {self.target_suit}**\n\n'
+            '**Final Hands:**\n'
         )
 
         pure_sabacc_players = []
@@ -468,14 +468,14 @@ class CoruscantGameView(ui.View):
 
             if len(pl.hand) == 2 and all(c.suit == 'Sylop' for c in pl.hand):
                 pure_sabacc_players.append(pl)
-                line1 = f"{pl.user.mention}: {pl.get_hand_string()}"
-                line2 = f"      • Total: Pure Sabacc (2 Sylops)"
-                display_lines[pl] = f"{line1}\n{line2}\n"
+                line1 = f'{pl.user.mention}: {pl.get_hand_string()}'
+                line2 = f'    - Total: Pure Sabacc (2 Sylops)'
+                display_lines[pl] = f'{line1}\n{line2}\n'
             else:
                 total = pl.total_value()
-                line1 = f"{pl.user.mention}: {pl.get_hand_string()}"
-                line2 = f"      • Total: {total} | Suit Matches: {suit_count}"
-                display_lines[pl] = f"{line1}\n{line2}\n"
+                line1 = f'{pl.user.mention}: {pl.get_hand_string()}'
+                line2 = f'    - Total: {total} | Suit Matches: {suit_count}'
+                display_lines[pl] = f'{line1}\n{line2}\n'
 
         for pl in self.players:
             result_text += display_lines[pl]
@@ -483,10 +483,10 @@ class CoruscantGameView(ui.View):
         if pure_sabacc_players:
             if len(pure_sabacc_players) == 1:
                 winner = pure_sabacc_players[0]
-                result_text += f"\n🎉 {winner.user.mention} wins with **Pure Sabacc**!"
+                result_text += f'\n🎉 {winner.user.mention} wins with **Pure Sabacc**!'
             else:
-                tie_names = ", ".join(pl.user.mention for pl in pure_sabacc_players)
-                result_text += f"\nIt's a tie between: {tie_names} (all **Pure Sabacc**)"
+                tie_names = ', '.join(pl.user.mention for pl in pure_sabacc_players)
+                result_text += f'\nIt\'s a tie between: {tie_names} (all **Pure Sabacc**)'
         else:
             evals = []
             for pl in self.players:
@@ -504,18 +504,18 @@ class CoruscantGameView(ui.View):
 
             if len(winners) == 1:
                 wpl = winners[0][4]
-                result_text += f"\n🎉 {wpl.user.mention} wins!"
+                result_text += f'\n🎉 {wpl.user.mention} wins!'
             else:
-                tie_names = ", ".join(e[4].user.mention for e in winners)
-                result_text += f"\nIt's a tie between: {tie_names}"
+                tie_names = ', '.join(e[4].user.mention for e in winners)
+                result_text += f'\nIt\'s a tie between: {tie_names}'
 
-        emb = Embed(title="Game Over", description=result_text, color=0x964B00)
+        emb = Embed(title='Game Over', description=result_text, color=0x964B00)
         emb.set_thumbnail(
             url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png'
         )
 
-        mention_line = " ".join(
-            pl.user.mention for pl in self.players if "AIUser" not in type(pl.user).__name__
+        mention_line = ' '.join(
+            pl.user.mention for pl in self.players if 'AIUser' not in type(pl.user).__name__
         )
         await self.channel.send(content=mention_line, embed=emb, view=EndGameView(self.active_games, self.channel))
 
