@@ -33,9 +33,9 @@ bot = commands.Bot(
 active_games = []
 
 RULES_DESCRIPTION = (
-    'Welcome to **Sabacc Droid**! You can play any of the following Sabacc variations:\n\n'
-    '• **Corellian Spike** (from *Solo* and at **Galaxy\'s Edge**)\n'
-    '• **Coruscant Shift** (from the Halcyon at **Galactic Starcruiser**)\n'
+    'Welcome to **Sabacc Droid**! You can play any of the following Sabacc variations:\n'
+    '• **Corellian Spike** (from *Solo* and at *Galaxy\'s Edge*)\n'
+    '• **Coruscant Shift** (from the **Halcyon** at *Galactic Starcruiser*)\n'
     '• **Kessel Sabacc** (from *Star Wars: Outlaws*)\n\n'
 
     'All modes aim for a hand sum near their target (zero or a dice‑determined value), but each uses unique decks and rules:\n'
