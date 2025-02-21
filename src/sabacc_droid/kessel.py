@@ -577,7 +577,7 @@ class KesselGameView(ui.View):
         for eh in evaluated_hands:
             _, player, hand_type, total = eh
             line1 = f'{player.user.mention}: {player.get_cards_string(include_special_values=True)}'
-            line2 = f'      • Total: {total} | Hand: {hand_type}'
+            line2 = f'    - Total: {total} | Hand: {hand_type}'
             results += f'{line1}\n{line2}\n'
 
         best_hand_value = evaluated_hands[0][0]
