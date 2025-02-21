@@ -1,6 +1,7 @@
 # coruscant_shift.py
 
 import random
+import copy
 import logging
 from urllib.parse import quote
 import discord
@@ -308,7 +309,6 @@ class CoruscantGameView(ui.View):
             self.solo_game = True
 
         self.deck = self.generate_deck()
-        random.shuffle(self.deck)
         for p in self.players:
             p.hand.clear()
             for _ in range(self.num_cards):
@@ -327,12 +327,20 @@ class CoruscantGameView(ui.View):
     def generate_deck(self) -> list[Card]:
         suits = ['●', '▲', '■']
         deck = []
+
+        base_deck = []
         for s in suits:
             for val in range(1, 11):
-                deck.append(Card(val, s))
-                deck.append(Card(-val, s))
-        deck.append(Card(0, 'Sylop'))
-        deck.append(Card(0, 'Sylop'))
+                base_deck.append(Card(val, s))
+                base_deck.append(Card(-val, s))
+        base_deck.append(Card(0, 'Sylop'))
+        base_deck.append(Card(0, 'Sylop'))
+
+        for _ in range(7):
+            new_deck = copy.deepcopy(base_deck)
+            random.shuffle(new_deck)
+            deck.extend(new_deck)
+
         return deck
 
     async def next_turn(self):

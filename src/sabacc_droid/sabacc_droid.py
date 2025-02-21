@@ -245,12 +245,12 @@ async def corellian_command(interaction: Interaction, rounds: int = 3, num_cards
 
 @bot.tree.command(name='coruscant_shift', description='Start a Coruscant Shift Sabacc game with optional custom settings')
 @app_commands.describe(
-    rounds='Number of rounds (default: 2, max: 10)',
+    rounds='Number of rounds (default: 2, max: 5)',
     num_cards='Number of starting cards (default: 5, max: 10)'
 )
 async def coruscant_shift_command(interaction: Interaction, rounds: int = 2, num_cards: int = 5) -> None:
     '''Initiate a new Coruscant Shift Sabacc game with optional custom settings.'''
-    rounds = max(1, min(rounds, 10))
+    rounds = max(1, min(rounds, 5))
     num_cards = max(1, min(num_cards, 10))
 
     view = CoruscantGameView(
