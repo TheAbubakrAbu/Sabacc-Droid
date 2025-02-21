@@ -92,7 +92,7 @@ def get_coruscant_shift_rules_embed() -> Embed:
 
                 '**Deck Composition:**\n'
                 '- **62 cards** total.\n'
-                '- **3 suits** (●, ▲, ■), each containing **20 cards**: +1..+10 and -1..-10.\n'
+                '- **3 suits** (●, ▲, ■), each containing **20 cards**: +1 to +10 and -1 to -10.\n'
                 '- **2 Sylop (0)** cards act as wild/wildcard suits.\n\n'
 
                 '**Gameplay Mechanics:**\n'
@@ -105,11 +105,10 @@ def get_coruscant_shift_rules_embed() -> Embed:
                 '- **Round 1 – Selection & Shift:**\n'
                 '  1. Each player is dealt 5 cards.\n'
                 '  2. In turn order, choose which cards you want to keep (face down). Any unkept cards are discarded.\n'
-                '  3. Draw new cards equal to the number discarded, returning you to 5 cards.\n\n'
                 '- **Round 2 – Final Selection & Reveal:**\n'
-                '  1. Each player again selects which cards to keep.\n'
-                '  2. You **cannot** discard any card you kept from Round 1. You may only discard newly drawn cards.\n'
-                '  3. Draw replacements so that you end up with anywhere from **1 to 5 cards**.\n'
+                '  1. Draw new cards equal to the number discarded, returning you to 5 cards.\n\n'
+                '  2. Each player again selects which cards to keep.\n'
+                '  3. You **cannot** discard any card you kept from Round 1. You may only discard newly drawn cards.\n'
                 '  4. Reveal all final hands.\n\n'
 
                 '**Hand Value Calculation:**\n'

@@ -34,14 +34,16 @@ active_games = []
 
 RULES_DESCRIPTION = (
     'Welcome to **Sabacc Droid**! You can play any of the following Sabacc variations:\n'
-    '• **Corellian Spike** (from *Solo* and at *Galaxy\'s Edge*)\n'
-    '• **Coruscant Shift** (from the **Halcyon** at *Galactic Starcruiser*)\n'
-    '• **Kessel Sabacc** (from *Star Wars: Outlaws*)\n\n'
+    '• [**Corellian Spike**](https://starwars.fandom.com/wiki/Corellian_Spike) (from *Solo* and at *Galaxy\'s Edge*)\n'
+    '• [**Coruscant Shift**](https://starwars.fandom.com/wiki/Coruscant_Shift) (from the **Halcyon** at *Galactic Starcruiser*)\n'
+    '• [**Kessel Sabacc**](https://starwars.fandom.com/wiki/Kessel_Sabacc) (from *Star Wars: Outlaws*)\n'
+    '• [**Traditional Sabacc**](https://starwars.fandom.com/wiki/Sabacc) (from *Star Wars: Rebels*)\n\n'
 
     'All modes aim for a hand sum near their target (zero or a dice‑determined value), but each uses unique decks and rules:\n'
     '- **Corellian Spike**: 62 cards, can hold multiple cards, 3 rounds, specialized hands.\n'
     '- **Coruscant Shift**: 62 cards, 2 rounds with 5 initial cards, gold/silver dice set a target number & suit. Final hand can be 1–5 cards.\n'
-    '- **Kessel**: Two separate decks (positive & negative), strictly 2 cards, Impostor & Sylop mechanics.\n\n'
+    '- **Kessel**: Two separate decks (positive & negative), strictly 2 cards, Impostor & Sylop mechanics.\n'
+    '- **Traditional**: 76 cards (60 in four suits + 16 negative/neutral) plus 1 pair of dice, aiming for +23 or -23 with a potential Sabacc Shift.\n\n'
 
     'By default, Corellian Spike and Kessel each have 3 rounds and 2 starting cards, while Coruscant Shift has 2 rounds and 5 starting cards.\n\n'
 
