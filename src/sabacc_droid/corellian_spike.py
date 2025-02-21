@@ -564,9 +564,10 @@ class CorelliaGameView(ui.View):
             _, player, hand_type, total = eh
             
             line1 = f'- {player.user.mention}: {player.get_cards_string()}'
-            line2 = f'   - Total: {total} | Hand: {hand_type}'
+            line2 = f'   - Total: {total}'
+            line3 = f'   - Hand: {hand_type}'
             
-            results += f'{line1}\n{line2}\n'
+            results += f'{line1}\n{line2}\n{line3}'
 
         best_hand_value = evaluated_hands[0][0]
         winners = [eh for eh in evaluated_hands if eh[0] == best_hand_value]

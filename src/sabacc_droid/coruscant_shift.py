@@ -43,11 +43,9 @@ class Card:
         folder = SUIT_TO_FOLDER.get(self.suit, 'circles')
         return f'''{folder}/{f'+{self.value}' if self.value > 0 else self.value}.png'''
 
-
 def get_card_image_url(card: Card) -> str:
     base_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/coruscant_shift/'
     return base_url + quote(card.image_filename())
-
 
 def download_and_process_image(url: str, width: int, height: int) -> Image.Image:
     try:
@@ -58,7 +56,6 @@ def download_and_process_image(url: str, width: int, height: int) -> Image.Image
     except Exception as e:
         logger.error(f'Error processing image from {url}: {e}')
         return None
-
 
 def combine_card_images(urls: list[str], width: int = 80, height: int = 120, pad: int = 10) -> BytesIO:
     with ThreadPoolExecutor(max_workers=12) as exe:
@@ -82,7 +79,6 @@ def combine_card_images(urls: list[str], width: int = 80, height: int = 120, pad
     combined.save(buf, format='PNG')
     buf.seek(0)
     return buf
-
 
 async def build_embed_with_cards(
     title: str,
@@ -108,7 +104,6 @@ async def build_embed_with_cards(
         embed.set_thumbnail(url=thumb_url)
         return embed, None
 
-
 class Player:
     def __init__(self, user):
         self.user = user
@@ -124,7 +119,6 @@ class Player:
 
     def total_value(self) -> int:
         return sum(c.value for c in self.hand)
-
 
 class CoruscantGameView(ui.View):
     '''
@@ -474,7 +468,8 @@ class CoruscantGameView(ui.View):
             else:
                 total = pl.total_value()
                 line1 = f'- {pl.user.mention}: {pl.get_hand_string()}'
-                line2 = f'   - Total: {total} | Suit Matches: {suit_count}'
+                line2 = f'   - Total: {total}'
+                line3 = f'   - Suit Matches: {suit_count}'
                 display_lines[pl] = f'{line1}\n{line2}\n'
 
         for pl in self.players:
@@ -522,7 +517,6 @@ class CoruscantGameView(ui.View):
         if self in self.active_games:
             self.active_games.remove(self)
 
-
 class TurnView(ui.View):
     '''
     Public ephemeral-later view with Play Turn + View Rules only
@@ -532,7 +526,6 @@ class TurnView(ui.View):
         self.game_view = game_view
         self.add_item(TurnButton(game_view))
         self.add_item(CoruscantShiftViewRulesButton())
-
 
 class TurnButton(ui.Button):
     '''
@@ -562,7 +555,6 @@ class TurnButton(ui.Button):
             await interaction.followup.send(embed=embed, file=file, view=view, ephemeral=True)
         else:
             await interaction.followup.send(embed=embed, view=view, ephemeral=True)
-
 
 async def ephemeral_hand_embed(player: Player, game_view: CoruscantGameView, toggles: list[bool] = None):
     '''
@@ -612,7 +604,6 @@ async def ephemeral_hand_embed(player: Player, game_view: CoruscantGameView, tog
         )
         emb.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
         return emb, None
-
 
 class EphemeralSelectView(ui.View):
     '''
@@ -769,7 +760,6 @@ class EphemeralSelectView(ui.View):
     async def interaction_check(self, interaction: Interaction) -> bool:
         return (interaction.user.id == self.player.user.id)
 
-
 class EndGameView(ui.View):
     '''
     End-of-game with Play Again + View Rules.
@@ -804,11 +794,10 @@ class EndGameView(ui.View):
             active_games=self.active_games,
             channel=self.channel
         )
-        new_g.message = await self.channel.send(view=new_g)
+        new_g.message = await self.channel.send('New game lobby created!', view=new_g)
         new_g.players.append(Player(interaction.user))
         await new_g.update_lobby()
         self.active_games.append(new_g)
-
 
 class CoruscantShiftViewRulesButton(ui.Button):
     '''
