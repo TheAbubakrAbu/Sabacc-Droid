@@ -10,6 +10,7 @@ from corellian_spike import CorelliaGameView
 from kessel import KesselGameView
 from coruscant_shift import CoruscantGameView
 from rules import (
+    RULES_DESCRIPTION,
     get_corellian_spike_rules_embed,
     get_kessel_rules_embed,
     get_coruscant_shift_rules_embed,
@@ -31,32 +32,6 @@ bot = commands.Bot(
 )
 
 active_games = []
-
-RULES_DESCRIPTION = (
-    'Welcome to **Sabacc Droid**! You can play any of the following Sabacc variations:\n'
-    '• [**Corellian Spike**](https://starwars.fandom.com/wiki/Corellian_Spike) (from *Solo* and at *Galaxy\'s Edge*)\n'
-    '• [**Coruscant Shift**](https://starwars.fandom.com/wiki/Coruscant_Shift) (from the **Halcyon** at *Galactic Starcruiser*)\n'
-    '• [**Kessel Sabacc**](https://starwars.fandom.com/wiki/Kessel_Sabacc) (from *Star Wars: Outlaws*)\n'
-    '• [**Traditional Sabacc**](https://starwars.fandom.com/wiki/Sabacc) (from *Star Wars: Rebels*)\n\n'
-
-    'All modes aim for a hand sum near their target (zero or a dice‑determined value), but each uses unique decks and rules:\n'
-    '- **Corellian Spike**: 62 cards, can hold multiple cards, 3 rounds, specialized hands.\n'
-    '- **Coruscant Shift**: 62 cards, 2 rounds with 5 initial cards, gold/silver dice set a target number & suit. Final hand can be 1–5 cards.\n'
-    '- **Kessel**: Two separate decks (positive & negative), strictly 2 cards, Impostor & Sylop mechanics.\n'
-    '- **Traditional**: 76 cards (60 in four suits + 16 negative/neutral) plus 1 pair of dice, aiming for +23 or -23 with a potential Sabacc Shift.\n\n'
-
-    'By default, Corellian Spike and Kessel each have 3 rounds and 2 starting cards, while Coruscant Shift has 2 rounds and 5 starting cards.\n\n'
-
-    '**Credits & Disclaimers:**\n'
-    '• **Corellian Spike and Coruscant Shift Sabacc Cards:** [Winz](https://cults3d.com/en/3d-model/game/sabacc-cards-and-spike-dice-printable)\n'
-    '• **Kessel Sabacc Cards:** [u/Gold-Ad-4525](https://www.reddit.com/r/StarWarsSabacc/comments/1exatgi/kessel_sabaac_v3/)\n'
-    '• All other creative content is fan-made, not affiliated with or endorsed by Lucasfilm/Disney.\n\n'
-
-    'Created by **[Abubakr Elmallah](https://abubakrelmallah.com/)**.\n\n'
-    '[📂 GitHub Repository](https://github.com/TheAbubakrAbu/Sabacc-Droid)\n\n'
-
-    'May the Force be with you—choose a game mode and have fun!'
-)
 
 async def _send_sabacc_lobby(
     interaction: Interaction,
