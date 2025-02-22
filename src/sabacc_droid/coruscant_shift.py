@@ -93,14 +93,14 @@ async def build_embed_with_cards(
     try:
         urls = [get_card_image_url(c) for c in cards]
         buf = combine_card_images(urls)
-        embed = Embed(title=title, description=description, color=0x964B00)
+        embed = Embed(title=title, description=description, color=0xF7E5BA)
         embed.set_thumbnail(url=thumb_url)
         embed.set_image(url='attachment://combined_cards.png')
         file = discord.File(fp=buf, filename='combined_cards.png')
         return embed, file
     except Exception as e:
         logger.error(f'Couldn\'t build card images: {e}')
-        embed = Embed(title=title, description=description, color=0x964B00)
+        embed = Embed(title=title, description=description, color=0xF7E5BA)
         embed.set_thumbnail(url=thumb_url)
         return embed, None
 
@@ -210,7 +210,7 @@ class CoruscantGameView(ui.View):
         embed = Embed(
             title='Coruscant Shift Sabacc Lobby',
             description=desc,
-            color=0x964B00
+            color=0xF7E5BA
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
 
@@ -247,7 +247,7 @@ class CoruscantGameView(ui.View):
             f'**Target Suit:** {self.target_suit}\n\n'
             'Once someone has joined, **Start Game** will be enabled.'
         )
-        embed = Embed(title='Coruscant Shift Sabacc Lobby', description=desc, color=0x964B00)
+        embed = Embed(title='Coruscant Shift Sabacc Lobby', description=desc, color=0xF7E5BA)
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
         await interaction.response.edit_message(embed=embed, view=self)
 
@@ -384,7 +384,7 @@ class CoruscantGameView(ui.View):
         embed = Embed(
             title='Coruscant Shift Sabacc',
             description=desc,
-            color=0x964B00
+            color=0xF7E5BA
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
         view = TurnView(self)
@@ -439,7 +439,7 @@ class CoruscantGameView(ui.View):
             emb = Embed(
                 title='Game Over',
                 description='Nobody won because everyone junked!',
-                color=0x964B00
+                color=0xF7E5BA
             )
             emb.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
             await self.channel.send(embed=emb, view=EndGameView(self.active_games, self.channel))
@@ -504,7 +504,7 @@ class CoruscantGameView(ui.View):
                 tie_names = ', '.join(e[4].user.mention for e in winners)
                 result_text += f'\nIt\'s a tie between: {tie_names}'
 
-        emb = Embed(title='Game Over', description=result_text, color=0x964B00)
+        emb = Embed(title='Game Over', description=result_text, color=0xF7E5BA)
         emb.set_thumbnail(
             url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png'
         )
@@ -589,7 +589,7 @@ async def ephemeral_hand_embed(player: Player, game_view: CoruscantGameView, tog
         emb = Embed(
             title=f'Your Turn | Round {game_view.current_round}/{game_view.rounds}',
             description=desc,
-            color=0x964B00
+            color=0xF7E5BA
         )
         emb.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
         emb.set_image(url='attachment://combined_cards.png')
@@ -600,7 +600,7 @@ async def ephemeral_hand_embed(player: Player, game_view: CoruscantGameView, tog
         emb = Embed(
             title='Your Turn',
             description=desc,
-            color=0x964B00
+            color=0xF7E5BA
         )
         emb.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
         return emb, None
@@ -698,7 +698,7 @@ class EphemeralSelectView(ui.View):
                 f'**Total:** {total}\n\n'
                 'Selection locked in for this round.'
             ),
-            color=0x964B00
+            color=0xF7E5BA
         )
 
         efile = None
@@ -735,7 +735,7 @@ class EphemeralSelectView(ui.View):
         embed = Embed(
             title=f'Junked | Round {self.game_view.current_round}/{self.game_view.rounds}',
             description=desc,
-            color=0x964B00
+            color=0xF7E5BA
         )
 
         efile = None

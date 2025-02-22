@@ -67,7 +67,7 @@ def combine_card_images(card_image_urls: list[str], resize_width: int = 80, resi
     image_bytes.seek(0)
     return image_bytes
 
-async def create_embed_with_cards(title: str, description: str, cards: list[int], thumbnail_url: str, color: int = 0x964B00) -> tuple[Embed, discord.File]:
+async def create_embed_with_cards(title: str, description: str, cards: list[int], thumbnail_url: str, color: int = 0xCBB7A0) -> tuple[Embed, discord.File]:
     '''
     Create an embed showing card images for the given hand.
     Returns an Embed and a File if images are available, else just an Embed.
@@ -168,7 +168,7 @@ class CorelliaGameView(ui.View):
             description=('Click **Play Game** to join the game!\n\n'
                          f'**Game Settings:**\n{self.rounds} rounds\n{self.num_cards} starting cards\n\n'
                          'Once someone has joined, **Start Game** will be enabled.'),
-            color=0x964B00
+            color=0xCBB7A0
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png')
 
@@ -202,7 +202,7 @@ class CorelliaGameView(ui.View):
         embed = Embed(
             title='Corellian Spike Sabacc',
             description=description,
-            color=0x964B00
+            color=0xCBB7A0
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png')
 
@@ -255,7 +255,7 @@ class CorelliaGameView(ui.View):
         embed = Embed(
             title='Corellian Spike Sabacc Lobby',
             description=description,
-            color=0x964B00
+            color=0xCBB7A0
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png')
 
@@ -543,7 +543,7 @@ class CorelliaGameView(ui.View):
             embed = Embed(
                 title='Game Over',
                 description='Nobody won because everyone junked!',
-                color=0x964B00
+                color=0xCBB7A0
             )
             embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png')
             await self.channel.send(embed=embed, view=EndGameView(self.rounds, self.num_cards, self.active_games, self.channel))
@@ -586,7 +586,7 @@ class CorelliaGameView(ui.View):
         embed = Embed(
             title='Game Over',
             description=results,
-            color=0x964B00
+            color=0xCBB7A0
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png')
         mentions = ' '.join(player.user.mention for player in self.players if 'AIUser' not in type(player.user).__name__)
