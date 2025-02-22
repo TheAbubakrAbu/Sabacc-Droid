@@ -66,7 +66,8 @@ async def _send_sabacc_lobby(
     title: str,
     description: str,
     thumbnail_url: str,
-    defer_first: bool = False
+    defer_first: bool = False,
+    color: int = 0x443B2A
 ):
     '''
     Helper function to send a new game lobby embed + view, append to active_games,
@@ -78,7 +79,7 @@ async def _send_sabacc_lobby(
     embed = discord.Embed(
         title=title,
         description=description,
-        color=0x964B00
+        color=color
     )
     embed.set_thumbnail(url=thumbnail_url)
 
@@ -118,7 +119,7 @@ async def sabacc_command(interaction: Interaction):
             'Click a button to immediately start a lobby with default settings.\n\n'
             'Or click **View Rules** to see an overview of Sabacc.'
         ),
-        color=0x964B00
+        color=0x443B2A
     )
     embed.set_thumbnail(
         url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png'
@@ -157,7 +158,8 @@ class SabaccChoiceView(ui.View):
             title='Corellian Spike Sabacc Lobby',
             description=desc,
             thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png',
-            defer_first=True
+            defer_first=True,
+            color=0xCBB7A0
         )
 
     @ui.button(label='Start Coruscant', style=discord.ButtonStyle.primary)
@@ -181,7 +183,8 @@ class SabaccChoiceView(ui.View):
             title='Coruscant Shift Sabacc Lobby',
             description=desc,
             thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png',
-            defer_first=True
+            defer_first=True,
+            color=0xF7E5BA
         )
 
     @ui.button(label='Start Kessel', style=discord.ButtonStyle.primary)
@@ -200,16 +203,17 @@ class SabaccChoiceView(ui.View):
             title='Kessel Sabacc Lobby',
             description=desc,
             thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png',
-            defer_first=True
+            defer_first=True,
+            color=0x874C3A
         )
 
     @ui.button(label='View Rules', style=discord.ButtonStyle.secondary)
     async def view_rules(self, interaction: Interaction, button: ui.Button):
         '''Shows the same info as the /help command.'''
         embed = discord.Embed(
-            title='Sabacc Droid',
+            title='Sabacc Droid Help',
             description=RULES_DESCRIPTION,
-            color=0x964B00
+            color=0x443B2A
         )
         embed.set_thumbnail(
             url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png'
@@ -244,7 +248,8 @@ async def corellian_command(interaction: Interaction, rounds: int = 3, num_cards
         title='Corellian Spike Sabacc Lobby',
         description=desc,
         thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png',
-        defer_first=False
+        defer_first=False,
+        color=0xCBB7A0
     )
 
 @bot.tree.command(name='coruscant_shift', description='Start a Coruscant Shift Sabacc game with optional custom settings')
@@ -275,7 +280,8 @@ async def coruscant_shift_command(interaction: Interaction, rounds: int = 2, num
         title='Coruscant Shift Sabacc Lobby',
         description=desc,
         thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png',
-        defer_first=False
+        defer_first=False,
+        color=0xF7E5BA
     )
 
 @bot.tree.command(name='kessel', description='Start a Kessel Sabacc game with optional custom settings')
@@ -299,7 +305,8 @@ async def kessel_command(interaction: Interaction, rounds: int = 3) -> None:
         title='Kessel Sabacc Lobby',
         description=desc,
         thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png',
-        defer_first=False
+        defer_first=False,
+        color=0x874C3A
     )
 
 @bot.tree.command(name='help', description='Display Sabacc rules')
@@ -310,9 +317,9 @@ async def help_command(interaction: Interaction) -> None:
     along with credits and repository links.
     '''
     embed = discord.Embed(
-        title='Sabacc Droid',
+        title='Sabacc Droid Help',
         description=RULES_DESCRIPTION,
-        color=0x964B00
+        color=0x443B2A
     )
     embed.set_thumbnail(
         url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png'

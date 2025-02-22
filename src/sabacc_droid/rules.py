@@ -71,7 +71,7 @@ def get_corellian_spike_rules_embed() -> Embed:
                     '      5. Highest single positive card.\n'
                     '    - Example: Total of +1 beats total of -1\n\n'
                     'Good luck! May the Force be with you!',
-        color=0x964B00
+        color=0x443B2A
     )
     rules_embed.set_thumbnail(
         url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png')
@@ -123,7 +123,7 @@ def get_coruscant_shift_rules_embed() -> Embed:
                 '5. Else it\'s a tie.\n\n'
 
                 'Good luck! May the Force be with you!',
-        color=0x964B00
+        color=0x443B2A
     )
 
     rules_embed.set_thumbnail(
@@ -184,7 +184,7 @@ def get_kessel_rules_embed() -> Embed:
                     '     2. Positive totals beat negative totals.\n'
                     '     3. Highest positive card wins.\n\n'
                     'Good luck! May the Force be with you!',
-        color=0x964B00
+        color=0x443B2A
     )
     rules_embed.set_thumbnail(
         url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png')
@@ -233,7 +233,7 @@ def get_comparison_embed() -> Embed:
 
             'Choose your preferred mode—may the Force be with you!'
         ),
-        color=0x964B00
+        color=0x443B2A
     )
     comparison_embed.set_thumbnail(
         url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png'
