@@ -184,7 +184,7 @@ class SabaccChoiceView(ui.View):
             description=desc,
             thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png',
             defer_first=True,
-            color=0xF7E5BA
+            color=0xAB9032
         )
 
     @ui.button(label='Start Kessel', style=discord.ButtonStyle.primary)
@@ -204,7 +204,7 @@ class SabaccChoiceView(ui.View):
             description=desc,
             thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png',
             defer_first=True,
-            color=0x874C3A
+            color=0x7F3335
         )
 
     @ui.button(label='View Rules', style=discord.ButtonStyle.secondary)
@@ -281,7 +281,7 @@ async def coruscant_shift_command(interaction: Interaction, rounds: int = 2, num
         description=desc,
         thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png',
         defer_first=False,
-        color=0xF7E5BA
+        color=0xAB9032
     )
 
 @bot.tree.command(name='kessel', description='Start a Kessel Sabacc game with optional custom settings')
@@ -306,7 +306,7 @@ async def kessel_command(interaction: Interaction, rounds: int = 3) -> None:
         description=desc,
         thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png',
         defer_first=False,
-        color=0x874C3A
+        color=0x7F3335
     )
 
 @bot.tree.command(name='help', description='Display Sabacc rules')
