@@ -67,7 +67,7 @@ async def _send_sabacc_lobby(
     description: str,
     thumbnail_url: str,
     defer_first: bool = False,
-    color: int = 0x7B3F00
+    color: int = 0x764920
 ):
     '''
     Helper function to send a new game lobby embed + view, append to active_games,
@@ -119,7 +119,7 @@ async def sabacc_command(interaction: Interaction):
             'Click a button to immediately start a lobby with default settings.\n\n'
             'Or click **View Rules** to see an overview of Sabacc.'
         ),
-        color=0x7B3F00
+        color=0x764920
     )
     embed.set_thumbnail(
         url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png'
@@ -213,7 +213,7 @@ class SabaccChoiceView(ui.View):
         embed = discord.Embed(
             title='Sabacc Droid Help',
             description=RULES_DESCRIPTION,
-            color=0x7B3F00
+            color=0x764920
         )
         embed.set_thumbnail(
             url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png'
@@ -319,7 +319,7 @@ async def help_command(interaction: Interaction) -> None:
     embed = discord.Embed(
         title='Sabacc Droid Help',
         description=RULES_DESCRIPTION,
-        color=0x7B3F00
+        color=0x764920
     )
     embed.set_thumbnail(
         url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png'
