@@ -256,7 +256,7 @@ class KesselGameView(ui.View):
             description='Click **Play Game** to join the game!\n\n'
                         f'**Game Settings:**\n{self.rounds} rounds\n2 starting cards\n\n'
                         'Once someone has joined, **Start Game** will be enabled.',
-            color=0x964B00
+            color=0x874C3A
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png')
 
@@ -282,7 +282,7 @@ class KesselGameView(ui.View):
         embed = Embed(
             title='Kessel Sabacc',
             description=description,
-            color=0x964B00
+            color=0x874C3A
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png')
 
@@ -332,7 +332,7 @@ class KesselGameView(ui.View):
         embed = Embed(
             title='Kessel Sabacc Lobby',
             description=description,
-            color=0x964B00
+            color=0x874C3A
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png')
 
@@ -558,7 +558,7 @@ class KesselGameView(ui.View):
             embed = Embed(
                 title='Game Over',
                 description='Nobody won because everyone junked!',
-                color=0x964B00
+                color=0x874C3A
             )
             embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png')
             await self.channel.send(embed=embed, view=EndGameView(rounds=self.rounds, active_games=self.active_games, channel=self.channel))
@@ -602,7 +602,7 @@ class KesselGameView(ui.View):
         embed = Embed(
             title='Game Over',
             description=results,
-            color=0x964B00
+            color=0x874C3A
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png')
         mentions = ' '.join(player.user.mention for player in self.players if 'AIUser' not in type(player.user).__name__)
@@ -707,7 +707,7 @@ async def send_embed_with_hand(player: Player, title: str, description: str, inc
     embed = Embed(
         title=title,
         description=description,
-        color=0x964B00
+        color=0x874C3A
     )
 
     explanations = ''
@@ -989,7 +989,7 @@ class ChooseImpostorValueView(ui.View):
             embed = Embed(
                 title=f'Choose your {card_type} Impostor card value.',
                 description=f'Two dice have been rolled for {self.player.user.mention} Impostor card. Choose your preferred value.',
-                color=0x964B00
+                color=0x874C3A
             )
             self.message = await self.game_view.channel.send(content=self.player.user.mention, embed=embed, view=self)
 
@@ -1027,7 +1027,7 @@ class ChooseImpostorValueView(ui.View):
         embed = Embed(
             title='Impostor Card Value Chosen',
             description=f'**{chosen_value}** has been selected as the {card_type} Impostor card by {self.player.user.mention}.',
-            color=0x964B00
+            color=0x874C3A
         )
         await self.message.edit(embed=embed, view=None)
 
