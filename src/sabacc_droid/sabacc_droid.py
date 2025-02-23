@@ -3,18 +3,20 @@
 import os
 import discord
 from dotenv import load_dotenv
-from discord import Intents, Interaction, Game, app_commands, ui
+from discord import Interaction, app_commands, ui
 from discord.ext import commands
 
 from corellian_spike import CorelliaGameView
-from kessel import KesselGameView
 from coruscant_shift import CoruscantGameView
+from traditional import TraditionalGameView
+from kessel import KesselGameView
 from rules import (
     RULES_DESCRIPTION,
+    get_comparison_embed,
     get_corellian_spike_rules_embed,
     get_kessel_rules_embed,
     get_coruscant_shift_rules_embed,
-    get_comparison_embed
+    get_traditional_rules_embed
 )
 
 # Load the bot token
@@ -24,11 +26,11 @@ if TOKEN is None:
     raise ValueError('DISCORD_TOKEN environment variable not found in .env file.')
 
 # Setup Bot
-intents = Intents.default()
+intents = discord.Intents.default()
 bot = commands.Bot(
     command_prefix='/',
     intents=intents,
-    activity=Game(name='Sabacc')
+    activity=discord.Game(name='Sabacc')
 )
 
 active_games = []
@@ -81,6 +83,7 @@ async def sabacc_command(interaction: Interaction):
     - Corellian Spike (defaults: 3 rounds, 2 starting cards)
     - Coruscant Shift (defaults: 2 rounds, 5 starting cards)
     - Kessel (defaults: 3 rounds, 2 starting cards)
+    **Traditional** (2 starting cards)
     Plus a View Rules button to show /help in fo.
     '''
 
@@ -88,9 +91,10 @@ async def sabacc_command(interaction: Interaction):
         title='Choose Your Sabacc Variant',
         description=(
             'Select one of the three modes below to start a new game in this channel.\n\n'
-            '**Corellian Spike** (3 rounds / 2 cards)\n'
-            '**Coruscant Shift** (2 rounds / 5 cards)\n'
-            '**Kessel** (3 rounds / 2 cards)\n\n'
+            '**Corellian Spike** (3 rounds / 2 starting cards)\n'
+            '**Coruscant Shift** (2 rounds / 5 starting cards)\n'
+            '**Kessel** (3 rounds / 2 cards)\n'
+            '**Traditional** (2 starting cards)\n\n'
             'Click a button to immediately start a lobby with default settings.\n\n'
             'Or click **View Rules** to see an overview of Sabacc.'
         ),
@@ -109,6 +113,7 @@ class SabaccChoiceView(ui.View):
     - Corellian Spike (3 rounds, 2 cards)
     - Kessel (3 rounds, 2 cards)
     - Coruscant Shift (2 rounds, 5 cards)
+    - Traditional (2 cards)
     - View Rules (ephemeral help info)
     '''
 
@@ -180,6 +185,29 @@ class SabaccChoiceView(ui.View):
             thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png',
             defer_first=True,
             color=0x7F3335
+        )
+
+    @ui.button(label='Start Traditional', style=discord.ButtonStyle.primary)  # <-- Added
+    async def start_traditional(self, interaction: Interaction, button: ui.Button):
+        await interaction.response.defer()
+        traditional_view = TraditionalGameView(
+            active_games=active_games,
+            channel=interaction.channel
+        )
+        desc = (
+            'Click **Play Game** to join.\n\n'
+            '**Game Settings:**\nNo set rounds (ends when someone calls "Alderaan")\n2 starting cards\n\n'
+            'Once someone has joined, **Start Game** will be enabled.'
+        )
+        await _send_sabacc_lobby(
+            interaction,
+            traditional_view,
+            active_games,
+            title='Traditional Sabacc Lobby',
+            description=desc,
+            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png',
+            defer_first=True,
+            color=0x764920
         )
 
     @ui.button(label='View Rules', style=discord.ButtonStyle.secondary)
@@ -284,6 +312,35 @@ async def kessel_command(interaction: Interaction, rounds: int = 3) -> None:
         color=0x7F3335
     )
 
+@bot.tree.command(name='traditional', description='Start a Traditional Sabacc game with optional custom settings')  # <-- Added
+@app_commands.describe(
+    num_cards='Number of initial cards (default: 2, max: 10)'
+)
+async def traditional_command(interaction: Interaction, num_cards: int = 2) -> None:
+    '''Initiate a new Traditional Sabacc game with optional custom settings.'''
+    num_cards = max(1, min(num_cards, 10))
+
+    view = TraditionalGameView(
+        active_games=active_games,
+        channel=interaction.channel
+    )
+    desc = (
+        'Click **Play Game** to join.\n\n'
+        f'**Game Settings:**\nNo set number of rounds (game ends when "Alderaan" is called)\n'
+        f'{num_cards} starting cards (by default 2)\n\n'
+        'Once someone has joined, the **Start Game** button will be enabled.'
+    )
+    await _send_sabacc_lobby(
+        interaction,
+        view,
+        active_games,
+        title='Traditional Sabacc Lobby',
+        description=desc,
+        thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png',
+        defer_first=False,
+        color=0x764920
+    )
+
 @bot.tree.command(name='help', description='Display Sabacc rules')
 async def help_command(interaction: Interaction) -> None:
     '''
@@ -325,11 +382,15 @@ class HelpView(ui.View):
         rules_embed = get_kessel_rules_embed()
         await interaction.response.send_message(embed=rules_embed, ephemeral=True)
 
+    @ui.button(label='Traditional Rules', style=discord.ButtonStyle.primary)
+    async def traditional_button(self, interaction: Interaction, button: ui.Button):
+        rules_embed = get_traditional_rules_embed()
+        await interaction.response.send_message(embed=rules_embed, ephemeral=True)
+
     @ui.button(label='Comparison', style=discord.ButtonStyle.secondary)
     async def comparison_button(self, interaction: Interaction, button: ui.Button):
         comparison_embed = get_comparison_embed()
         await interaction.response.send_message(embed=comparison_embed, ephemeral=True)
-
 
 @bot.event
 async def on_ready() -> None:
