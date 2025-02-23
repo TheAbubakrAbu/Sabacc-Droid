@@ -221,7 +221,8 @@ class SabaccChoiceView(ui.View):
         embed.set_thumbnail(
             url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png'
         )
-        await interaction.response.send_message(embed=embed)
+        view = HelpView()
+        await interaction.response.send_message(embed=embed, view=view)
 
 @bot.tree.command(name='corellian_spike', description='Start a Corellian Spike Sabacc game with optional custom settings')
 @app_commands.describe(

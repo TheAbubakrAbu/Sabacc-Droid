@@ -468,9 +468,9 @@ class TraditionalGameView(ui.View):
         if len(cards) == 3 and card_set == {0, 2, 3}:
             return ((1,), 'Idiot\'s Array', total)
 
-        # 2) Natural Sabacc => sum == +23 or -23
+        # 2) Sabacc => sum == +23 or -23
         if total == 23 or total == -23:
-            return ((2,), 'Natural Sabacc', total)
+            return ((2,), 'Sabacc', total)
 
         # 3) Fairy Empress: exactly two -2
         if len(cards) == 2 and cards.count(-2) == 2:
