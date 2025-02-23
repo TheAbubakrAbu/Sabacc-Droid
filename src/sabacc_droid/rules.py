@@ -4,20 +4,20 @@ from discord import Embed
 
 RULES_DESCRIPTION = (
     'Welcome to **Sabacc Droid**! You can play any of the following Sabacc variations:\n\n'
-    '• [**Corellian Spike**](https://starwars.fandom.com/wiki/Corellian_Spike) – Featured in *Solo: A Star Wars Story* and *Galaxy\'s Edge*.\n'
-    '• [**Coruscant Shift**](https://starwars.fandom.com/wiki/Coruscant_Shift) – Played aboard the **Halcyon** at *Galactic Starcruiser*.\n'
+    '• [**Corellian Spike**](https://starwars.fandom.com/wiki/Corellian_Spike) – Featured in *Solo* and *Galaxy\'s Edge*.\n'
+    '• [**Coruscant Shift**](https://starwars.fandom.com/wiki/Coruscant_Shift) – Played on the **Halcyon** at *Galactic Starcruiser*.\n'
     '• [**Kessel Sabacc**](https://starwars.fandom.com/wiki/Kessel_Sabacc) – Featured in *Star Wars: Outlaws*.\n'
     '• [**Traditional Sabacc**](https://starwars.fandom.com/wiki/Sabacc) – Featured in *Star Wars: Rebels*.\n\n'
 
-    '**Game Rules & Variations**\n'
+    '### **Game Rules & Variations**\n'
     'Each mode aims for a hand sum close to its target (0, a dice-determined value, or +23/-23), but they differ in decks and rules:\n\n'
 
-    '**Default Game Settings:**\n'
+    '### **Default Game Settings:**\n'
     '- **Corellian Spike and Kessel Sabacc** each have **3 rounds** and **2 starting cards**.\n'
-    '- **Coruscant Shift Sabacc** has **2 rounds** and **5 starting cards**.\n\n'
+    '- **Coruscant Shift Sabacc** has **2 rounds** and **5 starting cards**.\n'
     '- **Traditional Sabacc** has **2 starting cards** and an **unlimited amount** of rounds until someone calls "Alderaan" to end the game.\n\n'
 
-    '**Credits & Disclaimers**\n'
+    '### **Credits & Disclaimers**\n'
     '• **Corellian Spike & Coruscant Shift Cards:** [Winz](https://cults3d.com/en/3d-model/game/sabacc-cards-and-spike-dice-printable)\n'
     '• **Kessel Sabacc Cards:** [u/Gold-Ad-4525](https://www.reddit.com/r/StarWarsSabacc/comments/1exatgi/kessel_sabaac_v3/)\n'
     '• All other creative content is fan-made and not affiliated with or endorsed by Lucasfilm/Disney.\n\n'
@@ -36,29 +36,29 @@ def get_comparison_embed() -> Embed:
     comparison_embed = Embed(
         title='Sabacc Game Modes Comparison',
         description=(
-            '**Similarities:**\n'
+            '### **Similarities:**\n'
             '- All modes aim for a hand total as close as possible to a specific target (zero, dice-determined, or +23/-23).\n'
             '- Each includes Sylop (0) or equivalent special cards.\n'
             '- Strategic card selection is key to winning.\n\n'
 
-            '**Differences:**\n\n'
+            '### **Differences:**\n\n'
             
-            '**Corellian Spike Sabacc:**\n'
+            '### **Corellian Spike Sabacc:**\n'
             '- **Deck Composition:** A 62-card deck ranging from -10 to -1 and +1 to +10, plus 2 Sylops (0 cards).\n'
             '- **Hand Limit:** No fixed limit; players can accumulate multiple cards.\n'
             '- **Rounds:** Typically **3 rounds**.\n'
             '- **Actions:** Draw, Discard, Replace, Stand, or Junk.\n'
             '- **Special Hands:** Complex ranking system (Pure Sabacc, Fleet, Yee-Haa, etc.).\n\n'
 
-            '**Coruscant Shift Sabacc:**\n'
+            '### **Coruscant Shift Sabacc:**\n'
             '- **Deck Composition:** Standard 62-card deck (+1 to +10 and -1 to -10 for suits ●, ▲, ■; plus 2 Sylops (0 cards)).\n'
             '- **Dice Mechanics:**\n'
-            '  • **Gold Die:** Sets target number (-10, +10, -5, +5, 0, 0).\n'
+            '  • **Gold Die:** Sets target number (-10, +10, -5, 5, 0, 0).\n'
             '  • **Silver Die:** Sets target suit (●, ▲, ■) for tie-breakers.\n'
             '- **Rounds:** Typically **2 rounds** of card selection.\n'
             '- **Tie-Breakers:** Closest to gold die target → most cards of silver die suit → highest positive sum → highest single positive card → sudden death.\n\n'
 
-            '**Kessel Sabacc:**\n'
+            '### **Kessel Sabacc:**\n'
             '- **Deck Composition:** Two separate decks (Sand for positives, Blood for negatives), 22 cards each (44 total), plus Sylops (not exactly a 0 card).\n'
             '- **Hand Limit:** Exactly **2 cards** (1 positive, 1 negative).\n'
             '- **Rounds:** Typically **3 rounds**.\n'
@@ -67,7 +67,7 @@ def get_comparison_embed() -> Embed:
             '- **Sylop (Ø) Cards:** Mirror the value of the other card in hand.\n'
             '- **Special Hands:** Pure Sabacc, Prime Sabacc, etc., all aimed at total 0.\n\n'
 
-            '**Traditional Sabacc:**\n'
+            '### **Traditional Sabacc:**\n'
             '- **Deck Composition:** 76-card deck (4 suits of 15 cards, plus 16 special cards with unique values).\n'
             '- **Hand Limit:** No fixed limit; players can accumulate multiple cards.\n'
             '- **Rounds:** **No set number of rounds**; play continues until someone calls **"Alderaan"**.\n'
@@ -94,25 +94,25 @@ def get_corellian_spike_rules_embed() -> Embed:
 
     rules_embed = Embed(
         title='Corellian Spike Sabacc Game Rules',
-        description='**Objective:**\n'
+        description='### **Objective:**\n'
                     'Achieve a hand with a total sum as close to zero as possible.\n\n'
-                    '**Deck Composition:**\n'
+                    '### **Deck Composition:**\n'
                     '- Single deck of **62 cards** ranging from **-10 to -1** and **+1 to +10**, plus 2 Sylops (0 cards).\n'
                     '- There are **three copies** (staves) of each card value, both positive and negative.\n\n'
-                    '**Gameplay Mechanics:**\n'
+                    '### **Gameplay Mechanics:**\n'
                     '- Each player starts with **two cards**.\n'
                     '- **Hand Limit:** No specific limit; you can hold multiple cards.\n'
                     '- **Rounds:** The game is played over **3 rounds** by default.\n\n'
-                    '**Available Actions:**\n'
+                    '### **Available Actions:**\n'
                     '- **Draw Card:** Draw one card from the deck.\n'
                     '- **Discard Card:** Remove one card from your hand.\n'
                     '- **Replace Card:** Swap one card in your hand with a new one from the deck.\n'
                     '- **Stand:** Keep your current hand without changes.\n'
                     '- **Junk:** Give up and exit the game.\n\n'
-                    '**Hand Value Calculation:**\n'
+                    '### **Hand Value Calculation:**\n'
                     '- A player\'s hand value is the **sum** of all cards in their hand.\n'
                     '- Players aim for a total hand value of **zero**.\n\n'
-                    '**Ranking Corellian Spike Sabacc Hands (from best to worst):**\n\n'
+                    '### **Ranking Corellian Spike Sabacc Hands (from best to worst):**\n\n'
                     '1. **Pure Sabacc:** Two sylops (0): 0, 0.\n\n'
                     '2. **Sarlacc Sabacc (Custom Hand that I made):** Sum zero, at least two sylops (0), any number of cards\n'
                     '   - Example: 0, 0, +3, -3\n\n'
@@ -173,22 +173,22 @@ def get_coruscant_shift_rules_embed() -> Embed:
 
     rules_embed = Embed(
         title='Coruscant Shift Sabacc Game Rules',
-        description='**Objective:**\n'
+        description='### **Objective:**\n'
                     'Achieve a final hand (between **1 and 5 cards**) whose total is as close as possible to the target number determined by the gold die.'
                     'If there is a tie, the winner is determined by who has the most cards matching the target suit (from the silver die).'
                     'Further ties are decided by highest positive “added total,” then highest single positive card, and if still tied, sudden death draws.\n\n'
 
-                    '**Deck Composition:**\n'
+                    '### **Deck Composition:**\n'
                     '- **62 cards** total.\n'
                     '- **3 suits** (●, ▲, ■), each containing **20 cards**: +1 to +10 and -1 to -10.\n'
                     '- **2 Sylop (0)** cards act as wild/wildcard suits.\n\n'
 
-                    '**Gameplay Mechanics:**\n'
+                    '### **Gameplay Mechanics:**\n'
                     '- You start each round with **5 cards**.\n'
                     '- The **gold die** (faces: -10, 10, -5, 5, 0, 0) sets the target number.\n'
                     '- The **silver die** (faces: two each of ●, ▲, ■) sets the target suit.\n\n'
 
-                    '**Rounds:**\n'
+                    '### **Rounds:**\n'
                     '- By default, Coruscant Shift is played over **2 rounds** of card selection.\n'
                     '- **Round 1 – Selection & Shift:**\n'
                     '  1. Each player is dealt 5 cards.\n'
@@ -199,11 +199,11 @@ def get_coruscant_shift_rules_embed() -> Embed:
                     '  3. You **cannot** discard any card you kept from Round 1. You may only discard newly drawn cards.\n'
                     '  4. Reveal all final hands.\n\n'
 
-                    '**Hand Value Calculation:**\n'
+                    '### **Hand Value Calculation:**\n'
                     '- Each card contributes its face value (+ or -). Sylops (0) can count as any suit.\n'
                     '- Your final total is simply the sum of all cards you kept.\n\n'
 
-                    '**Tie-Breakers:**\n'
+                    '### **Tie-Breakers:**\n'
                     '1. Closest to the target number (absolute difference).\n'
                     '2. Most cards matching the target suit.\n'
                     '3. Highest total.\n'
@@ -225,24 +225,24 @@ def get_kessel_rules_embed() -> Embed:
 
     rules_embed = Embed(
         title='Kessel Sabacc Game Rules',
-        description='**Objective:**\n'
+        description='### **Objective:**\n'
                     'Achieve a hand with a total sum as close to zero as possible.\n\n'
-                    '**Deck Composition:**\n'
+                    '### **Deck Composition:**\n'
                     '- Two decks: Sand (positive cards) and Blood (negative cards), each comprising **22 cards** (44 total).\n'
                     '- Each deck contains:\n'
                     '   - Value cards from **-6 to -1** and **+1 to +6**, with **three copies** (staves) of each.\n'
                     '   - Three Impostor cards (marked with this symbol: Ψ).\n'
                     '   - One Sylop card (marked with this symbol: Ø).\n\n'
-                    '**Gameplay Mechanics:**\n'
+                    '### **Gameplay Mechanics:**\n'
                     '- Each player starts with **two cards**: one from Sand (positive) and one from Blood (negative).\n'
                     '- **Hand Limit:** You can only have **2 cards** in your hand at any time, one positive and one negative.\n'
                     '- **Rounds:** The game is played over **3 rounds** by default.\n\n'
-                    '**Available Actions:**\n'
+                    '### **Available Actions:**\n'
                     '- **Draw Card:** Draw one card from either deck.\n'
                     '   - After drawing, you must discard one of your existing cards to maintain a hand of two cards.\n'
                     '- **Stand:** Keep your current hand without changes.\n'
                     '- **Junk:** Give up and exit the game.\n\n'
-                    '**Hand Value Calculation:**\n'
+                    '### **Hand Value Calculation:**\n'
                     '- A player\'s hand value is the **sum** of their two cards (positive plus negative).\n'
                     '- Players aim for a hand value of zero for a Sabacc hand.\n'
                     '- **Impostor (Ψ) Cards:**\n'
@@ -252,7 +252,7 @@ def get_kessel_rules_embed() -> Embed:
                     '- **Sylop (Ø) Cards:**\n'
                     '   - A Sylop card takes the value of the other card in your hand.\n'
                     '   - If you have two Sylops, they both count as zero (best hand in the game).\n\n'
-                    '**Ranking Kessel Sabacc Hands (from best to worst):**\n\n'
+                    '### **Ranking Kessel Sabacc Hands (from best to worst):**\n\n'
                     '1. **Pure Sabacc:** A pair of Sylops (both count as 0).\n'
                     '   - Example: 0, 0\n\n'
                     '2. **Prime Sabacc:** A pair of ones (+1 and -1).\n'
@@ -274,7 +274,7 @@ def get_kessel_rules_embed() -> Embed:
         color=0x764920
     )
     rules_embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png'
+        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png'
     )
     return rules_embed
 
@@ -285,27 +285,27 @@ def get_traditional_rules_embed() -> Embed:
 
     rules_embed = Embed(
         title='Traditional Sabacc Game Rules',
-        description='**Objective:**\n'
+        description='### **Objective:**\n'
                     'Achieve a hand with a total sum as close to **+23 or -23** as possible.\n\n'
-                    '**Deck Composition:**\n'
+                    '### **Deck Composition:**\n'
                     '- **76 cards** total.\n'
                     '- **4 suits** (Flasks, Sabers, Staves, and Coins), each containing **15 cards** (60 total).\n'
                     '- **16 special (neutral/negative) cards** consisting of **2 copies each** of the following 8 unique cards:\n'
                     '  - The Idiot (0), Balance (-11), Endurance (-8), Moderation (-14), The Evil One (-15), The Queen of Air and Darkness (-2), Demise (-13), The Star (-17).\n\n'
-                    '**Gameplay Mechanics:**\n'
+                    '### **Gameplay Mechanics:**\n'
                     '- Each player starts with **two cards**.\n'
                     '- **Hand Limit:** No specific limit; players can accumulate multiple cards.\n'
-                    '- **Rounds:** There is **no set number of rounds**; play continues until a player calls **"Alderaan"** to end the game.\n\n'
-                    '**Available Actions:**\n'
+                    '### **Rounds:** There is **no set number of rounds**; play continues until a player calls **"Alderaan"** to end the game.\n\n'
+                    '### **Available Actions:**\n'
                     '- **Draw Card:** Draw one card from the deck.\n'
                     '- **Replace Card:** Draw a new card and discard one from your hand.\n'
                     '- **Call "Alderaan":** End the round and reveal hands.\n'
                     '- **Stand:** Keep your current hand without changes.\n'
                     '- **Junk:** Give up and exit the game.\n\n'
-                    '**Hand Value Calculation:**\n'
+                    '### **Hand Value Calculation:**\n'
                     '- A player\'s hand value is the **sum** of all cards in their hand.\n'
                     '- Players aim for a total hand value of **+23 or -23**.\n\n'
-                    '**Ranking Traditional Sabacc Hands (from best to worst):**\n\n'
+                    '### **Ranking Traditional Sabacc Hands (from best to worst):**\n\n'
                     '1. **Idiot’s Array:** A hand of **0, 2, and 3** (literal 23).\n'
                     '   - **Beats a 23 or -23** and **wins the Sabacc pot**.\n'
                     '   - Example: 0 (The Idiot), 2, 3.\n\n'
