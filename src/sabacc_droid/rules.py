@@ -10,35 +10,7 @@ RULES_DESCRIPTION = (
     '• [**Traditional Sabacc**](https://starwars.fandom.com/wiki/Sabacc) – Featured in *Star Wars: Rebels*.\n\n'
 
     '### **Game Rules & Variations**\n'
-    'Each mode aims for a hand sum close to its target (0, 23/-23, or a dice-determined value), but they differ in decks and rules:\n\n'
-
-    '- **Corellian Spike**\n'
-    '  - **Deck:** 62 cards (-10 to -1 and +1 to +10, no zero), plus 2 Sylops (0).\n'
-    '  - **Default Rounds:** 3 rounds, 2 starting cards.\n'
-    '  - **Hand Limit:** No limit; players can hold multiple cards.\n'
-    '  - **Special Hands:** Includes Pure Sabacc, Fleet, Yee-Haa, etc.\n\n'
-    '  - **Target:** Aim for 0\n'
-
-    '- **Coruscant Shift**\n'
-    '  - **Deck:** 62 cards (-10 to -1 and +1 to +10 across 3 suits), plus 2 Sylops (0).\n'
-    '  - **Default Rounds:** 2 rounds, 5 starting cards.\n'
-    '  - **Final Hand:** Players keep between 1–5 cards.\n\n'
-    '  - **Target:**\n'
-    '    - **Gold Die:** Sets the target number (-10, +10, -5, +5, 0, 0).\n'
-    '    - **Silver Die:** Sets the target suit (●, ▲, or ■) for tie-breakers.\n'
-
-    '- **Kessel Sabacc**\n'
-    '  - **Deck:** Two separate 22-card decks (positive "Sand" & negative "Blood").\n'
-    '  - **Default Rounds:** 3 rounds, strictly 2-card hands (one positive, one negative).\n'
-    '  - **Special Mechanics:**\n'
-    '    - **Impostor Cards (Ψ):** Players roll dice to determine their values.\n'
-    '    - **Sylop Cards (Ø):** Mirror the other card\'s value.\n\n'
-    '  - **Target:** Aim for 0\n'
-
-    '- **Traditional Sabacc**\n'
-    '  - **Deck:** 76 cards (-15 to -1, +1 to +15, plus neutral/negative cards).\n'
-    '  - **Default Rounds:** 3 rounds, 2 starting cards.\n'
-    '  - **Target:** Aim for **+23 or -23**.\n\n'
+    'Each mode aims for a hand sum close to its target (0, a dice-determined value, or +23/-23), but they differ in decks and rules:\n\n'
 
     '**Default Game Settings:**\n'
     '- **Corellian Spike, Kessel, and Traditional Sabacc** each have **3 rounds** and **2 starting cards**.\n'
