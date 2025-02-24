@@ -10,7 +10,8 @@ RULES_DESCRIPTION = (
     '• [**Traditional Sabacc**](https://starwars.fandom.com/wiki/Sabacc) – Featured in *Star Wars: Rebels*.\n\n'
 
     '### **Game Rules & Variations**\n'
-    'Each mode aims for a hand sum close to its target (0, a dice-determined value, or +23/-23), but they differ in decks and rules:\n\n'
+    'Each mode aims for a hand sum close to its target (0, a dice-determined value, or +23/-23), but they differ in decks and rules.\n'
+    'For more details on Sabacc rules, card designs, and gameplay resources, visit **[Hyperspace Props](https://hyperspaceprops.com/sabacc-resources/)**.\n\n'
 
     '### **Default Game Settings:**\n'
     '- **Corellian Spike and Kessel Sabacc** each have **3 rounds** and **2 starting cards**.\n'
@@ -324,7 +325,7 @@ def get_traditional_rules_embed() -> Embed:
                     '      5. Highest single absolute value card.\n'
                     '    - Example: Total of -22 beats total of +22\n\n'
                     'Good luck! May the Force be with you!',
-        color=0x764920
+        color=0xE8E8E8
     )
     rules_embed.set_thumbnail(
         url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png'

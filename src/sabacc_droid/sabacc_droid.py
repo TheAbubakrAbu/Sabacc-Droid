@@ -95,7 +95,7 @@ async def sabacc_command(interaction: Interaction):
             '**Coruscant Shift** (2 rounds / 5 starting cards)\n'
             '**Kessel** (3 rounds / 2 cards)\n'
             '**Traditional** (2 starting cards)\n\n'
-            'Click a button to immediately start a lobby with default settings.\n\n'
+            'Click a button to start a lobby with default settings.\n\n'
             'Or click **View Rules** to see an overview of Sabacc.'
         ),
         color=0x764920
@@ -207,7 +207,7 @@ class SabaccChoiceView(ui.View):
             description=desc,
             thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png',
             defer_first=True,
-            color=0x764920
+            color=0xE8E8E8
         )
 
     @ui.button(label='View Rules', style=discord.ButtonStyle.secondary)
@@ -313,7 +313,7 @@ async def kessel_command(interaction: Interaction, rounds: int = 3) -> None:
         color=0x7F3335
     )
 
-@bot.tree.command(name='traditional', description='Start a Traditional Sabacc game with optional custom settings')  # <-- Added
+@bot.tree.command(name='traditional', description='Start a Traditional Sabacc game with optional custom settings')
 @app_commands.describe(
     num_cards='Number of initial cards (default: 2, max: 10)'
 )
@@ -339,7 +339,7 @@ async def traditional_command(interaction: Interaction, num_cards: int = 2) -> N
         description=desc,
         thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png',
         defer_first=False,
-        color=0x764920
+        color=0xE8E8E8
     )
 
 @bot.tree.command(name='help', description='Display Sabacc rules')
