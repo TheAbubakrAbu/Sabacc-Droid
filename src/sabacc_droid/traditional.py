@@ -68,7 +68,7 @@ def combine_card_images(card_image_urls: list[str], resize_width: int = 80, resi
     image_bytes.seek(0)
     return image_bytes
 
-async def create_embed_with_cards(title: str, description: str, cards: list[int], thumbnail_url: str, color: int = 0xCBB7A0) -> tuple[Embed, discord.File]:
+async def create_embed_with_cards(title: str, description: str, cards: list[int], thumbnail_url: str, color: int = 0xE8E8E8) -> tuple[Embed, discord.File]:
     '''
     Create an embed showing card images for the given hand.
     Returns an Embed and a File if images are available, else just an Embed.
@@ -166,7 +166,7 @@ class TraditionalGameView(ui.View):
                 'Starting with 2 cards each.\n\n'
                 'Once someone joins, **Start Game** will be enabled.'
             ),
-            color=0xCBB7A0
+            color=0xE8E8E8
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png')
 
@@ -209,7 +209,7 @@ class TraditionalGameView(ui.View):
         embed = Embed(
             title='Traditional Sabacc Lobby',
             description=description,
-            color=0xCBB7A0
+            color=0xE8E8E8
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png')
 
@@ -300,8 +300,8 @@ class TraditionalGameView(ui.View):
         '''
         suited_cards = []
         for _suit in range(4):  # flasks, sabers, staves, coins
-            for rank in range(1, 16):
-                suited_cards.append(rank)
+            for card in range(1, 16):
+                suited_cards.append(card)
 
         # Special cards (8 unique, each repeated twice):
         special_values = [
@@ -363,7 +363,7 @@ class TraditionalGameView(ui.View):
         embed = Embed(
             title='Traditional Sabacc',
             description=description,
-            color=0xCBB7A0
+            color=0xE8E8E8
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png')
 
@@ -400,7 +400,7 @@ class TraditionalGameView(ui.View):
             embed = Embed(
                 title='Game Over',
                 description='No players remain. Nobody wins!',
-                color=0xCBB7A0
+                color=0xE8E8E8
             )
             embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png')
             await self.channel.send(embed=embed, view=EndGameView(self.active_games, self.channel))
@@ -439,7 +439,7 @@ class TraditionalGameView(ui.View):
         embed = Embed(
             title='Game Over',
             description=results,
-            color=0xCBB7A0
+            color=0xE8E8E8
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png')
 
@@ -709,7 +709,7 @@ class TurnView(ui.View):
         title = 'You Called Alderaan | Traditional Sabacc'
         description = 'All players must now reveal their hands. The game ends here!'
 
-        embed = Embed(title=title, description=description, color=0xCBB7A0)
+        embed = Embed(title=title, description=description, color=0xE8E8E8)
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png')
 
         await interaction.followup.edit_message(interaction.message.id, embed=embed, view=None)
