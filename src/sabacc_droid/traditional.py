@@ -186,9 +186,7 @@ class TraditionalGameView(ui.View):
             player.user.mention for player in self.players
         ) + '\n\n'
 
-        if self.game_started:
-            description += 'The game has started!'
-        elif len(self.players) >= self.max_players:
+        if len(self.players) >= self.max_players:
             description += 'The game lobby is full.'
 
         description += (
@@ -201,7 +199,7 @@ class TraditionalGameView(ui.View):
         if len(self.players) < 2:
             description += (
                 'Waiting for more players to join...\n'
-                'Or click **Start Game** if you really want to begin with an AI or solo play.\n'
+                'Click **Start Game** if you want to play with an AI.\n'
             )
         else:
             description += 'Click **Start Game** to begin!\n'
