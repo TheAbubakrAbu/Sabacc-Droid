@@ -449,7 +449,7 @@ class CoruscantGameView(ui.View):
 
         result_text = (
             f'**Target Number:** {self.target_number} | **Target Suit:** {self.target_suit}**\n\n'
-            '**Final Hands:**\n'
+            f'**Final Hands:**'
         )
 
         pure_sabacc_players = []
@@ -462,12 +462,12 @@ class CoruscantGameView(ui.View):
 
             if len(pl.hand) == 2 and all(c.suit == 'Sylop' for c in pl.hand):
                 pure_sabacc_players.append(pl)
-                line1 = f'- {pl.user.mention}: {pl.get_hand_string()}'
+                line1 = f'\n- {pl.user.mention}: {pl.get_hand_string()}'
                 line2 = f'   - Total: Pure Sabacc (2 Sylops)'
                 display_lines[pl] = f'{line1}\n{line2}\n'
             else:
                 total = pl.total_value()
-                line1 = f'- {pl.user.mention}: {pl.get_hand_string()}'
+                line1 = f'\n- {pl.user.mention}: {pl.get_hand_string()}'
                 line2 = f'   - Total: {total}'
                 line3 = f'   - Suit Matches: {suit_count}'
                 display_lines[pl] = f'{line1}\n{line2}\n'

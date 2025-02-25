@@ -187,7 +187,7 @@ class SabaccChoiceView(ui.View):
             color=0x7F3335
         )
 
-    @ui.button(label='Start Traditional', style=discord.ButtonStyle.primary)  # <-- Added
+    @ui.button(label='Start Traditional', style=discord.ButtonStyle.primary)
     async def start_traditional(self, interaction: Interaction, button: ui.Button):
         await interaction.response.defer()
         traditional_view = TraditionalGameView(

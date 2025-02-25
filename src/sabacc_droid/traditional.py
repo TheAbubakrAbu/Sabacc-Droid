@@ -192,7 +192,7 @@ class TraditionalGameView(ui.View):
             description += 'The game lobby is full.'
 
         description += (
-            '\n**Game Settings:**\n'
+            '**Game Settings:**\n'
             '• No set number of rounds\n'
             '• 2 starting cards\n'
             '• Call Alderaan to end the game\n\n'
@@ -415,10 +415,10 @@ class TraditionalGameView(ui.View):
 
         evaluated_hands.sort(key=lambda x: x[0])
 
-        results = '**Final Hands:**\n'
+        results = '**Final Hands:**'
         for eh in evaluated_hands:
             _, pl, name, total = eh
-            line1 = f'- {pl.user.mention}: {pl.get_cards_string()}'
+            line1 = f'\n- {pl.user.mention}: {pl.get_cards_string()}'
             line2 = f'   - Total: {total}'
             line3 = f'   - Hand: {name}'
             results += f'{line1}\n{line2}\n{line3}'
@@ -463,20 +463,15 @@ class TraditionalGameView(ui.View):
         cards = player.cards
         total = sum(cards)
 
-        # 1) Idiot's Array: exactly 0, 2, 3
         card_set = set(cards)
         if len(cards) == 3 and card_set == {0, 2, 3}:
             return ((1,), 'Idiot\'s Array', total)
 
-        # 2) Sabacc => sum == +23 or -23
         if total == 23 or total == -23:
             return ((2,), 'Sabacc', total)
 
-        # 3) Fairy Empress: exactly two -2
         if len(cards) == 2 and cards.count(-2) == 2:
             return ((3,), 'Fairy Empress', total)
-
-        # 4) Nulrhek: Everything else (sum not zero)
 
         distance = min(abs(23 - total), abs(-23 - total))
         neg_flag = 0 if total < 0 else 1
@@ -522,7 +517,7 @@ class EndGameView(ui.View):
             active_games=self.active_games,
             channel=self.channel
         )
-        new_game_view.message = await self.channel.send('New Traditional Sabacc lobby created!', view=new_game_view)
+        new_game_view.message = await self.channel.send('New game lobby created!', view=new_game_view)
         new_game_view.players.append(Player(interaction.user))
         await new_game_view.update_lobby_embed()
         self.active_games.append(new_game_view)
@@ -608,7 +603,7 @@ class TurnView(ui.View):
         self.stand_button.callback = self.stand_callback
         self.add_item(self.stand_button)
 
-        self.call_alderaan_button = ui.Button(label='Call "Alderaan"', style=ButtonStyle.danger)
+        self.call_alderaan_button = ui.Button(label='Call "Alderaan" to End the Game', style=ButtonStyle.danger)
         self.call_alderaan_button.callback = self.call_alderaan_callback
         self.add_item(self.call_alderaan_button)
 

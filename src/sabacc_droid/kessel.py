@@ -573,10 +573,10 @@ class KesselGameView(ui.View):
 
         evaluated_hands.sort(key=lambda x: x[0])
 
-        results = '**Final Hands:**\n'
+        results = '**Final Hands:**'
         for eh in evaluated_hands:
             _, player, hand_type, total = eh
-            line1 = f'- {player.user.mention}: {player.get_cards_string(include_special_values=True)}'
+            line1 = f'\n- {player.user.mention}: {player.get_cards_string(include_special_values=True)}'
             line2 = f'   - Total: {total}'
             line3 = f'   - Hand: {hand_type}'
             results += f'{line1}\n{line2}\n{line3}'
@@ -587,7 +587,7 @@ class KesselGameView(ui.View):
         if len(winners) == 1:
             winner = winners[0][1]
             hand_type = winners[0][2]
-            results += f'\n🎉 {winner.user.mention} wins with a **{hand_type}**!'
+            results += f'\n\n🎉 {winner.user.mention} wins with a **{hand_type}**!'
         else:
             results += '\nIt\'s a tie between:'
             for eh in winners:
