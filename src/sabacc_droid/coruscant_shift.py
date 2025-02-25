@@ -193,10 +193,8 @@ class CoruscantGameView(ui.View):
 
         desc += (
             f'\n**Game Settings:**\n'
-            f'{self.rounds} rounds\n'
-            f'{self.num_cards} starting cards\n\n'
-            f'**Target Number:** {self.target_number}\n'
-            f'**Target Suit:** {self.target_suit}\n\n'
+            f'• {self.rounds} rounds\n'
+            f'• {self.num_cards} starting cards\n\n'
         )
 
         if len(self.players) < 2:
@@ -239,8 +237,8 @@ class CoruscantGameView(ui.View):
         desc = (
             'Click **Play Game** to join the game!\n\n'
             f'**Game Settings:**\n'
-            f'{self.rounds} rounds\n'
-            f'{self.num_cards} starting cards\n\n'
+            f'• {self.rounds} rounds\n'
+            f'• {self.num_cards} starting cards\n\n'
             'Once someone has joined, **Start Game** will be enabled.'
         )
         embed = Embed(title='Coruscant Shift Sabacc Lobby', description=desc, color=0xAB9032)

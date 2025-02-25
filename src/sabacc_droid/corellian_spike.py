@@ -166,7 +166,9 @@ class CorelliaGameView(ui.View):
         embed = Embed(
             title='Corellian Spike Sabacc Lobby',
             description=('Click **Play Game** to join the game!\n\n'
-                         f'**Game Settings:**\n{self.rounds} rounds\n{self.num_cards} starting cards\n\n'
+                         f'**Game Settings:**\n'
+                         f'• {self.rounds} rounds\n'
+                         f'• {self.num_cards} starting cards\n\n'
                          'Once someone has joined, **Start Game** will be enabled.'),
             color=0xCBB7A0
         )
@@ -242,7 +244,11 @@ class CorelliaGameView(ui.View):
         if len(self.players) >= 8:
             description += 'The game lobby is full.'
 
-        description += f'**Game Settings:**\n{self.rounds} rounds\n{self.num_cards} starting cards\n\n'
+        description += (
+            f'**Game Settings:**\n'
+            f'• {self.rounds} rounds\n'
+            f'• {self.num_cards} starting cards\n\n'
+        )
 
         if len(self.players) < 2:
             description += 'Waiting for more players to join...\n'
