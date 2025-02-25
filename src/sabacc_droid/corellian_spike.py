@@ -239,9 +239,7 @@ class CorelliaGameView(ui.View):
         description = f'**Players Joined ({len(self.players)}/8):**\n' + '\n'.join(
             player.user.mention for player in self.players) + '\n\n'
 
-        if self.game_started:
-            description += 'The game has started!'
-        elif len(self.players) >= 8:
+        if len(self.players) >= 8:
             description += 'The game lobby is full.'
 
         description += f'**Game Settings:**\n{self.rounds} rounds\n{self.num_cards} starting cards\n\n'

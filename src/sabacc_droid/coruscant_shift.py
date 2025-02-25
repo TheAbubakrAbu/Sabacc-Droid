@@ -188,9 +188,7 @@ class CoruscantGameView(ui.View):
         desc = f'**Players Joined ({len(self.players)}/8):**\n'
         desc += '\n'.join(p.user.mention for p in self.players)
         desc += '\n'
-        if self.game_started:
-            desc += 'The game has started!'
-        elif len(self.players) >= 8:
+        if len(self.players) >= 8:
             desc += 'The game lobby is full.'
 
         desc += (
@@ -243,8 +241,6 @@ class CoruscantGameView(ui.View):
             f'**Game Settings:**\n'
             f'{self.rounds} rounds\n'
             f'{self.num_cards} starting cards\n\n'
-            f'**Target Number:** {self.target_number}\n'
-            f'**Target Suit:** {self.target_suit}\n\n'
             'Once someone has joined, **Start Game** will be enabled.'
         )
         embed = Embed(title='Coruscant Shift Sabacc Lobby', description=desc, color=0xAB9032)
@@ -473,10 +469,10 @@ class CoruscantGameView(ui.View):
         if pure_sabacc_players:
             if len(pure_sabacc_players) == 1:
                 winner = pure_sabacc_players[0]
-                result_text += f'\n🎉 {winner.user.mention} wins with a **Pure Sabacc**!'
+                result_text += f'\n\n🎉 {winner.user.mention} wins with a **Pure Sabacc**!'
             else:
                 tie_names = ', '.join(pl.user.mention for pl in pure_sabacc_players)
-                result_text += f'\nIt\'s a tie between: {tie_names} (all **Pure Sabacc**)'
+                result_text += f'\n\nIt\'s a tie between: {tie_names} (all **Pure Sabacc**)'
         else:
             evals = []
             for pl in self.players:
@@ -494,10 +490,10 @@ class CoruscantGameView(ui.View):
 
             if len(winners) == 1:
                 wpl = winners[0][4]
-                result_text += f'\n🎉 {wpl.user.mention} wins!'
+                result_text += f'\n\n🎉 {wpl.user.mention} wins!'
             else:
                 tie_names = ', '.join(e[4].user.mention for e in winners)
-                result_text += f'\nIt\'s a tie between: {tie_names}'
+                result_text += f'\n\nIt\'s a tie between: {tie_names}'
 
         emb = Embed(title='Game Over', description=result_text, color=0xAB9032)
         emb.set_thumbnail(
@@ -724,12 +720,10 @@ class EphemeralSelectView(ui.View):
 
         total = sum(c.value for c in self.player.hand)
         desc = (
-            f'**Your Cards:** {self.player.get_hand_string()}\n'
-            f'**Total:** {total}\n\n'
-            'You decided to junk your hand. You are out of the game!'
+            'You have given up and are out of the game.'
         )
         embed = Embed(
-            title=f'Junked | Round {self.game_view.current_round}/{self.game_view.rounds}',
+            title=f'You Chose to Junk | Round {self.game_view.current_round}/{self.game_view.rounds}',
             description=desc,
             color=0xAB9032
         )

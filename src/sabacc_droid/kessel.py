@@ -316,9 +316,7 @@ class KesselGameView(ui.View):
         description = f'**Players Joined ({len(self.players)}/8):**\n' + '\n'.join(
             player.user.mention for player in self.players) + '\n\n'
 
-        if self.game_started:
-            description += 'The game has started!\n\n'
-        elif len(self.players) >= 8:
+        if len(self.players) >= 8:
             description += 'The game lobby is full.\n\n'
 
         description += f'**Game Settings:**\n{self.rounds} rounds\n2 starting cards\n\n'
@@ -696,7 +694,7 @@ class PlayTurnButton(ui.Button):
         else:
             await interaction.followup.send(embed=embed, view=turn_view, ephemeral=True)
 
-async def send_embed_with_hand(player: Player, title: str, description: str, include_drawn_card: bool=False, include_both_positive_cards: bool=False) -> tuple[Embed, list[discord.File]]:
+async def send_embed_with_hand(player: Player, title: str, description: str, include_drawn_card: bool=False, include_both_positive_cards: bool=False, junk=True) -> tuple[Embed, list[discord.File]]:
     '''
     Prepare the embed (and image file if any) for the player's hand, but do not send it yet.
     '''
@@ -711,12 +709,13 @@ async def send_embed_with_hand(player: Player, title: str, description: str, inc
     embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png')
 
     explanations = ''
-    if 'Ψ' in player.get_cards_string():
-        explanations += 'Ψ: Impostor card (value chosen by 2 dice at the end)\n'
-    if 'Ø' in player.get_cards_string():
-        explanations += 'Ø: Sylop card (value is the same as other card in hand)\n'
-    if explanations:
-        embed.add_field(name='**Legend**:', value=explanations.strip(), inline=False)
+    if junk:
+        if 'Ψ' in player.get_cards_string():
+            explanations += 'Ψ: Impostor card (value chosen by 2 dice at the end)\n'
+        if 'Ø' in player.get_cards_string():
+            explanations += 'Ø: Sylop card (value is the same as other card in hand)\n'
+        if explanations:
+            embed.add_field(name='**Legend**:', value=explanations.strip(), inline=False)
 
     embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png')
 
@@ -860,7 +859,8 @@ class TurnView(ui.View):
         embed, files = await send_embed_with_hand(
             self.player,
             title,
-            description
+            description,
+            junk = True
         )
 
         if files:

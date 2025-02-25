@@ -196,7 +196,7 @@ class SabaccChoiceView(ui.View):
         )
         desc = (
             'Click **Play Game** to join.\n\n'
-            '**Game Settings:**\nNo set rounds (ends when someone calls "Alderaan")\n2 starting cards\n\n'
+            '**Game Settings:**\n2 starting cards\n\n'
             'Once someone has joined, **Start Game** will be enabled.'
         )
         await _send_sabacc_lobby(
@@ -327,8 +327,7 @@ async def traditional_command(interaction: Interaction, num_cards: int = 2) -> N
     )
     desc = (
         'Click **Play Game** to join.\n\n'
-        f'**Game Settings:**\nNo set number of rounds (game ends when "Alderaan" is called)\n'
-        f'{num_cards} starting cards (by default 2)\n\n'
+        f'**Game Settings:**\n{num_cards} starting cards\n\n'
         'Once someone has joined, the **Start Game** button will be enabled.'
     )
     await _send_sabacc_lobby(
