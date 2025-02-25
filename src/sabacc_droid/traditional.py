@@ -127,12 +127,13 @@ class TraditionalGameView(ui.View):
     deck, turns, and interactions. The game ends when a player calls Alderaan.
     '''
 
-    def __init__(self, active_games=None, channel=None, max_players=8):
+    def __init__(self, num_cards = 2, active_games=None, channel=None, max_players=8):
         super().__init__(timeout=None)
         self.players = []
         self.game_started = False
         self.current_player_index = -1
         self.deck = []
+        self.num_cards = num_cards
         self.game_ended = False
         self.active_games = active_games if active_games is not None else []
         self.channel = channel
@@ -162,8 +163,9 @@ class TraditionalGameView(ui.View):
             description=(
                 'Click **Play Game** to join the game!\n\n'
                 '**Game Settings:**\n'
-                'No set number of rounds. The game ends when someone calls Alderaan.\n'
-                'Starting with 2 cards each.\n\n'
+                f'• No set number of rounds\n'
+                f'• Call Alderaan to end the game\n'
+                f'• {self.num_cards} starting cards\n\n'
                 'Once someone joins, **Start Game** will be enabled.'
             ),
             color=0xE8E8E8
@@ -191,9 +193,9 @@ class TraditionalGameView(ui.View):
 
         description += (
             '**Game Settings:**\n'
-            '• No set number of rounds\n'
-            '• 2 starting cards\n'
-            '• Call Alderaan to end the game\n\n'
+            f'• No set number of rounds\n'
+            f'• Call Alderaan to end the game\n'
+            f'• {self.num_cards} starting cards\n\n'
         )
 
         if len(self.players) < 2:
@@ -282,7 +284,7 @@ class TraditionalGameView(ui.View):
 
             for player in self.players:
                 player.cards.clear()
-                for _ in range(2):
+                for _ in range(self.num_cards):
                     player.draw_card(self.deck)
 
             await interaction.response.defer()
