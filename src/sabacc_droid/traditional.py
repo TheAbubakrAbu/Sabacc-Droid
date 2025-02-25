@@ -429,7 +429,7 @@ class TraditionalGameView(ui.View):
         if len(winners) == 1:
             winner_player = winners[0][1]
             winner_name = winners[0][2]
-            results += f'\n\n🎉 {winner_player.user.mention} wins with **{winner_name}**!'
+            results += f'\n\n🎉 {winner_player.user.mention} wins with a **{winner_name}**!'
         else:
             results += '\n\nIt\'s a tie between:'
             for w in winners:
@@ -603,13 +603,13 @@ class TurnView(ui.View):
         self.stand_button.callback = self.stand_callback
         self.add_item(self.stand_button)
 
-        self.call_alderaan_button = ui.Button(label='Call "Alderaan" to End the Game', style=ButtonStyle.danger)
-        self.call_alderaan_button.callback = self.call_alderaan_callback
-        self.add_item(self.call_alderaan_button)
-
         self.junk_button = ui.Button(label='Junk', style=ButtonStyle.danger)
         self.junk_button.callback = self.junk_callback
         self.add_item(self.junk_button)
+
+        self.call_alderaan_button = ui.Button(label='Call "Alderaan" to End the Game', style=ButtonStyle.danger)
+        self.call_alderaan_button.callback = self.call_alderaan_callback
+        self.add_item(self.call_alderaan_button)
 
     async def interaction_check(self, interaction: Interaction) -> bool:
         '''
@@ -782,6 +782,7 @@ class CardSelectView(ui.View):
                 description = f'**Your Hand:** {self.player.get_cards_string()}\n**Total:** {self.player.get_total()}'
             else:
                 embed = Embed(title='Unknown Action', description='An error occurred.', color=0xFF0000)
+                embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png')
                 await interaction.followup.edit_message(interaction.message.id, embed=embed, view=None)
                 return
 

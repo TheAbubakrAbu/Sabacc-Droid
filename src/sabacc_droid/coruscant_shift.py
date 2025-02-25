@@ -447,10 +447,8 @@ class CoruscantGameView(ui.View):
                 self.active_games.remove(self)
             return
 
-        result_text = (
-            f'**Target Number:** {self.target_number} | **Target Suit:** {self.target_suit}**\n\n'
-            f'**Final Hands:**'
-        )
+        result_text = f'**Target Number:** {self.target_number} | **Target Suit:** {self.target_suit}**\n\n'
+        result_text += '**Final Hands:**'
 
         pure_sabacc_players = []
         display_lines = {}
@@ -464,21 +462,18 @@ class CoruscantGameView(ui.View):
                 pure_sabacc_players.append(pl)
                 line1 = f'\n- {pl.user.mention}: {pl.get_hand_string()}'
                 line2 = f'   - Total: Pure Sabacc (2 Sylops)'
-                display_lines[pl] = f'{line1}\n{line2}\n'
+                result_text += f'{line1}\n{line2}\n'
             else:
                 total = pl.total_value()
                 line1 = f'\n- {pl.user.mention}: {pl.get_hand_string()}'
                 line2 = f'   - Total: {total}'
                 line3 = f'   - Suit Matches: {suit_count}'
-                display_lines[pl] = f'{line1}\n{line2}\n'
-
-        for pl in self.players:
-            result_text += display_lines[pl]
+                result_text += f'{line1}\n{line2}\n{line3}'
 
         if pure_sabacc_players:
             if len(pure_sabacc_players) == 1:
                 winner = pure_sabacc_players[0]
-                result_text += f'\n🎉 {winner.user.mention} wins with **Pure Sabacc**!'
+                result_text += f'\n🎉 {winner.user.mention} wins with a **Pure Sabacc**!'
             else:
                 tie_names = ', '.join(pl.user.mention for pl in pure_sabacc_players)
                 result_text += f'\nIt\'s a tie between: {tie_names} (all **Pure Sabacc**)'
@@ -700,6 +695,7 @@ class EphemeralSelectView(ui.View):
             ),
             color=0xAB9032
         )
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
 
         efile = None
         if self.player.hand:
@@ -737,6 +733,7 @@ class EphemeralSelectView(ui.View):
             description=desc,
             color=0xAB9032
         )
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
 
         efile = None
         if self.player.hand:

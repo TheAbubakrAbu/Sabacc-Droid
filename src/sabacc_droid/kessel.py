@@ -560,7 +560,6 @@ class KesselGameView(ui.View):
                 description='Nobody won because everyone junked!',
                 color=0x7F3335
             )
-            embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png')
             await self.channel.send(embed=embed, view=EndGameView(rounds=self.rounds, active_games=self.active_games, channel=self.channel))
             if self in self.active_games:
                 self.active_games.remove(self)
@@ -709,6 +708,7 @@ async def send_embed_with_hand(player: Player, title: str, description: str, inc
         description=description,
         color=0x7F3335
     )
+    embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png')
 
     explanations = ''
     if 'Ψ' in player.get_cards_string():
@@ -991,6 +991,7 @@ class ChooseImpostorValueView(ui.View):
                 description=f'Two dice have been rolled for {self.player.user.mention} Impostor card. Choose your preferred value.',
                 color=0x7F3335
             )
+            embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png')
             self.message = await self.game_view.channel.send(content=self.player.user.mention, embed=embed, view=self)
 
     def roll_dice(self) -> None:
@@ -1029,6 +1030,7 @@ class ChooseImpostorValueView(ui.View):
             description=f'**{chosen_value}** has been selected as the {card_type} Impostor card by {self.player.user.mention}.',
             color=0x7F3335
         )
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png')
         await self.message.edit(embed=embed, view=None)
 
     async def interaction_check(self, interaction: Interaction) -> bool:
