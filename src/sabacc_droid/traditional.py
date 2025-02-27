@@ -2,6 +2,7 @@
 
 import random
 import logging
+import asyncio
 from urllib.parse import quote
 import discord
 from discord import Embed, ButtonStyle, ui, Interaction
@@ -714,12 +715,12 @@ class TurnView(ui.View):
             self.game_view.alderaan_caller_mention = self.player.user.mention
 
         title = f'You Called Alderaan | Round {self.game_view.round}'
-        description = f'All remaining players will now have one final turn because you called Alderaan.'
+        description = f'All remaining players will now have one final turn because {self.game_view.alderaan_caller_mention} called Alderaan.'
         embed = Embed(title=title, description=description, color=0xE8E8E8)
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png')
         
         await interaction.followup.send(embed=embed)
-        
+        await asyncio.sleep(1)
         self.stop()
         await self.game_view.proceed_to_next_player()
 
