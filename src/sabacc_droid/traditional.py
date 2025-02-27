@@ -21,7 +21,7 @@ def get_card_image_urls(cards: list[int]) -> list[str]:
     Adjust or replace with your actual image resources for Traditional Sabacc.
     '''
     base_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/'
-    return [f"{base_url}{quote(f'+{card}' if card > 0 else str(card))}.png" for card in cards]
+    return [f'''{base_url}{quote(f'+{card}' if card > 0 else str(card))}.png''' for card in cards]
 
 def download_and_process_image(url: str, resize_width: int, resize_height: int) -> Image.Image:
     '''
@@ -112,7 +112,7 @@ class Player:
         '''
         Return a formatted string of the player's cards with separators.
         '''
-        return ' | ' + ' | '.join(f"{'+' if c > 0 else ''}{c}" for c in self.cards) + ' |'
+        return ' | ' + ' | '.join(f'''{'+' if c > 0 else ''}{c}''' for c in self.cards) + ' |'
 
     def get_total(self) -> int:
         '''
@@ -125,7 +125,7 @@ class TraditionalGameView(ui.View):
     Represents a Traditional Sabacc game instance, managing players,
     deck, turns, and interactions. The game ends when a player calls Alderaan.
     '''
-    def __init__(self, num_cards = 2, active_games=None, channel=None, max_players=8):
+    def __init__(self, num_cards: int = 2, active_games=None, channel=None, max_players: int = 8):
         super().__init__(timeout=None)
         self.players = []
         self.game_started = False
@@ -147,7 +147,9 @@ class TraditionalGameView(ui.View):
 
         self.alderaan_called = False
         self.alderaan_caller_index = None
-        self.alderaan_caller_mention = ""
+        self.alderaan_caller_mention = ''
+
+        self.solo_game = False
 
     async def reset_lobby(self, interaction: Interaction) -> None:
         '''
@@ -168,14 +170,14 @@ class TraditionalGameView(ui.View):
             description=(
                 'Click **Play Game** to join the game!\n\n'
                 '**Game Settings:**\n'
-                f'• No set number of rounds\n'
-                f'• Call Alderaan to end the game\n'
+                '• No set number of rounds\n'
+                '• Call Alderaan to end the game\n'
                 f'• {self.num_cards} starting cards\n\n'
                 'Once someone joins, **Start Game** will be enabled.'
             ),
             color=0xE8E8E8
         )
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png')
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png')
 
         await interaction.response.edit_message(embed=embed, view=self)
 
@@ -198,16 +200,14 @@ class TraditionalGameView(ui.View):
 
         description += (
             '**Game Settings:**\n'
-            f'• No set number of rounds\n'
-            f'• Call Alderaan to end the game\n'
+            '• No set number of rounds\n'
+            '• Call Alderaan to end the game\n'
             f'• {self.num_cards} starting cards\n\n'
         )
 
         if len(self.players) < 2:
-            description += (
-                'Waiting for more players to join...\n'
-                'Click **Start Game** if you want to play with an AI.\n'
-            )
+            description += ('Waiting for more players to join...\n'
+                            'Click **Start Game** if you want to play with an AI.\n')
         else:
             description += 'Click **Start Game** to begin!\n'
 
@@ -216,7 +216,7 @@ class TraditionalGameView(ui.View):
             description=description,
             color=0xE8E8E8
         )
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png')
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png')
 
         self.start_game_button.disabled = (len(self.players) < 1 or self.game_started)
         self.play_game_button.disabled = (len(self.players) >= self.max_players or self.game_started)
@@ -279,7 +279,8 @@ class TraditionalGameView(ui.View):
             self.turns_taken = 0
             self.alderaan_called = False
             self.alderaan_caller_index = None
-            self.alderaan_caller_mention = ""
+            self.alderaan_caller_mention = ''
+            self.solo_game = (len(self.players) == 1)
 
             self.play_game_button.disabled = True
             self.leave_game_button.disabled = True
@@ -313,7 +314,6 @@ class TraditionalGameView(ui.View):
             for card in range(1, 16):
                 suited_cards.append(card)
 
-        # Special cards (8 unique, each repeated twice):
         special_values = [
             0,   # The Idiot
             -11, # Balance
@@ -335,12 +335,16 @@ class TraditionalGameView(ui.View):
         '''
         Move to the next player's turn. If Alderaan has been called,
         once the turn cycles back to the caller the game ends.
+        Also, update the round count when a full cycle is completed.
         '''
         if self.game_ended:
             return
 
         self.turns_taken += 1
         self.current_player_index = (self.current_player_index + 1) % len(self.players)
+        if self.current_player_index == 0 and self.turns_taken > len(self.players):
+            self.round += 1
+
         if self.alderaan_called and self.current_player_index == self.alderaan_caller_index:
             await self.end_game()
             return
@@ -357,13 +361,12 @@ class TraditionalGameView(ui.View):
         current_player = self.players[self.current_player_index]
         card_count = len(current_player.cards)
 
-        description = f'**Players:**\n' + '\n'.join(
-            player.user.mention for player in self.players) + '\n\n'
+        description = f'**Players:**\n' + '\n'.join(player.user.mention for player in self.players) + '\n\n'
         description += f'**Round {self.round}**\n'
         description += f'It\'s now {current_player.user.mention}\'s turn.\n'
         description += 'Click **Play Turn** to proceed.\n\n'
         if self.alderaan_called:
-            description += f'Final Turn: {self.alderaan_caller_mention} called Alderaan. This is your final turn.'
+            description += f'{self.alderaan_caller_mention} called Alderaan. This is your **final turn**.'
 
         card_back_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/card_back.png'
         card_image_urls = [card_back_url] * card_count
@@ -379,7 +382,7 @@ class TraditionalGameView(ui.View):
             description=description,
             color=0xE8E8E8
         )
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png')
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png')
 
         play_turn_view = PlayTurnView(self)
 
@@ -402,10 +405,23 @@ class TraditionalGameView(ui.View):
         '''
         End the game, evaluate hands, determine the winner(s), and display results.
         Called when the final turn of the round has completed.
+        If solo_game is True, a Lando Calrissian AI opponent is added.
         '''
         if self.game_ended:
             return
         self.game_ended = True
+
+        if self.solo_game:
+            if not any(hasattr(player.user, 'name') and player.user.name == 'Lando Calrissian AI' for player in self.players):
+                lando_user = type('AIUser', (object,), {
+                    'mention': 'Lando Calrissian AI',
+                    'name': 'Lando Calrissian AI',
+                    'id': -1
+                })()
+                lando = Player(user=lando_user)
+                for _ in range(self.num_cards):
+                    lando.draw_card(self.deck)
+                self.players.append(lando)
 
         if not self.players:
             embed = Embed(
@@ -413,7 +429,7 @@ class TraditionalGameView(ui.View):
                 description='No players remain. Nobody wins!',
                 color=0xE8E8E8
             )
-            embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png')
+            embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png')
             await self.channel.send(embed=embed, view=EndGameView(self.active_games, self.channel))
             if self in self.active_games:
                 self.active_games.remove(self)
@@ -452,7 +468,7 @@ class TraditionalGameView(ui.View):
             description=results,
             color=0xE8E8E8
         )
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png')
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png')
 
         mentions = ' '.join(player.user.mention for player in self.players)
         await self.channel.send(
@@ -476,10 +492,8 @@ class TraditionalGameView(ui.View):
         card_set = set(cards)
         if len(cards) == 3 and card_set == {0, 2, 3}:
             return ((1,), 'Idiot\'s Array', total)
-
         if total == 23 or total == -23:
             return ((2,), 'Sabacc', total)
-
         if len(cards) == 2 and cards.count(-2) == 2:
             return ((3,), 'Fairy Empress', total)
 
@@ -489,11 +503,7 @@ class TraditionalGameView(ui.View):
         abs_sum = -abs(total)
         max_card = -max(abs(c) for c in cards)
 
-        return (
-            (4, distance, neg_flag, card_count, abs_sum, max_card),
-            f'Nulrhek (Sum: {total})',
-            total
-        )
+        return ((4, distance, neg_flag, card_count, abs_sum, max_card), 'Nulrhek', total)
 
 class EndGameView(ui.View):
     '''
@@ -569,27 +579,18 @@ class PlayTurnButton(ui.Button):
             title=title,
             description=description,
             cards=current_player.cards,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png'
+            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png'
         )
 
         turn_view = TurnView(self.game_view, current_player)
         if file:
-            await interaction.followup.send(
-                embed=embed,
-                view=turn_view,
-                file=file,
-                ephemeral=True
-            )
+            await interaction.followup.send(embed=embed, view=turn_view, file=file, ephemeral=True)
         else:
-            await interaction.followup.send(
-                embed=embed,
-                view=turn_view,
-                ephemeral=True
-            )
+            await interaction.followup.send(embed=embed, view=turn_view, ephemeral=True)
 
 class TurnView(ui.View):
     '''
-    A view with actions for the current player's turn: draw, replace, stand, call alderaan, or junk.
+    A view with actions for the current player's turn: draw, replace, stand, call Alderaan, or junk.
     '''
     def __init__(self, game_view: TraditionalGameView, player: Player):
         super().__init__(timeout=None)
@@ -632,13 +633,13 @@ class TurnView(ui.View):
         await interaction.response.defer()
         self.player.draw_card(self.game_view.deck)
 
-        title = 'You Drew a Card | Traditional Sabacc'
+        title = f'You Drew a Card | Round {self.game_view.round}'
         description = f'**Your Hand:** {self.player.get_cards_string()}\n**Total:** {self.player.get_total()}'
         embed, file = await create_embed_with_cards(
             title=title,
             description=description,
             cards=self.player.cards,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png'
+            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png'
         )
 
         if file:
@@ -656,17 +657,15 @@ class TurnView(ui.View):
         await interaction.response.defer()
         card_select_view = CardSelectView(self, 'replace')
 
-        title = 'Replace a Card | Traditional Sabacc'
-        description = (
-            f'**Your Hand:** {self.player.get_cards_string()}\n'
-            f'**Total:** {self.player.get_total()}\n\n'
-            'Click the button corresponding to the card you want to replace.'
-        )
+        title = f'Replace a Card | Round {self.game_view.round}'
+        description = (f'**Your Hand:** {self.player.get_cards_string()}\n'
+                       f'**Total:** {self.player.get_total()}\n\n'
+                       'Click the button corresponding to the card you want to replace.')
         embed, file = await create_embed_with_cards(
             title=title,
             description=description,
             cards=self.player.cards,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png'
+            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png'
         )
 
         if file:
@@ -679,13 +678,14 @@ class TurnView(ui.View):
         Stand without taking additional actions.
         '''
         await interaction.response.defer()
-        title = 'You Chose to Stand | Traditional Sabacc'
+
+        title = f'You Chose to Stand | Round {self.game_view.round}'
         description = f'**Your Hand:** {self.player.get_cards_string()}\n**Total:** {self.player.get_total()}'
         embed, file = await create_embed_with_cards(
             title=title,
             description=description,
             cards=self.player.cards,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png'
+            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png'
         )
 
         if file:
@@ -706,10 +706,10 @@ class TurnView(ui.View):
             self.game_view.alderaan_caller_index = self.game_view.current_player_index
             self.game_view.alderaan_caller_mention = self.player.user.mention
 
-        title = 'You Called Alderaan | Traditional Sabacc'
-        description = f'All players will now have one final turn. {self.game_view.alderaan_caller_mention} called Alderaan.'
+        title = f'You Called Alderaan | Round {self.game_view.round}'
+        description = f'All remaining players will now have one final turn because {self.game_view.alderaan_caller_mention} called Alderaan.'
         embed = Embed(title=title, description=description, color=0xE8E8E8)
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png')
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png')
         await interaction.followup.edit_message(interaction.message.id, embed=embed, view=None)
         self.stop()
         await self.game_view.proceed_to_next_player()
@@ -719,13 +719,14 @@ class TurnView(ui.View):
         Junk your hand and leave the game.
         '''
         await interaction.response.defer()
-        title = 'You Junked Your Hand | Traditional Sabacc'
+
+        title = f'You Junked Your Hand | Round {self.game_view.round}'
         description = 'You have given up and are out of the game.'
         embed, file = await create_embed_with_cards(
             title=title,
             description=description,
             cards=self.player.cards,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png'
+            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png'
         )
 
         if file:
@@ -758,7 +759,7 @@ class CardSelectView(ui.View):
         Create a button for each card to select for replacement, plus a Go Back button.
         '''
         for idx, card in enumerate(self.player.cards):
-            button_label = f"{'+' if card > 0 else ''}{card}"
+            button_label = f'''{'+' if card > 0 else ''}{card}'''
             button = ui.Button(label=button_label, style=ButtonStyle.primary)
             button.callback = self.make_callback(card, idx)
             self.add_item(button)
@@ -777,11 +778,11 @@ class CardSelectView(ui.View):
                 self.game_view.deck.insert(0, old_card)
                 self.player.draw_card(self.game_view.deck)
                 new_card = self.player.cards[-1]
-                title = f'You Replaced {old_card} with {new_card} | Traditional Sabacc'
+                title = f'You Replaced {old_card} with {new_card} | Round {self.game_view.round}'
                 description = f'**Your Hand:** {self.player.get_cards_string()}\n**Total:** {self.player.get_total()}'
             else:
                 embed = Embed(title='Unknown Action', description='An error occurred.', color=0xFF0000)
-                embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png')
+                embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png')
                 await interaction.followup.edit_message(interaction.message.id, embed=embed, view=None)
                 return
 
@@ -789,7 +790,7 @@ class CardSelectView(ui.View):
                 title=title,
                 description=description,
                 cards=self.player.cards,
-                thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png'
+                thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png'
             )
 
             if file:
@@ -833,7 +834,7 @@ class GoBackButton(ui.Button):
             title=title,
             description=description,
             cards=turn_view.player.cards,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png'
+            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png'
         )
 
         if file:
