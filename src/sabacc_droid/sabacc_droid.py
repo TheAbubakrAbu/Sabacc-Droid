@@ -214,7 +214,7 @@ class SabaccChoiceView(ui.View):
             active_games,
             title='Traditional Sabacc Lobby',
             description=desc,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png',
+            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png',
             defer_first=True,
             color=0xE8E8E8
         )
@@ -351,7 +351,7 @@ async def traditional_command(interaction: Interaction, num_cards: int = 2) -> N
         active_games,
         title='Traditional Sabacc Lobby',
         description=desc,
-        thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png',
+        thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png',
         defer_first=False,
         color=0xE8E8E8
     )

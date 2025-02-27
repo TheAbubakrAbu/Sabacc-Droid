@@ -328,6 +328,6 @@ def get_traditional_rules_embed() -> Embed:
         color=0xE8E8E8
     )
     rules_embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/logo.png'
+        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png'
     )
     return rules_embed
