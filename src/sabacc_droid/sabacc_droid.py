@@ -91,10 +91,10 @@ async def sabacc_command(interaction: Interaction):
         title='Choose Your Sabacc Variant',
         description=(
             'Select one of the three modes below to start a new game in this channel.\n\n'
-            '**Corellian Spike** (3 rounds / 2 starting cards)\n'
-            '**Coruscant Shift** (2 rounds / 5 starting cards)\n'
-            '**Kessel** (3 rounds / 2 cards)\n'
-            '**Traditional** (2 starting cards)\n\n'
+            '• **Corellian Spike** (3 rounds / 2 starting cards)\n'
+            '• **Coruscant Shift** (2 rounds / 5 starting cards)\n'
+            '• **Kessel** (3 rounds / 2 cards)\n'
+            '• **Traditional** (2 starting cards)\n\n'
             'Click a button to start a lobby with default settings.\n\n'
             'Or click **View Rules** to see an overview of Sabacc.'
         ),
