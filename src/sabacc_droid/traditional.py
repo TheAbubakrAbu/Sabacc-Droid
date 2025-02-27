@@ -440,6 +440,8 @@ class TraditionalGameView(ui.View):
             rank_tuple, hand_name, total = self.evaluate_hand(player)
             evaluated_hands.append((rank_tuple, player, hand_name, total))
 
+        evaluated_hands.sort(key=lambda x: x[0])
+
         results = '**Final Hands:**'
         for eh in evaluated_hands:
             _, pl, name, total = eh
