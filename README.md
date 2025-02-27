@@ -1,37 +1,41 @@
 # Sabacc Droid - Discord Bot
 
-*Supports Corellian Spike and Kessel Sabacc*
+*Supports Corellian Spike, Coruscant Shift, Kessel, and Traditional Sabacc*
 
-Welcome to the **Sabacc Droid**! This project brings the classic Star Wars card game Sabacc to life with two exciting versions:
+Welcome to the **Sabacc Droid**! This project brings the classic Star Wars card game Sabacc to life with multiple exciting versions:
 
 1. **Console Version (`sabacc_console.py`)**: Play the Corellian Spike variant (prototype of Sabacc Droid) in your terminal or IDE.
-2. **Discord Bot Version (`sabacc_droid.py`)**: Play both Corellian Spike and Kessel variants by creating your own Discord bot. Or simply invite the bot to your server here: [**Invite Link**](https://discord.ly/sabaac-droid)
+2. **Discord Bot Version (`sabacc_droid.py`)**: Play Corellian Spike, Coruscant Shift, Kessel, and Traditional Sabacc by creating your own Discord bot. Or simply invite the bot to your server here: [**Invite Link**](https://discord.ly/sabaac-droid)
 
-Experience the thrill of Sabacc as seen in _Solo: A Star Wars Story_, where Han Solo famously won the Millennium Falcon from Lando Calrissian, and delve into the Kessel variant as seen in _Star Wars Outlaws_.
+Experience the thrill of Sabacc as seen in _Solo: A Star Wars Story_, _Star Wars Outlaws_, and _Star Wars: Rebels_.
 
 Created on **November 14, 2024**.
 
+---
 
 ## Features
 
 ### Console Version (Corellian Spike Sabacc)
 
-- **Prototype of Sabacc Droid**: View the original prototype of Sabacc Droid before Sabacc Droid existed.
+- **Prototype of Sabacc Droid**: View the original prototype before Sabacc Droid existed.
 - **Classic Gameplay**: Play the Corellian Spike variant against a computer opponent.
 - **Simple Interface**: Enjoy a text-based interface that's easy to navigate.
 - **In-Game Tutorial**: Learn the rules as you play with helpful prompts and explanations.
 
-### Discord Bot Version (Corellian Spike and Kessel Sabacc)
+### Discord Bot Version (All Four Variants)
 
 - **Multiplayer Support**: Play with up to 8 players on a Discord server.
 - **Interactive Gameplay**: Use buttons and embeds for seamless interaction.
 - **Automated Game Management**: The bot handles turn order, card dealing, and scoring.
 - **Game Variants**:
   - **Corellian Spike Sabacc**: The classic variant with familiar rules.
-  - **Kessel Sabacc**: A variant featuring Impostor and Sylop cards with special mechanics.
-- **Rulebook Access**: View game rules directly in Discord for both variants.
+  - **Coruscant Shift Sabacc**: A dice-based variation played aboard the Galactic Starcruiser.
+  - **Kessel Sabacc**: Features Impostor and Sylop cards with unique mechanics.
+  - **Traditional Sabacc**: The classic game with an unlimited number of rounds and an "Alderaan" call to end the game.
+- **Rulebook Access**: View game rules directly in Discord for all variants.
 - **Add the Bot to Your Server**: [Invite Link](https://discord.ly/sabaac-droid)
 
+---
 
 ## Getting Started
 
@@ -47,9 +51,61 @@ Created on **November 14, 2024**.
 ### Discord Bot Version
 
 - **Add the Bot to Your Server**: [Invite Link](https://discord.ly/sabaac-droid)
+- If you want to make your own Discord Sabacc bot, watch this video: https://www.youtube.com/watch?v=UYJDKSah-Ww&t=330s, then replace the `.py` files you created with the modules in `src`.
 
-- If you want to make your own Discord Sabacc bot watch this video: https://www.youtube.com/watch?v=UYJDKSah-Ww&t=330s then simply replace the .py files that you made with the modules in src.
+---
 
+## Game Rules & Variations
+
+Each mode aims for a hand sum close to its target (0, a dice-determined value, or +23/-23), but they differ in decks and rules.
+For more details on Sabacc rules, card designs, and gameplay resources, visit **[Hyperspace Props](https://hyperspaceprops.com/sabacc-resources/)**.
+
+### **Default Game Settings:**
+- **Corellian Spike and Kessel Sabacc** each have **3 rounds** and **2 starting cards**.
+- **Coruscant Shift Sabacc** has **2 rounds** and **5 starting cards**.
+- **Traditional Sabacc** has **2 starting cards** and an **unlimited amount** of rounds until someone calls "Alderaan" to end the game.
+
+### **Game Variations**
+
+#### **Corellian Spike Sabacc**
+- **Deck:** 62-card deck (-10 to -1 and +1 to +10, plus 2 Sylops (0 cards)).
+- **Rounds:** 3 rounds.
+- **Actions:** Draw, Discard, Replace, Stand, or Junk.
+- **Winning Target:** Closest to 0.
+- **Special Hands:** Pure Sabacc, Fleet, Yee-Haa, etc.
+
+#### **Coruscant Shift Sabacc**
+- **Deck:** Standard 62-card deck (+1 to +10 and -1 to -10 for suits ●, ▲, ■; plus 2 Sylops (0 cards)).
+- **Dice Mechanics:**
+  - **Gold Die:** Sets target number (-10, +10, -5, 5, 0, 0).
+  - **Silver Die:** Sets target suit (●, ▲, ■) for tie-breakers.
+- **Rounds:** 2 rounds.
+- **Winning Target:** Closest to gold die target.
+- **Tie-Breakers:** Closest to gold die target → most cards of silver die suit → highest positive sum → highest single positive card → sudden death.
+
+#### **Kessel Sabacc**
+- **Deck:** Two separate decks (Sand for positives, Blood for negatives), 22 cards each (44 total), plus Sylops.
+- **Hand Limit:** Exactly **2 cards** (1 positive, 1 negative).
+- **Rounds:** 3 rounds.
+- **Actions:** Draw (then discard to maintain 2 cards), Stand, or Junk.
+- **Winning Target:** Closest to 0.
+- **Special Mechanics:**
+  - **Impostor Cards (Ψ):** Roll dice to assign or modify values.
+  - **Sylop (Ø) Cards:** Mirror the value of the other card in hand.
+  - **Special Hands:** Pure Sabacc, Prime Sabacc, etc.
+
+#### **Traditional Sabacc**
+- **Deck:** 76-card deck (4 suits of 15 cards, plus 16 special cards with unique values).
+- **Hand Limit:** No fixed limit; players can accumulate multiple cards.
+- **Rounds:** No set number of rounds; play continues until someone calls **"Alderaan"**.
+- **Actions:** Draw, Replace, Stand, Junk, or Call "Alderaan".
+- **Winning Target:** Closest to **+23 or -23**.
+- **Special Hands:**
+  - **Idiot’s Array (0, 2, 3)** beats all hands.
+  - **Natural Sabacc (+23/-23)** beats all except Idiot’s Array.
+  - **Fairy Empress (-2, -2, totaling -22)** beats a normal 22 but loses to Sabacc hands.
+
+---
 
 ## License
 

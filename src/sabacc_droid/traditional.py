@@ -443,17 +443,8 @@ class TraditionalGameView(ui.View):
             rank_tuple, hand_name, total = self.evaluate_hand(player)
             evaluated_hands.append((rank_tuple, player, hand_name, total))
 
-        # For display, force non-AI players to be listed first.
-        def is_ai(player: Player) -> bool:
-            try:
-                return player.user.name == 'Lando Calrissian AI'
-            except AttributeError:
-                return False
-
-        display_hands = sorted(evaluated_hands, key=lambda x: (1 if is_ai(x[1]) else 0, x[0]))
-
         results = '**Final Hands:**'
-        for eh in display_hands:
+        for eh in evaluated_hands:
             _, pl, name, total = eh
             line1 = f'\n- {pl.user.mention}: {pl.get_cards_string()}'
             line2 = f'   - Total: {total}'

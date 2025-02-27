@@ -561,8 +561,6 @@ class CorelliaGameView(ui.View):
             hand_value, hand_type, total = self.evaluate_hand(player)
             evaluated_hands.append((hand_value, player, hand_type, total))
 
-        evaluated_hands.sort(key=lambda x: x[0])
-
         results = '**Final Hands:**'
         for eh in evaluated_hands:
             _, player, hand_type, total = eh
