@@ -21,7 +21,7 @@ def get_card_image_urls(cards: list[int]) -> list[str]:
     Adjust or replace with your actual image resources for Traditional Sabacc.
     '''
     base_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional/'
-    return [f'''{base_url}{quote(f'+{card}' if card > 0 else str(card))}.png''' for card in cards]
+    return [f"{base_url}{quote(f'+{card}' if card > 0 else str(card))}.png" for card in cards]
 
 def download_and_process_image(url: str, resize_width: int, resize_height: int) -> Image.Image:
     '''
@@ -112,7 +112,7 @@ class Player:
         '''
         Return a formatted string of the player's cards with separators.
         '''
-        return ' | ' + ' | '.join(f'''{'+' if c > 0 else ''}{c}''' for c in self.cards) + ' |'
+        return ' | ' + ' | '.join(f"{'+' if c > 0 else ''}{c}" for c in self.cards) + ' |'
 
     def get_total(self) -> int:
         '''
@@ -385,6 +385,9 @@ class TraditionalGameView(ui.View):
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png')
 
         play_turn_view = PlayTurnView(self)
+        # If Alderaan has been called, disable the Call Alderaan button in the turn view.
+        if self.alderaan_called:
+            play_turn_view.disable_alderaan()
 
         if image_bytes:
             file = discord.File(fp=image_bytes, filename='combined_cards.png')
@@ -440,10 +443,17 @@ class TraditionalGameView(ui.View):
             rank_tuple, hand_name, total = self.evaluate_hand(player)
             evaluated_hands.append((rank_tuple, player, hand_name, total))
 
-        evaluated_hands.sort(key=lambda x: x[0])
+        # For display, force non-AI players to be listed first.
+        def is_ai(player: Player) -> bool:
+            try:
+                return player.user.name == 'Lando Calrissian AI'
+            except AttributeError:
+                return False
+
+        display_hands = sorted(evaluated_hands, key=lambda x: (1 if is_ai(x[1]) else 0, x[0]))
 
         results = '**Final Hands:**'
-        for eh in evaluated_hands:
+        for eh in display_hands:
             _, pl, name, total = eh
             line1 = f'\n- {pl.user.mention}: {pl.get_cards_string()}'
             line2 = f'   - Total: {total}'
@@ -616,6 +626,9 @@ class TurnView(ui.View):
         self.call_alderaan_button = ui.Button(label='Call "Alderaan" to End the Game', style=ButtonStyle.danger)
         self.call_alderaan_button.callback = self.call_alderaan_callback
         self.add_item(self.call_alderaan_button)
+        # If Alderaan has already been called, disable this button.
+        if self.game_view.alderaan_called:
+            self.call_alderaan_button.disabled = True
 
     async def interaction_check(self, interaction: Interaction) -> bool:
         '''
@@ -699,6 +712,7 @@ class TurnView(ui.View):
     async def call_alderaan_callback(self, interaction: Interaction):
         '''
         Call Alderaan to trigger the final round. When called, all remaining players get a final turn.
+        Once Alderaan is called, this option is disabled for subsequent turns.
         '''
         await interaction.response.defer()
         if not self.game_view.alderaan_called:
@@ -707,7 +721,7 @@ class TurnView(ui.View):
             self.game_view.alderaan_caller_mention = self.player.user.mention
 
         title = f'You Called Alderaan | Round {self.game_view.round}'
-        description = f'All remaining players will now have one final turn because {self.game_view.alderaan_caller_mention} called Alderaan.'
+        description = f'All remaining players will now have one final turn because you called Alderaan.'
         embed = Embed(title=title, description=description, color=0xE8E8E8)
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png')
         await interaction.followup.edit_message(interaction.message.id, embed=embed, view=None)
@@ -759,7 +773,7 @@ class CardSelectView(ui.View):
         Create a button for each card to select for replacement, plus a Go Back button.
         '''
         for idx, card in enumerate(self.player.cards):
-            button_label = f'''{'+' if card > 0 else ''}{card}'''
+            button_label = f"{'+' if card > 0 else ''}{card}"
             button = ui.Button(label=button_label, style=ButtonStyle.primary)
             button.callback = self.make_callback(card, idx)
             self.add_item(button)
