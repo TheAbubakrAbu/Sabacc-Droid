@@ -20,18 +20,17 @@ Created on **November 14, 2024**.
 - **Prototype of Sabacc Droid**: View the original prototype before Sabacc Droid existed.
 - **Classic Gameplay**: Play the Corellian Spike variant against a computer opponent.
 - **Simple Interface**: Enjoy a text-based interface that's easy to navigate.
-- **In-Game Tutorial**: Learn the rules as you play with helpful prompts and explanations.
 
 ### Discord Bot Version (All Four Variants)
 
 - **Multiplayer Support**: Play with up to 8 players on a Discord server.
 - **Interactive Gameplay**: Use buttons and embeds for seamless interaction.
 - **Automated Game Management**: The bot handles turn order, card dealing, and scoring.
-- **Game Variants**:
-  - **Corellian Spike Sabacc**: The classic variant with familiar rules.
-  - **Coruscant Shift Sabacc**: A dice-based variation played aboard the Galactic Starcruiser.
-  - **Kessel Sabacc**: Features Impostor and Sylop cards with unique mechanics.
-  - **Traditional Sabacc**: The classic game with an unlimited number of rounds and an "Alderaan" call to end the game.
+- **Game Variants**:  
+  - **[Corellian Spike Sabacc](https://starwars.fandom.com/wiki/Corellian_Spike)** – Featured in *Solo: A Star Wars Story* and *Galaxy’s Edge*, this is a fast-paced version of Sabacc with three rounds and a target hand sum of **zero**.
+  - **[Coruscant Shift Sabacc](https://starwars.fandom.com/wiki/Coruscant_Shift)** – Played on the **Halcyon** at *Galactic Starcruiser*, this variant uses dice mechanics to set the winning hand target.
+  - **[Kessel Sabacc](https://starwars.fandom.com/wiki/Kessel_Sabacc)** – Featured in *Star Wars Outlaws*, this mode includes unique **Impostor** and **Sylop** cards with special mechanics.
+  - **[Traditional Sabacc](https://starwars.fandom.com/wiki/Sabacc)** – Featured in *Star Wars: Rebels*, including a high-stakes game aiming for a total of **+23 or -23**.
 - **Rulebook Access**: View game rules directly in Discord for all variants.
 - **Add the Bot to Your Server**: [Invite Link](https://discord.ly/sabaac-droid)
 
@@ -104,6 +103,14 @@ For more details on Sabacc rules, card designs, and gameplay resources, visit **
   - **Idiot’s Array (0, 2, 3)** beats all hands.
   - **Natural Sabacc (+23/-23)** beats all except Idiot’s Array.
   - **Fairy Empress (-2, -2, totaling -22)** beats a normal 22 but loses to Sabacc hands.
+
+---
+
+## Privacy & Data
+
+**Sabacc Droid** respects your privacy:
+- **No Personal Data Collected** – Only temporary game data is stored.
+- **Secure & Compliant** – Fully adheres to Discord’s Terms of Service and Privacy Policy.
 
 ---
 

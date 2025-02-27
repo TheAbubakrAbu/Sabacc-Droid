@@ -4,10 +4,10 @@ from discord import Embed
 
 RULES_DESCRIPTION = (
     'Welcome to **Sabacc Droid**! You can play any of the following Sabacc variations:\n\n'
-    '• [**Corellian Spike**](https://starwars.fandom.com/wiki/Corellian_Spike) – Featured in *Solo* and *Galaxy\'s Edge*.\n'
-    '• [**Coruscant Shift**](https://starwars.fandom.com/wiki/Coruscant_Shift) – Played on the **Halcyon** at *Galactic Starcruiser*.\n'
-    '• [**Kessel Sabacc**](https://starwars.fandom.com/wiki/Kessel_Sabacc) – Featured in *Star Wars: Outlaws*.\n'
-    '• [**Traditional Sabacc**](https://starwars.fandom.com/wiki/Sabacc) – Featured in *Star Wars: Rebels*.\n\n'
+    '• [**Corellian Spike Sabacc**](https://starwars.fandom.com/wiki/Corellian_Spike) – Featured in *Solo: A Star Wars Story* and *Galaxy\'s Edge*, this is a fast-paced version of Sabacc with three rounds and a target hand sum of **zero**.\n'
+    '• [**Coruscant Shift Sabacc**](https://starwars.fandom.com/wiki/Coruscant_Shift) – Played on the **Halcyon** at *Galactic Starcruiser*, this variant uses dice mechanics to set the winning hand target.\n'
+    '• [**Kessel Sabacc**](https://starwars.fandom.com/wiki/Kessel_Sabacc) – Featured in *Star Wars Outlaws*, this mode includes unique **Impostor** and **Sylop** cards with special mechanics.\n'
+    '• [**Traditional Sabacc**](https://starwars.fandom.com/wiki/Sabacc) – Featured in *Star Wars: Rebels*, including a high-stakes game aiming for a total of **+23 or -23**.\n\n'
 
     '### **Game Rules & Variations**\n'
     'Each mode aims for a hand sum close to its target (0, a dice-determined value, or +23/-23), but they differ in decks and rules.\n'
