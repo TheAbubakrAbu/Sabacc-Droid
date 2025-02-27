@@ -2,7 +2,6 @@
 
 import random
 import logging
-import asyncio
 from urllib.parse import quote
 import discord
 from discord import Embed, ButtonStyle, ui, Interaction
@@ -386,8 +385,6 @@ class TraditionalGameView(ui.View):
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png')
 
         play_turn_view = PlayTurnView(self)
-        if self.alderaan_called:
-            play_turn_view.disable_alderaan()
 
         if image_bytes:
             file = discord.File(fp=image_bytes, filename='combined_cards.png')
@@ -720,7 +717,6 @@ class TurnView(ui.View):
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png')
         
         await interaction.followup.send(embed=embed)
-        await asyncio.sleep(1)
         self.stop()
         await self.game_view.proceed_to_next_player()
 
