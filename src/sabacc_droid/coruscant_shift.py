@@ -481,6 +481,8 @@ class CoruscantGameView(ui.View):
 
                 evals.append((diff, -sc, -total, -largest_pos_card, pl))
 
+            evals.sort(key=lambda x: (x[0], x[1], x[2], x[3]))
+            
             best_key = evals[0][:4]
             winners = [e for e in evals if e[:4] == best_key]
 
