@@ -717,7 +717,9 @@ class TurnView(ui.View):
         description = f'All remaining players will now have one final turn because you called Alderaan.'
         embed = Embed(title=title, description=description, color=0xE8E8E8)
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png')
-        await interaction.followup.edit_message(interaction.message.id, embed=embed, view=None)
+        
+        await interaction.followup.send(embed=embed)
+        
         self.stop()
         await self.game_view.proceed_to_next_player()
 
