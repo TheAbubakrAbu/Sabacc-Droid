@@ -330,11 +330,11 @@ async def kessel_command(interaction: Interaction, rounds: int = 3) -> None:
 
 @bot.tree.command(name='traditional', description='Start a Traditional Sabacc game with optional custom settings')
 @app_commands.describe(
-    num_cards='Number of initial cards (default: 2, max: 10)'
+    num_cards='Number of initial cards (default: 2, max: 5)'
 )
 async def traditional_command(interaction: Interaction, num_cards: int = 2) -> None:
     '''Initiate a new Traditional Sabacc game with optional custom settings.'''
-    num_cards = max(1, min(num_cards, 10))
+    num_cards = max(1, min(num_cards, 5))
 
     view = TraditionalGameView(num_cards=num_cards, active_games=active_games, channel=interaction.channel)
     desc = (

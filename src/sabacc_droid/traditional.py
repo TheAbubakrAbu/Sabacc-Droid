@@ -385,7 +385,6 @@ class TraditionalGameView(ui.View):
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png')
 
         play_turn_view = PlayTurnView(self)
-        # If Alderaan has been called, disable the Call Alderaan button in the turn view.
         if self.alderaan_called:
             play_turn_view.disable_alderaan()
 
@@ -617,7 +616,6 @@ class TurnView(ui.View):
         self.call_alderaan_button = ui.Button(label='Call "Alderaan" to End the Game', style=ButtonStyle.danger)
         self.call_alderaan_button.callback = self.call_alderaan_callback
         self.add_item(self.call_alderaan_button)
-        # If Alderaan has already been called, disable this button.
         if self.game_view.alderaan_called:
             self.call_alderaan_button.disabled = True
 
@@ -635,7 +633,11 @@ class TurnView(ui.View):
         Draw a card from the deck and end the current player's turn.
         '''
         await interaction.response.defer()
-        self.player.draw_card(self.game_view.deck)
+        try:
+            self.player.draw_card(self.game_view.deck)
+        except ValueError as e:
+            await interaction.followup.send(str(e), ephemeral=True)
+            return
 
         title = f'You Drew a Card | Round {self.game_view.round}'
         description = f'**Your Hand:** {self.player.get_cards_string()}\n**Total:** {self.player.get_total()}'
@@ -766,13 +768,13 @@ class CardSelectView(ui.View):
         for idx, card in enumerate(self.player.cards):
             button_label = f"{'+' if card > 0 else ''}{card}"
             button = ui.Button(label=button_label, style=ButtonStyle.primary)
-            button.callback = self.make_callback(card, idx)
+            button.callback = self.make_callback(idx)
             self.add_item(button)
             if len(self.children) >= 25:
                 break
         self.add_item(GoBackButton(self))
 
-    def make_callback(self, card_value: int, card_index: int):
+    def make_callback(self, card_index: int):
         '''
         Return a callback for the chosen card to handle the replacement action.
         '''
@@ -781,7 +783,12 @@ class CardSelectView(ui.View):
             if self.action == 'replace':
                 old_card = self.player.cards.pop(card_index)
                 self.game_view.deck.insert(0, old_card)
-                self.player.draw_card(self.game_view.deck)
+                try:
+                    self.player.draw_card(self.game_view.deck)
+                except ValueError as e:
+                    await interaction.followup.send(str(e), ephemeral=True)
+                    self.player.cards.insert(card_index, old_card)
+                    return
                 new_card = self.player.cards[-1]
                 title = f'You Replaced {old_card} with {new_card} | Round {self.game_view.round}'
                 description = f'**Your Hand:** {self.player.get_cards_string()}\n**Total:** {self.player.get_total()}'
