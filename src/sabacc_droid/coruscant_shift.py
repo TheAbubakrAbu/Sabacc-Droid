@@ -441,11 +441,10 @@ class CoruscantGameView(ui.View):
                 self.active_games.remove(self)
             return
 
-        result_text = f'**Target Number:** {self.target_number} | **Target Suit:** {self.target_suit}**\n\n'
+        result_text = f'**Target Number:** {self.target_number} | **Target Suit:** {self.target_suit}\n\n'
         result_text += '**Final Hands:**'
 
         pure_sabacc_players = []
-        display_lines = {}
         suit_counts = {}
 
         for pl in self.players:
@@ -482,7 +481,6 @@ class CoruscantGameView(ui.View):
 
                 evals.append((diff, -sc, -total, -largest_pos_card, pl))
 
-            evals.sort(key=lambda x: (x[0], x[1], x[2], x[3]))
             best_key = evals[0][:4]
             winners = [e for e in evals if e[:4] == best_key]
 
