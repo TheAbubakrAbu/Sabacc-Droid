@@ -470,7 +470,9 @@ class TraditionalGameView(ui.View):
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png')
 
-        mentions = ' '.join(player.user.mention for player in self.players)
+        mentions = ' '.join(
+            player.user.mention for player in self.players if player.user.id != -1
+        )
         await self.channel.send(
             content=f'{mentions}',
             embed=embed,
