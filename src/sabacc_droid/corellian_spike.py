@@ -593,7 +593,11 @@ class CorelliaGameView(ui.View):
             color=0xCBB7A0
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png')
-        mentions = ' '.join(player.user.mention for player in self.players if 'AIUser' not in type(player.user).__name__)
+        mentions = ' '.join(
+            player.user.mention
+            for player in self.players
+            if not (hasattr(player.user, 'name') and player.user.name == 'Lando Calrissian AI')
+        )
         await self.channel.send(
             content=f'{mentions}',
             embed=embed,
