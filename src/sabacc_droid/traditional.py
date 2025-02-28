@@ -713,6 +713,11 @@ class TurnView(ui.View):
             self.game_view.alderaan_caller_index = self.game_view.current_player_index
             self.game_view.alderaan_caller_mention = self.player.user.mention
 
+        if (self.game_view.turns_taken + 1) == len(self.game_view.players):
+            self.stop()
+            await self.game_view.end_game()
+            return
+
         title = f'You Called Alderaan | Round {self.game_view.round}'
         description = f'All remaining players will now have one final turn because {self.game_view.alderaan_caller_mention} called Alderaan.'
         embed = Embed(title=title, description=description, color=0xE8E8E8)
