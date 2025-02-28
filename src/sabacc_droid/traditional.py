@@ -713,7 +713,7 @@ class TurnView(ui.View):
             self.game_view.alderaan_caller_index = self.game_view.current_player_index
             self.game_view.alderaan_caller_mention = self.player.user.mention
 
-        if (self.game_view.turns_taken + 1) == len(self.game_view.players):
+        if self.game_view.current_player_index == len(self.game_view.players) - 1:
             self.stop()
             await self.game_view.end_game()
             return
