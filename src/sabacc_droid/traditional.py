@@ -365,6 +365,8 @@ class TraditionalGameView(ui.View):
         description += f'**Round {self.round}**\n'
         description += f'It\'s now {current_player.user.mention}\'s turn.\n'
         description += 'Click **Play Turn** to proceed.\n\n'
+        description += f'**Target Number:** Always **+23/-23**\n\n'
+        
         if self.alderaan_called:
             description += f'{self.alderaan_caller_mention} called Alderaan. This is your **final turn**.'
 
