@@ -44,7 +44,7 @@ class Card:
         return f'''{folder}/{f'+{self.value}' if self.value > 0 else self.value}.png'''
 
 def get_card_image_url(card: Card) -> str:
-    base_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/coruscant_shift/'
+    base_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/corellian_spike/'
     return base_url + quote(card.image_filename())
 
 def download_and_process_image(url: str, width: int, height: int) -> Image.Image:
@@ -368,7 +368,7 @@ class CoruscantGameView(ui.View):
         desc += 'Click **Play Turn** to proceed.\n\n'
         desc += f'**Target Number:** {self.target_number} | **Target Suit:** {self.target_suit}'
 
-        card_back = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/coruscant_shift/card.png'
+        card_back = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/corellian_spike/card.png'
         card_count = len(player.hand)
         try:
             back_buf = combine_card_images([card_back] * card_count)
@@ -561,7 +561,7 @@ async def ephemeral_hand_embed(player: Player, game_view: CoruscantGameView, tog
             image_urls.append(get_card_image_url(c))
             kept_cards.append(c)
         else:
-            image_urls.append('https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/coruscant_shift/card.png')
+            image_urls.append('https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/corellian_spike/card.png')
 
     total = sum(c.value for c in kept_cards)
     suit_matches = sum(1 for c in kept_cards if c.suit == game_view.target_suit or c.suit == 'Sylop')
