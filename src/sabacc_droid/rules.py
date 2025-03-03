@@ -4,19 +4,14 @@ from discord import Embed
 
 RULES_DESCRIPTION = (
     'Welcome to **Sabacc Droid**! You can play any of the following Sabacc variations:\n\n'
-    '• [**Corellian Spike Sabacc**](https://starwars.fandom.com/wiki/Corellian_Spike) – Featured in *Solo: A Star Wars Story* and *Galaxy\'s Edge*, this is a fast-paced version of Sabacc with three rounds and a target hand sum of **zero**.\n'
-    '• [**Coruscant Shift Sabacc**](https://starwars.fandom.com/wiki/Coruscant_Shift) – Played on the **Halcyon** at *Galactic Starcruiser*, this variant uses dice mechanics to set the winning hand target.\n'
-    '• [**Kessel Sabacc**](https://starwars.fandom.com/wiki/Kessel_Sabacc) – Featured in *Star Wars Outlaws*, this mode includes unique **Impostor** and **Sylop** cards with special mechanics.\n'
-    '• [**Traditional Sabacc**](https://starwars.fandom.com/wiki/Sabacc) – Featured in *Star Wars: Rebels*, including a high-stakes game aiming for a total of **+23 or -23**.\n\n'
+    '• [**Corellian Spike Sabacc**](https://starwars.fandom.com/wiki/Corellian_Spike) – A **three-round game** where players aim for **zero**, featuring **Sylop (0) cards**. Seen in *Solo: A Star Wars Story* and *Galaxy\'s Edge*.\n'
+    '• [**Coruscant Shift Sabacc**](https://starwars.fandom.com/wiki/Coruscant_Shift) – A **two-round game** with a **random target sum** set by a gold die and a **tiebreaker suit** from a silver die. Played on the **Halcyon** at *Galactic Starcruiser*.\n'
+    '• [**Kessel Sabacc**](https://starwars.fandom.com/wiki/Kessel_Sabacc) – A **three-round game** where players hold **exactly two cards**, featuring **Impostor (Ψ) and Sylop (Ø) cards**. Seen in *Star Wars Outlaws*.\n'
+    '• [**Traditional Sabacc**](https://starwars.fandom.com/wiki/Sabacc) – A **high-stakes game** with **no set rounds**, where players aim for **+23 or -23** and can call **"Alderaan"** to end the game. Seen in *Star Wars: Rebels*.\n\n'
 
     '### **Game Rules & Variations**\n'
     'Each mode aims for a hand sum close to its target (0, a dice-determined value, or +23/-23), but they differ in decks and rules.\n'
     'For more details on Sabacc rules, card designs, and gameplay resources, visit **[Hyperspace Props](https://hyperspaceprops.com/sabacc-resources/)**.\n\n'
-
-    '### **Default Game Settings:**\n'
-    '- **Corellian Spike and Kessel Sabacc** each have **3 rounds** and **2 starting cards**.\n'
-    '- **Coruscant Shift Sabacc** has **2 rounds** and **5 starting cards**.\n'
-    '- **Traditional Sabacc** has **2 starting cards** and an **unlimited amount** of rounds until someone calls "Alderaan" to end the game.\n\n'
 
     '### **Additional Star Wars Apps**\n'
     'Want to learn **Aurebesh**, the Star Wars script? Check out:\n'
