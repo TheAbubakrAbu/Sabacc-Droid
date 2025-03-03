@@ -20,6 +20,7 @@ def get_card_image_urls(cards: list[int]) -> list[str]:
     Positive cards are prefixed with '+', negative as-is, and zero as '0'.
     '''
     base_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/corellian_spike/'
+    
     return [f'''{base_url}{quote(f'+{card}' if card > 0 else str(card))}.png''' for card in cards]
 
 def download_and_process_image(url: str, resize_width: int, resize_height: int) -> Image.Image:
