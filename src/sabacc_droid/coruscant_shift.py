@@ -16,9 +16,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 SUIT_TO_FOLDER = {
-    '●': 'circles',
-    '▲': 'triangles',
-    '■': 'squares'
+    '●': 'circle',
+    '▲': 'triangle',
+    '■': 'square'
 }
 
 class Card:
