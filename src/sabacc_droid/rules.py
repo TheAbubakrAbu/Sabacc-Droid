@@ -18,9 +18,15 @@ RULES_DESCRIPTION = (
     '- **Coruscant Shift Sabacc** has **2 rounds** and **5 starting cards**.\n'
     '- **Traditional Sabacc** has **2 starting cards** and an **unlimited amount** of rounds until someone calls "Alderaan" to end the game.\n\n'
 
+    '### **Additional Star Wars Apps**\n'
+    'Want to learn **Aurebesh**, the Star Wars script? Check out:\n'
+    '- **[Datapad | Aurebesh Translator](https://apps.apple.com/us/app/datapad-aurebesh-translator/id6450498054?platform=iphone)** – A premium Star Wars experience for translating and viewing Aurebesh with customizable options.\n'
+    '- **[Aurebesh Translator](https://apps.apple.com/us/app/aurebesh-translator/id6670201513?platform=iphone)** – A free, streamlined app for translating between English and Aurebesh.\n\n'
+
     '### **Credits & Disclaimers**\n'
     '• **Corellian Spike & Coruscant Shift Cards:** [Winz](https://cults3d.com/en/3d-model/game/sabacc-cards-and-spike-dice-printable)\n'
     '• **Kessel Sabacc Cards:** [u/Gold-Ad-4525](https://www.reddit.com/r/StarWarsSabacc/comments/1exatgi/kessel_sabaac_v3/)\n'
+    '• **Traditional Sabacc Cards:** [Multiversal Exports Rick Scott](https://design.multiversalexports.com)\n'
     '• All other creative content is fan-made and not affiliated with or endorsed by Lucasfilm/Disney.\n\n'
 
     'Created by **[Abubakr Elmallah](https://abubakrelmallah.com/)**.\n\n'
