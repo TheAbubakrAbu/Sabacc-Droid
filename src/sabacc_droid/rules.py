@@ -14,9 +14,9 @@ RULES_DESCRIPTION = (
     'For more details on Sabacc rules, card designs, and gameplay resources, visit **[Hyperspace Props](https://hyperspaceprops.com/sabacc-resources/)**.\n\n'
 
     '### **Additional Star Wars Apps**\n'
-    'Want to learn **Aurebesh**, the Star Wars script? Check out:\n'
-    '- **[Datapad | Aurebesh Translator](https://apps.apple.com/us/app/datapad-aurebesh-translator/id6450498054?platform=iphone)** – A premium Star Wars experience for translating and viewing Aurebesh with customizable options.\n'
-    '- **[Aurebesh Translator](https://apps.apple.com/us/app/aurebesh-translator/id6670201513?platform=iphone)** – A free, streamlined app for translating between English and Aurebesh.\n\n'
+    'Want to translate **Aurebesh**? Check out:\n'
+    '- **[Datapad | Aurebesh Translator](https://apps.apple.com/us/app/datapad-aurebesh-translator/id6450498054?platform=iphone)** – A feature-rich, immersive Aurebesh translator with a themed interface and keyboard.\n'
+    '- **[Aurebesh Translator](https://apps.apple.com/us/app/aurebesh-translator/id6670201513?platform=iphone)** – A free, offline, ad-free translator for quick Aurebesh conversions.\n\n'
 
     '### **Credits & Disclaimers**\n'
     '• **Corellian Spike & Coruscant Shift Cards:** [Winz](https://cults3d.com/en/3d-model/game/sabacc-cards-and-spike-dice-printable)\n'
@@ -85,7 +85,7 @@ def get_comparison_embed() -> Embed:
         color=0x764920
     )
     comparison_embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png'
+        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png'
     )
     return comparison_embed
 
@@ -163,7 +163,7 @@ def get_corellian_spike_rules_embed() -> Embed:
         color=0x764920
     )
     rules_embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png'
+        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png'
     )
     return rules_embed
 
@@ -216,7 +216,7 @@ def get_coruscant_shift_rules_embed() -> Embed:
         color=0x764920
     )
     rules_embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png'
+        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/coruscant_shift.png'
     )
     return rules_embed
 
@@ -276,7 +276,7 @@ def get_kessel_rules_embed() -> Embed:
         color=0x764920
     )
     rules_embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png'
+        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel.png'
     )
     return rules_embed
 
@@ -329,6 +329,6 @@ def get_traditional_rules_embed() -> Embed:
         color=0xE8E8E8
     )
     rules_embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png'
+        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png'
     )
     return rules_embed

@@ -260,7 +260,7 @@ class KesselGameView(ui.View):
                         'Once someone has joined, **Start Game** will be enabled.',
             color=0x7F3335
         )
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png')
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel.png')
 
         await interaction.response.edit_message(embed=embed, view=self)
 
@@ -287,7 +287,7 @@ class KesselGameView(ui.View):
             description=description,
             color=0x7F3335
         )
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png')
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel.png')
 
         play_turn_view = PlayTurnView(self)
 
@@ -339,7 +339,7 @@ class KesselGameView(ui.View):
             description=description,
             color=0x7F3335
         )
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png')
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel.png')
 
         if self.game_started:
             self.play_game_button.disabled = True
@@ -608,7 +608,7 @@ class KesselGameView(ui.View):
             description=results,
             color=0x7F3335
         )
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png')
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel.png')
         mentions = ' '.join(player.user.mention for player in self.players if 'AIUser' not in type(player.user).__name__)
         await self.channel.send(content=mentions, embed=embed, view=EndGameView(rounds=self.rounds, active_games=self.active_games, channel=self.channel))
 
@@ -713,7 +713,7 @@ async def send_embed_with_hand(player: Player, title: str, description: str, inc
         description=description,
         color=0x7F3335
     )
-    embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png')
+    embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel.png')
 
     explanations = ''
     if junk:
@@ -724,7 +724,7 @@ async def send_embed_with_hand(player: Player, title: str, description: str, inc
         if explanations:
             embed.add_field(name='**Legend**:', value=explanations.strip(), inline=False)
 
-    embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png')
+    embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel.png')
 
     if card_image_urls:
         try:
@@ -998,7 +998,7 @@ class ChooseImpostorValueView(ui.View):
                 description=f'Two dice have been rolled for {self.player.user.mention} Impostor card. Choose your preferred value.',
                 color=0x7F3335
             )
-            embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png')
+            embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel.png')
             self.message = await self.game_view.channel.send(content=self.player.user.mention, embed=embed, view=self)
 
     def roll_dice(self) -> None:
@@ -1037,7 +1037,7 @@ class ChooseImpostorValueView(ui.View):
             description=f'**{chosen_value}** has been selected as the {card_type} Impostor card by {self.player.user.mention}.',
             color=0x7F3335
         )
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/logo.png')
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel.png')
         await self.message.edit(embed=embed, view=None)
 
     async def interaction_check(self, interaction: Interaction) -> bool:
