@@ -101,7 +101,7 @@ async def sabacc_command(interaction: Interaction):
         color=0x764920
     )
     embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png'
+        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png'
     )
 
     view = SabaccChoiceView()
@@ -139,7 +139,7 @@ class SabaccChoiceView(ui.View):
             active_games,
             title='Corellian Spike Sabacc Lobby',
             description=desc,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png',
+            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png',
             defer_first=True,
             color=0xCBB7A0
         )
@@ -166,7 +166,7 @@ class SabaccChoiceView(ui.View):
             active_games,
             title='Coruscant Shift Sabacc Lobby',
             description=desc,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png',
+            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/coruscant_shift.png',
             defer_first=True,
             color=0xAB9032
         )
@@ -188,7 +188,7 @@ class SabaccChoiceView(ui.View):
             active_games,
             title='Kessel Sabacc Lobby',
             description=desc,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png',
+            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel.png',
             defer_first=True,
             color=0x7F3335
         )
@@ -214,7 +214,7 @@ class SabaccChoiceView(ui.View):
             active_games,
             title='Traditional Sabacc Lobby',
             description=desc,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png',
+            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png',
             defer_first=True,
             color=0xE8E8E8
         )
@@ -228,7 +228,7 @@ class SabaccChoiceView(ui.View):
             color=0x764920
         )
         embed.set_thumbnail(
-            url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png'
+            url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png'
         )
         view = HelpView()
         await interaction.response.send_message(embed=embed, view=view)
@@ -262,7 +262,7 @@ async def corellian_command(interaction: Interaction, rounds: int = 3, num_cards
         active_games,
         title='Corellian Spike Sabacc Lobby',
         description=desc,
-        thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png',
+        thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png',
         defer_first=False,
         color=0xCBB7A0
     )
@@ -296,7 +296,7 @@ async def coruscant_shift_command(interaction: Interaction, rounds: int = 2, num
         active_games,
         title='Coruscant Shift Sabacc Lobby',
         description=desc,
-        thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png',
+        thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/coruscant_shift.png',
         defer_first=False,
         color=0xAB9032
     )
@@ -323,7 +323,7 @@ async def kessel_command(interaction: Interaction, rounds: int = 3) -> None:
         active_games,
         title='Kessel Sabacc Lobby',
         description=desc,
-        thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel/logo.png',
+        thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel.png',
         defer_first=False,
         color=0x7F3335
     )
@@ -351,7 +351,7 @@ async def traditional_command(interaction: Interaction, num_cards: int = 2) -> N
         active_games,
         title='Traditional Sabacc Lobby',
         description=desc,
-        thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/Traditional.png',
+        thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png',
         defer_first=False,
         color=0xE8E8E8
     )
@@ -369,7 +369,7 @@ async def help_command(interaction: Interaction) -> None:
         color=0x764920
     )
     embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Corellian%20Spike.png'
+        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png'
     )
 
     view = HelpView()

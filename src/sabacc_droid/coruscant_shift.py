@@ -208,7 +208,7 @@ class CoruscantGameView(ui.View):
             description=desc,
             color=0xAB9032
         )
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/coruscant_shift.png')
 
         self.start_button.disabled = (len(self.players) < 1 or self.game_started)
         self.play_button.disabled = (len(self.players) >= 8 or self.game_started)
@@ -242,7 +242,7 @@ class CoruscantGameView(ui.View):
             'Once someone has joined, **Start Game** will be enabled.'
         )
         embed = Embed(title='Coruscant Shift Sabacc Lobby', description=desc, color=0xAB9032)
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/coruscant_shift.png')
         await interaction.response.edit_message(embed=embed, view=self)
 
     async def play_callback(self, interaction: Interaction):
@@ -380,7 +380,7 @@ class CoruscantGameView(ui.View):
             description=desc,
             color=0xAB9032
         )
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/coruscant_shift.png')
         view = TurnView(self)
 
         if back_buf:
@@ -435,7 +435,7 @@ class CoruscantGameView(ui.View):
                 description='Nobody won because everyone junked!',
                 color=0xAB9032
             )
-            emb.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
+            emb.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/coruscant_shift.png')
             await self.channel.send(embed=emb, view=EndGameView(self.active_games, self.channel))
             if self in self.active_games:
                 self.active_games.remove(self)
@@ -495,7 +495,7 @@ class CoruscantGameView(ui.View):
 
         emb = Embed(title='Game Over', description=result_text, color=0xAB9032)
         emb.set_thumbnail(
-            url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png'
+            url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/coruscant_shift.png'
         )
 
         mention_line = ' '.join(
@@ -580,7 +580,7 @@ async def ephemeral_hand_embed(player: Player, game_view: CoruscantGameView, tog
             description=desc,
             color=0xAB9032
         )
-        emb.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
+        emb.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/coruscant_shift.png')
         emb.set_image(url='attachment://combined_cards.png')
         file = discord.File(fp=buf, filename='combined_cards.png')
         return emb, file
@@ -591,7 +591,7 @@ async def ephemeral_hand_embed(player: Player, game_view: CoruscantGameView, tog
             description=desc,
             color=0xAB9032
         )
-        emb.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
+        emb.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/coruscant_shift.png')
         return emb, None
 
 class EphemeralSelectView(ui.View):
@@ -689,7 +689,7 @@ class EphemeralSelectView(ui.View):
             ),
             color=0xAB9032
         )
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/coruscant_shift.png')
 
         efile = None
         if self.player.hand:
@@ -725,7 +725,7 @@ class EphemeralSelectView(ui.View):
             description=desc,
             color=0xAB9032
         )
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/Coruscant%20Shift.png')
+        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/coruscant_shift.png')
 
         efile = None
         if self.player.hand:
