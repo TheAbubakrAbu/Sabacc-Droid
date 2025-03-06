@@ -69,7 +69,7 @@ def combine_card_images(card_image_urls: list[str], resize_width: int = 80, resi
     image_bytes.seek(0)
     return image_bytes
 
-async def create_embed_with_cards(title: str, description: str, cards: list[int], thumbnail_url: str, color: int = 0x7A9494) -> tuple[Embed, discord.File]:
+async def create_embed_with_cards(title: str, description: str, cards: list[int]) -> tuple[Embed, discord.File]:
     '''
     Create an embed showing card images for the given hand.
     Returns an Embed and a File if images are available, else just an Embed.
@@ -81,8 +81,8 @@ async def create_embed_with_cards(title: str, description: str, cards: list[int]
     except Exception as e:
         logger.error(f'Failed to combine card images: {e}')
 
-    embed = Embed(title=title, description=description, color=color)
-    embed.set_thumbnail(url=thumbnail_url)
+    embed = Embed(title=title, description=description, color=0x7A9494)
+    embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png')
 
     if image_bytes:
         embed.set_image(url='attachment://combined_cards.png')
@@ -589,7 +589,6 @@ class PlayTurnButton(ui.Button):
             title=title,
             description=description,
             cards=current_player.cards,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png'
         )
 
         turn_view = TurnView(self.game_view, current_player)
@@ -655,7 +654,6 @@ class TurnView(ui.View):
             title=title,
             description=description,
             cards=self.player.cards,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png'
         )
 
         if file:
@@ -681,7 +679,6 @@ class TurnView(ui.View):
             title=title,
             description=description,
             cards=self.player.cards,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png'
         )
 
         if file:
@@ -701,7 +698,6 @@ class TurnView(ui.View):
             title=title,
             description=description,
             cards=self.player.cards,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png'
         )
 
         if file:
@@ -723,31 +719,32 @@ class TurnView(ui.View):
             self.game_view.alderaan_caller_index = self.game_view.current_player_index
             self.game_view.alderaan_caller_mention = self.player.user.mention
 
-        title2 = f'You Called Alderaan | Round {self.game_view.round}'
-        description2 = f'All remaining players will now have one final turn because {self.game_view.alderaan_caller_mention} called Alderaan.'
-        embed1 = Embed(title=title1, description=description1, color=0x7A9494)
-        embed1.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png')
+        title_edit = f'You Called Alderaan | Round {self.game_view.round}'
+        description_edit = f'The game will now end.'
 
-        title1 = f'Alderaan has been Called | Round {self.game_view.round}'
-        description1 = f'The game will now end.'
-
-        embed2, file = await create_embed_with_cards(
-            title=title1,
-            description=description1,
+        embed_edit, file = await create_embed_with_cards(
+            title=title_edit,
+            description=description_edit,
             cards=self.player.cards,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png'
         )
+        
+        if file:
+            await interaction.followup.edit_message(interaction.message.id, embed=embed_edit, view=None, attachments=[file])
+        else:
+            await interaction.followup.edit_message(interaction.message.id, embed=embed_edit, view=None)
 
         if self.game_view.current_player_index == len(self.game_view.players) - 1:
-            if file:
-                await interaction.followup.edit_message(interaction.message.id, embed=embed2, view=None, attachments=[file])
-            else:
-                await interaction.followup.edit_message(interaction.message.id, embed=embed2, view=None)
             self.stop()
             await self.game_view.end_game()
             return
         
-        await interaction.channel.send(embed=embed1)
+        title_new = f'Alderaan has been Called | Round {self.game_view.round}'
+        description_new = f'All remaining players will now have one final turn because {self.game_view.alderaan_caller_mention} called Alderaan.'
+
+        new_embed = Embed(title=title_new, description=description_new, color=0x7A9494)
+        new_embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png')
+        
+        await interaction.channel.send(embed=new_embed)
         self.stop()
         await self.game_view.proceed_to_next_player()
 
@@ -763,7 +760,6 @@ class TurnView(ui.View):
             title=title,
             description=description,
             cards=self.player.cards,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png'
         )
 
         if file:
@@ -832,7 +828,6 @@ class CardSelectView(ui.View):
                 title=title,
                 description=description,
                 cards=self.player.cards,
-                thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png'
             )
 
             if file:
@@ -876,7 +871,6 @@ class GoBackButton(ui.Button):
             title=title,
             description=description,
             cards=turn_view.player.cards,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png'
         )
 
         if file:
