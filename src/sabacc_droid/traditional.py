@@ -387,6 +387,9 @@ class TraditionalGameView(ui.View):
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png')
 
+        if image_bytes:
+            embed.set_image(url='attachment://combined_cards.png')
+
         play_turn_view = PlayTurnView(self)
 
         if image_bytes:
