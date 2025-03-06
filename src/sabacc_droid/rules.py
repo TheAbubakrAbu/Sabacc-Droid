@@ -85,7 +85,7 @@ def get_comparison_embed() -> Embed:
         color=0x764920
     )
     comparison_embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png'
+        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/sabacc.png'
     )
     return comparison_embed
 
