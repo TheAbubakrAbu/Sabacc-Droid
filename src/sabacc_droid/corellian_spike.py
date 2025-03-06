@@ -68,7 +68,7 @@ def combine_card_images(card_image_urls: list[str], resize_width: int = 80, resi
     image_bytes.seek(0)
     return image_bytes
 
-async def create_embed_with_cards(title: str, description: str, cards: list[int], thumbnail_url: str, color: int = 0xCBB7A0) -> tuple[Embed, discord.File]:
+async def create_embed_with_cards(title: str, description: str, cards: list[int]) -> tuple[Embed, discord.File]:
     '''
     Create an embed showing card images for the given hand.
     Returns an Embed and a File if images are available, else just an Embed.
@@ -80,8 +80,8 @@ async def create_embed_with_cards(title: str, description: str, cards: list[int]
     except Exception as e:
         logger.error(f'Failed to combine card images: {e}')
 
-    embed = Embed(title=title, description=description, color=color)
-    embed.set_thumbnail(url=thumbnail_url)
+    embed = Embed(title=title, description=description, color=0xCBB7A0)
+    embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png')
 
     if image_bytes:
         embed.set_image(url='attachment://combined_cards.png')
@@ -695,7 +695,6 @@ class PlayTurnButton(ui.Button):
             title=title,
             description=description,
             cards=current_player.cards,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png'
         )
 
         turn_view = TurnView(self.game_view, current_player)
@@ -747,7 +746,6 @@ class TurnView(ui.View):
             title=title,
             description=description,
             cards=self.player.cards,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png'
         )
 
         if file:
@@ -778,7 +776,6 @@ class TurnView(ui.View):
             title=title,
             description=description,
             cards=self.player.cards,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png'
         )
 
         if file:
@@ -803,7 +800,6 @@ class TurnView(ui.View):
             title=title,
             description=description,
             cards=self.player.cards,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png'
         )
 
         if file:
@@ -825,7 +821,6 @@ class TurnView(ui.View):
             title=title,
             description=description,
             cards=self.player.cards,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png'
         )
 
         if file:
@@ -850,7 +845,6 @@ class TurnView(ui.View):
             title=title,
             description=description,
             cards=self.player.cards,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png'
         )
 
         if file:
@@ -923,7 +917,6 @@ class CardSelectView(ui.View):
                 title=title,
                 description=description,
                 cards=self.player.cards,
-                thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png'
             )
 
             if file:
@@ -969,7 +962,6 @@ class GoBackButton(ui.Button):
             title=title,
             description=description,
             cards=turn_view.player.cards,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png'
         )
 
         if file:

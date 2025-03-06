@@ -80,30 +80,6 @@ def combine_card_images(urls: list[str], width: int = 80, height: int = 120, pad
     buf.seek(0)
     return buf
 
-async def build_embed_with_cards(
-    title: str,
-    description: str,
-    cards: list['Card'],
-    thumb_url: str
-) -> tuple[Embed, discord.File | None]:
-    '''
-    Utility to build an embed (plus combined card image if possible).
-    Not used for big public messages here except in ephemeral contexts if needed.
-    '''
-    try:
-        urls = [get_card_image_url(c) for c in cards]
-        buf = combine_card_images(urls)
-        embed = Embed(title=title, description=description, color=0xAB9032)
-        embed.set_thumbnail(url=thumb_url)
-        embed.set_image(url='attachment://combined_cards.png')
-        file = discord.File(fp=buf, filename='combined_cards.png')
-        return embed, file
-    except Exception as e:
-        logger.error(f'Couldn\'t build card images: {e}')
-        embed = Embed(title=title, description=description, color=0xAB9032)
-        embed.set_thumbnail(url=thumb_url)
-        return embed, None
-
 class Player:
     def __init__(self, user):
         self.user = user
