@@ -552,6 +552,7 @@ class CorelliaGameView(ui.View):
                 color=0xCBB7A0
             )
             embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png')
+            embed.set_footer(text='Corellian Spike Sabacc')
             await self.channel.send(embed=embed, view=EndGameView(self.rounds, self.num_cards, self.active_games, self.channel))
 
             if self in self.active_games:
@@ -595,6 +596,7 @@ class CorelliaGameView(ui.View):
             color=0xCBB7A0
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png')
+        embed.set_footer(text='Corellian Spike Sabacc')
         mentions = ' '.join(
             player.user.mention
             for player in self.players

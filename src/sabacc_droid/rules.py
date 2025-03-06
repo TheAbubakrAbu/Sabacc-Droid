@@ -326,7 +326,7 @@ def get_traditional_rules_embed() -> Embed:
                     '      5. Highest single absolute value card.\n'
                     '    - Example: Total of -22 beats total of +22\n\n'
                     'Good luck! May the Force be with you!',
-        color=0xE8E8E8
+        color=0x7A9494
     )
     rules_embed.set_thumbnail(
         url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png'

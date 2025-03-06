@@ -436,6 +436,7 @@ class CoruscantGameView(ui.View):
                 color=0xAB9032
             )
             emb.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/coruscant_shift.png')
+            emb.set_footer(text='Coruscant Shift Sabacc')
             await self.channel.send(embed=emb, view=EndGameView(self.active_games, self.channel))
             if self in self.active_games:
                 self.active_games.remove(self)
@@ -497,6 +498,7 @@ class CoruscantGameView(ui.View):
         emb.set_thumbnail(
             url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/coruscant_shift.png'
         )
+        emb.set_footer(text='Coruscant Shift Sabacc')
 
         mention_line = ' '.join(
             pl.user.mention for pl in self.players if 'AIUser' not in type(pl.user).__name__
