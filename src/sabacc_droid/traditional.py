@@ -69,7 +69,7 @@ def combine_card_images(card_image_urls: list[str], resize_width: int = 80, resi
     image_bytes.seek(0)
     return image_bytes
 
-async def create_embed_with_cards(title: str, description: str, cards: list[int], thumbnail_url: str, color: int = 0xE8E8E8) -> tuple[Embed, discord.File]:
+async def create_embed_with_cards(title: str, description: str, cards: list[int], thumbnail_url: str, color: int = 0x7A9494) -> tuple[Embed, discord.File]:
     '''
     Create an embed showing card images for the given hand.
     Returns an Embed and a File if images are available, else just an Embed.
@@ -176,7 +176,7 @@ class TraditionalGameView(ui.View):
                 f'• {self.num_cards} starting cards\n\n'
                 'Once someone joins, **Start Game** will be enabled.'
             ),
-            color=0xE8E8E8
+            color=0x7A9494
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png')
 
@@ -215,7 +215,7 @@ class TraditionalGameView(ui.View):
         embed = Embed(
             title='Traditional Sabacc Lobby',
             description=description,
-            color=0xE8E8E8
+            color=0x7A9494
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png')
 
@@ -383,7 +383,7 @@ class TraditionalGameView(ui.View):
         embed = Embed(
             title='Traditional Sabacc',
             description=description,
-            color=0xE8E8E8
+            color=0x7A9494
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png')
 
@@ -433,9 +433,10 @@ class TraditionalGameView(ui.View):
             embed = Embed(
                 title='Game Over',
                 description='No players remain. Nobody wins!',
-                color=0xE8E8E8
+                color=0x7A9494
             )
             embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png')
+            embed.set_footer(text='Traditional Sabacc')
             await self.channel.send(embed=embed, view=EndGameView(self.active_games, self.channel))
             if self in self.active_games:
                 self.active_games.remove(self)
@@ -472,9 +473,10 @@ class TraditionalGameView(ui.View):
         embed = Embed(
             title='Game Over',
             description=results,
-            color=0xE8E8E8
+            color=0x7A9494
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png')
+        embed.set_footer(text='Traditional Sabacc')
 
         mentions = ' '.join(
             player.user.mention for player in self.players if player.user.id != -1
@@ -721,17 +723,29 @@ class TurnView(ui.View):
             self.game_view.alderaan_caller_index = self.game_view.current_player_index
             self.game_view.alderaan_caller_mention = self.player.user.mention
 
+        title = f'You Called Alderaan | Round {self.game_view.round}'
+        description1 = f'All remaining players will now have one final turn because {self.game_view.alderaan_caller_mention} called Alderaan.'
+        embed1 = Embed(title=title, description=description1, color=0x7A9494)
+        embed1.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png')
+
+        description2 = f'The game will now end.'
+        embed2, file = await create_embed_with_cards(
+            title=title,
+            description=description2,
+            cards=self.player.cards,
+            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png'
+        )
+
         if self.game_view.current_player_index == len(self.game_view.players) - 1:
+            if file:
+                await interaction.followup.edit_message(interaction.message.id, embed=embed2, view=None, attachments=[file])
+            else:
+                await interaction.followup.edit_message(interaction.message.id, embed=embed2, view=None)
             self.stop()
             await self.game_view.end_game()
             return
-
-        title = f'You Called Alderaan | Round {self.game_view.round}'
-        description = f'All remaining players will now have one final turn because {self.game_view.alderaan_caller_mention} called Alderaan.'
-        embed = Embed(title=title, description=description, color=0xE8E8E8)
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png')
         
-        await interaction.followup.send(embed=embed)
+        await interaction.followup.send(embed=embed1)
         self.stop()
         await self.game_view.proceed_to_next_player()
 

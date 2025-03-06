@@ -216,7 +216,7 @@ class SabaccChoiceView(ui.View):
             description=desc,
             thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png',
             defer_first=True,
-            color=0xE8E8E8
+            color=0x7A9494
         )
 
     @ui.button(label='View Rules', style=discord.ButtonStyle.secondary)
@@ -353,7 +353,7 @@ async def traditional_command(interaction: Interaction, num_cards: int = 2) -> N
         description=desc,
         thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png',
         defer_first=False,
-        color=0xE8E8E8
+        color=0x7A9494
     )
 
 @bot.tree.command(name='help', description='Display Sabacc rules')

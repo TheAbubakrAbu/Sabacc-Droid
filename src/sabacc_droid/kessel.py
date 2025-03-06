@@ -565,6 +565,8 @@ class KesselGameView(ui.View):
                 description='Nobody won because everyone junked!',
                 color=0x7F3335
             )
+            embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel.png')
+            embed.set_footer(text='Kessel Sabacc')
             await self.channel.send(embed=embed, view=EndGameView(rounds=self.rounds, active_games=self.active_games, channel=self.channel))
             if self in self.active_games:
                 self.active_games.remove(self)
@@ -609,6 +611,7 @@ class KesselGameView(ui.View):
             color=0x7F3335
         )
         embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel.png')
+        embed.set_footer(text='Kessel Sabacc')
         mentions = ' '.join(player.user.mention for player in self.players if 'AIUser' not in type(player.user).__name__)
         await self.channel.send(content=mentions, embed=embed, view=EndGameView(rounds=self.rounds, active_games=self.active_games, channel=self.channel))
 
