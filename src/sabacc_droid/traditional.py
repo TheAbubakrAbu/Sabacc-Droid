@@ -723,14 +723,16 @@ class TurnView(ui.View):
             self.game_view.alderaan_caller_index = self.game_view.current_player_index
             self.game_view.alderaan_caller_mention = self.player.user.mention
 
-        title = f'You Called Alderaan | Round {self.game_view.round}'
+        title1 = f'You Called Alderaan | Round {self.game_view.round}'
         description1 = f'All remaining players will now have one final turn because {self.game_view.alderaan_caller_mention} called Alderaan.'
-        embed1 = Embed(title=title, description=description1, color=0x7A9494)
+        embed1 = Embed(title=title1, description=description1, color=0x7A9494)
         embed1.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png')
 
+        title2 = f'{self.game_view.alderaan_caller_mention} Called Alderaan | Round {self.game_view.round}'
         description2 = f'The game will now end.'
+
         embed2, file = await create_embed_with_cards(
-            title=title,
+            title=title2,
             description=description2,
             cards=self.player.cards,
             thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png'
@@ -745,7 +747,7 @@ class TurnView(ui.View):
             await self.game_view.end_game()
             return
         
-        await interaction.response.send_message(embed=embed1)
+        await interaction.channel.send(embed=embed1)
         self.stop()
         await self.game_view.proceed_to_next_player()
 
