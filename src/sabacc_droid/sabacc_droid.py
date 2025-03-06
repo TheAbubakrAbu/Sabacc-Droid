@@ -101,7 +101,7 @@ async def sabacc_command(interaction: Interaction):
         color=0x764920
     )
     embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png'
+        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/sabacc.png'
     )
 
     view = SabaccChoiceView()
@@ -369,7 +369,7 @@ async def help_command(interaction: Interaction) -> None:
         color=0x764920
     )
     embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png'
+        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/sabacc.png'
     )
 
     view = HelpView()
