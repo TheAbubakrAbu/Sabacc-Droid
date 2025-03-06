@@ -745,7 +745,7 @@ class TurnView(ui.View):
             await self.game_view.end_game()
             return
         
-        await interaction.followup.send(embed=embed1)
+        await interaction.response.send_message(embed=embed1)
         self.stop()
         await self.game_view.proceed_to_next_player()
 
