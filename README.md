@@ -7,9 +7,11 @@ Welcome to the **Sabacc Droid**! This project brings the classic Star Wars card 
 1. **Console Version (`sabacc_console.py`)**: Play the Corellian Spike variant (prototype of Sabacc Droid) in your terminal or IDE.
 2. **Discord Bot Version (`sabacc_droid.py`)**: Play Corellian Spike, Coruscant Shift, Kessel, and Traditional Sabacc by creating your own Discord bot. Or simply invite the bot to your server here: [**Invite Link**](https://discord.ly/sabaac-droid)
 
-Experience the thrill of Sabacc as seen in _Solo: A Star Wars Story_, _Star Wars Outlaws_, and _Star Wars: Rebels_.
+Experience the thrill of Sabacc as seen in _Galaxy's Edge_, _Solo: A Star Wars Story_, _Star Wars Outlaws_, and _Star Wars: Rebels_.
 
-Created on **November 14, 2024**.
+[**Add Sabacc Droid to Your Server**](https://discord.ly/sabacc-droid)
+
+Created by **Abubakr Elmallah** on **November 14, 2024**.
 
 ---
 
@@ -32,7 +34,6 @@ Created on **November 14, 2024**.
   - **[Kessel Sabacc](https://starwars.fandom.com/wiki/Kessel_Sabacc)** – Featured in *Star Wars Outlaws*, this mode includes unique **Impostor** and **Sylop** cards with special mechanics.
   - **[Traditional Sabacc](https://starwars.fandom.com/wiki/Sabacc)** – Featured in *Star Wars: Rebels*, including a high-stakes game aiming for a total of **+23 or -23**.
 - **Rulebook Access**: View game rules directly in Discord for all variants.
-- **Add the Bot to Your Server**: [Invite Link](https://discord.ly/sabaac-droid)
 
 ---
 
