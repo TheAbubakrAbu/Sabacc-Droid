@@ -253,7 +253,7 @@ class KesselGameView(ui.View):
 
         embed = Embed(
             title='Kessel Sabacc Lobby',
-            description='Click **Play Game** to join the game!\n\n'
+            description='Click **Join Game** to join the game!\n\n'
                         f'**Game Settings:**\n'
                         f'• {self.rounds} rounds\n'
                         f'• 2 starting cards\n\n'
@@ -354,10 +354,10 @@ class KesselGameView(ui.View):
         else:
             await self.message.edit(embed=embed, view=self)
 
-    @ui.button(label='Play Game', style=discord.ButtonStyle.primary)
+    @ui.button(label='Join Game', style=discord.ButtonStyle.primary)
     async def play_game_button(self, interaction: Interaction, button: ui.Button) -> None:
         '''
-        Add the user to the game when they press Play Game.
+        Add the user to the game when they press Join Game.
         '''
         user = interaction.user
         if self.game_started:

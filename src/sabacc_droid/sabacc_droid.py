@@ -127,7 +127,7 @@ class SabaccChoiceView(ui.View):
             channel=interaction.channel
         )
         desc = (
-            'Click **Play Game** to join.\n\n'
+            'Click **Join Game** to join.\n\n'
             '**Game Settings:**\n'
             '• 3 rounds\n'
             '• 2 starting cards\n\n'
@@ -154,7 +154,7 @@ class SabaccChoiceView(ui.View):
             channel=interaction.channel
         )
         desc = (
-            'Click **Play Game** to join.\n\n'
+            'Click **Join Game** to join.\n\n'
             '**Game Settings:**\n'
             '• 2 rounds\n'
             '• 5 starting cards\n\n'
@@ -176,7 +176,7 @@ class SabaccChoiceView(ui.View):
         await interaction.response.defer()
         kessel_view = KesselGameView(rounds=3, active_games=active_games, channel=interaction.channel)
         desc = (
-            'Click **Play Game** to join.\n\n'
+            'Click **Join Game** to join.\n\n'
             '**Game Settings:**\n'
             '• 3 rounds\n'
             '• 2 starting cards\n\n'
@@ -201,7 +201,7 @@ class SabaccChoiceView(ui.View):
             channel=interaction.channel
         )
         desc = (
-            'Click **Play Game** to join.\n\n'
+            'Click **Join Game** to join.\n\n'
             '**Game Settings:**\n'
             '• No set number of rounds\n'
             '• Call Alderaan to end the game\n'
@@ -250,7 +250,7 @@ async def corellian_command(interaction: Interaction, rounds: int = 3, num_cards
         channel=interaction.channel
     )
     desc = (
-        'Click **Play Game** to join the game.\n\n'
+        'Click **Join Game** to join the game.\n\n'
         f'**Game Settings:**\n'
         f'• {rounds} rounds\n'
         f'• {num_cards} starting cards\n\n'
@@ -284,7 +284,7 @@ async def coruscant_shift_command(interaction: Interaction, rounds: int = 2, num
         channel=interaction.channel
     )
     desc = (
-        'Click **Play Game** to join.\n\n'
+        'Click **Join Game** to join.\n\n'
         f'**Game Settings:**\n'
         f'• {rounds} rounds\n'
         f'• {num_cards} starting cards\n\n'
@@ -311,7 +311,7 @@ async def kessel_command(interaction: Interaction, rounds: int = 3) -> None:
     view = KesselGameView(rounds=rounds, active_games=active_games, channel=interaction.channel)
 
     desc = (
-        'Click **Play Game** to join the game.\n\n'
+        'Click **Join Game** to join the game.\n\n'
         f'**Game Settings:**\n'
         f'• {rounds} rounds\n'
         f'• 2 starting cards\n\n'
@@ -338,7 +338,7 @@ async def traditional_command(interaction: Interaction, num_cards: int = 2) -> N
 
     view = TraditionalGameView(num_cards=num_cards, active_games=active_games, channel=interaction.channel)
     desc = (
-        'Click **Play Game** to join.\n\n'
+        'Click **Join Game** to join.\n\n'
         '**Game Settings:**\n'
         f'• No set number of rounds\n'
         f'• Call Alderaan to end the game\n'

@@ -166,7 +166,7 @@ class CorelliaGameView(ui.View):
 
         embed = Embed(
             title='Corellian Spike Sabacc Lobby',
-            description=('Click **Play Game** to join the game!\n\n'
+            description=('Click **Join Game** to join the game!\n\n'
                          f'**Game Settings:**\n'
                          f'• {self.rounds} rounds\n'
                          f'• {self.num_cards} starting cards\n\n'
@@ -273,7 +273,7 @@ class CorelliaGameView(ui.View):
         else:
             await self.message.edit(embed=embed, view=self)
 
-    @ui.button(label='Play Game', style=ButtonStyle.primary)
+    @ui.button(label='Join Game', style=ButtonStyle.primary)
     async def play_game_button(self, interaction: Interaction, button: ui.Button) -> None:
         '''
         Add the user who clicked to the game if possible.

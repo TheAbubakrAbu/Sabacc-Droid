@@ -127,7 +127,7 @@ class CoruscantGameView(ui.View):
 
         self.solo_game = solo_game
 
-        self.play_button = ui.Button(label='Play Game', style=ButtonStyle.primary)
+        self.play_button = ui.Button(label='Join Game', style=ButtonStyle.primary)
         self.leave_button = ui.Button(label='Leave Game', style=ButtonStyle.danger)
         self.start_button = ui.Button(label='Start Game', style=ButtonStyle.success, disabled=True)
         self.rules_button = CoruscantShiftViewRulesButton()
@@ -211,7 +211,7 @@ class CoruscantGameView(ui.View):
         self.roll_dice()
 
         desc = (
-            'Click **Play Game** to join the game!\n\n'
+            'Click **Join Game** to join the game!\n\n'
             f'**Game Settings:**\n'
             f'• {self.rounds} rounds\n'
             f'• {self.num_cards} starting cards\n\n'
