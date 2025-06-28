@@ -169,7 +169,7 @@ class TraditionalGameView(ui.View):
         embed = Embed(
             title='Traditional Sabacc Lobby',
             description=(
-                'Click **Play Game** to join the game!\n\n'
+                'Click **Join Game** to join the game!\n\n'
                 '**Game Settings:**\n'
                 '• No set number of rounds\n'
                 '• Call Alderaan to end the game\n'
@@ -227,7 +227,7 @@ class TraditionalGameView(ui.View):
         else:
             await self.message.edit(embed=embed, view=self)
 
-    @ui.button(label='Play Game', style=ButtonStyle.primary)
+    @ui.button(label='Join Game', style=ButtonStyle.primary)
     async def play_game_button(self, interaction: Interaction, button: ui.Button) -> None:
         '''
         Add the user who clicked to the game if possible.
