@@ -30,6 +30,9 @@ RULES_DESCRIPTION = (
     'May the Force be with you—choose a game mode and have fun!'
 )
 
+sabacc_thumbnail = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/sabacc.png'
+sabacc_footer = 'The Star Wars card game'
+
 def get_comparison_embed() -> Embed:
     '''
     Create an embed comparing Corellian Spike, Kessel, Coruscant Shift, and Traditional Sabacc game modes.
@@ -84,10 +87,13 @@ def get_comparison_embed() -> Embed:
         ),
         color=0x764920
     )
-    comparison_embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/sabacc.png'
-    )
+    comparison_embed.set_thumbnail(url=sabacc_thumbnail)
+    comparison_embed.set_footer(text=sabacc_footer)
+
     return comparison_embed
+
+corellian_thumbnail = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/corellian_spike.png'
+corellian_footer = 'As seen in Solo: A Star Wars Story and Galaxy\'s Edge'
 
 def get_corellian_spike_rules_embed() -> Embed:
     '''
@@ -162,10 +168,13 @@ def get_corellian_spike_rules_embed() -> Embed:
                     'Good luck! May the Force be with you!',
         color=0x764920
     )
-    rules_embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png'
-    )
+    rules_embed.set_thumbnail(url=corellian_thumbnail)
+    rules_embed.set_footer(text=corellian_footer)
+
     return rules_embed
+
+coruscant_thumbnail = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/coruscant_shift.png'
+coruscant_footer = 'As seen on the Halcyon at Galactic Starcruiser'
 
 def get_coruscant_shift_rules_embed() -> Embed:
     '''
@@ -215,10 +224,13 @@ def get_coruscant_shift_rules_embed() -> Embed:
                     'Good luck! May the Force be with you!',
         color=0x764920
     )
-    rules_embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/coruscant_shift.png'
-    )
+    rules_embed.set_thumbnail(url=coruscant_thumbnail)
+    rules_embed.set_footer(text=coruscant_footer)
+
     return rules_embed
+
+kessel_thumbnail = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel.png'
+kessel_footer = 'As seen in Star Wars Outlaws'
 
 def get_kessel_rules_embed() -> Embed:
     '''
@@ -275,10 +287,13 @@ def get_kessel_rules_embed() -> Embed:
                     'Good luck! May the Force be with you!',
         color=0x764920
     )
-    rules_embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel.png'
-    )
+    rules_embed.set_thumbnail(url=kessel_thumbnail)
+    rules_embed.set_footer(text=kessel_footer)
+
     return rules_embed
+
+traditional_thumbnail = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png'
+traditional_footer = 'As seen in Star Wars: Rebels'
 
 def get_traditional_rules_embed() -> Embed:
     '''
@@ -328,7 +343,7 @@ def get_traditional_rules_embed() -> Embed:
                     'Good luck! May the Force be with you!',
         color=0x7A9494
     )
-    rules_embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png'
-    )
+    rules_embed.set_thumbnail(url=traditional_thumbnail)
+    rules_embed.set_footer(text=traditional_footer)
+
     return rules_embed

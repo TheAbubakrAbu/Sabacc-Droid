@@ -9,7 +9,7 @@ import requests
 from PIL import Image
 from io import BytesIO
 from concurrent.futures import ThreadPoolExecutor
-from rules import get_corellian_spike_rules_embed
+from rules import get_corellian_spike_rules_embed, corellian_thumbnail, corellian_footer
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -81,7 +81,8 @@ async def create_embed_with_cards(title: str, description: str, cards: list[int]
         logger.error(f'Failed to combine card images: {e}')
 
     embed = Embed(title=title, description=description, color=0xCBB7A0)
-    embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png')
+    embed.set_thumbnail(url=corellian_thumbnail)
+    embed.set_footer(text=corellian_footer)
 
     if image_bytes:
         embed.set_image(url='attachment://combined_cards.png')
@@ -173,7 +174,8 @@ class CorelliaGameView(ui.View):
                          'Once someone has joined, **Start Game** will be enabled.'),
             color=0xCBB7A0
         )
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png')
+        embed.set_thumbnail(url=corellian_thumbnail)
+        embed.set_footer(text=corellian_footer)
 
         await interaction.response.edit_message(embed=embed, view=self)
 
@@ -208,7 +210,8 @@ class CorelliaGameView(ui.View):
             description=description,
             color=0xCBB7A0
         )
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png')
+        embed.set_thumbnail(url=corellian_thumbnail)
+        embed.set_footer(text=corellian_footer)
 
         if image_bytes:
             embed.set_image(url='attachment://combined_cards.png')
@@ -263,7 +266,8 @@ class CorelliaGameView(ui.View):
             description=description,
             color=0xCBB7A0
         )
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png')
+        embed.set_thumbnail(url=corellian_thumbnail)
+        embed.set_footer(text=corellian_footer)
 
         self.start_game_button.disabled = len(self.players) < 1 or self.game_started
         self.play_game_button.disabled = len(self.players) >= 8 or self.game_started
@@ -551,7 +555,7 @@ class CorelliaGameView(ui.View):
                 description='Nobody won because everyone junked!',
                 color=0xCBB7A0
             )
-            embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png')
+            embed.set_thumbnail(url=corellian_thumbnail)
             embed.set_footer(text='Corellian Spike Sabacc')
             await self.channel.send(embed=embed, view=EndGameView(self.rounds, self.num_cards, self.active_games, self.channel))
 
@@ -595,7 +599,7 @@ class CorelliaGameView(ui.View):
             description=results,
             color=0xCBB7A0
         )
-        embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png')
+        embed.set_thumbnail(url=corellian_thumbnail)
         embed.set_footer(text='Corellian Spike Sabacc')
         mentions = ' '.join(
             player.user.mention
@@ -909,7 +913,8 @@ class CardSelectView(ui.View):
                 description = f'**Your Hand:** {self.player.get_cards_string()}\n**Total:** {self.player.get_total()}'
             else:
                 embed = Embed(title='Unknown Action', description='An error occurred.', color=0xFF0000)
-                embed.set_thumbnail(url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png')
+                embed.set_thumbnail(url=corellian_thumbnail)
+                embed.set_footer(text=corellian_footer)
                 await interaction.followup.edit_message(interaction.message.id, embed=embed, view=None)
                 return
 
