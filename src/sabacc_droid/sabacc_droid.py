@@ -3,21 +3,14 @@
 import os
 import discord
 from dotenv import load_dotenv
-from discord import Interaction, app_commands, ui
+from discord import Interaction, app_commands, ui, ButtonStyle
 from discord.ext import commands
 
 from corellian_spike import CorelliaGameView
 from coruscant_shift import CoruscantGameView
-from traditional import TraditionalGameView
 from kessel import KesselGameView
-from rules import (
-    RULES_DESCRIPTION,
-    get_comparison_embed,
-    get_corellian_spike_rules_embed,
-    get_kessel_rules_embed,
-    get_coruscant_shift_rules_embed,
-    get_traditional_rules_embed
-)
+from traditional import TraditionalGameView
+from rules import *
 
 # Load the bot token
 load_dotenv()
@@ -43,6 +36,7 @@ async def _send_sabacc_lobby(
     title: str,
     description: str,
     thumbnail_url: str,
+    footer_text: str,
     defer_first: bool = False,
     color: int = 0x764920
 ):
@@ -53,12 +47,13 @@ async def _send_sabacc_lobby(
     'interaction.response.send_message'.
     '''
 
-    embed = discord.Embed(
+    embed = Embed(
         title=title,
         description=description,
         color=color
     )
     embed.set_thumbnail(url=thumbnail_url)
+    embed.set_footer(text=footer_text)
 
     try:
         if defer_first:
@@ -87,7 +82,7 @@ async def sabacc_command(interaction: Interaction):
     Plus a View Rules button to show /help in fo.
     '''
 
-    embed = discord.Embed(
+    embed = Embed(
         title='Choose Your Sabacc Variant',
         description=(
             'Select one of the three modes below to start a new game in this channel.\n\n'
@@ -100,9 +95,8 @@ async def sabacc_command(interaction: Interaction):
         ),
         color=0x764920
     )
-    embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/sabacc.png'
-    )
+    embed.set_thumbnail(url=sabacc_thumbnail)
+    embed.set_footer(text=sabacc_footer)
 
     view = SabaccChoiceView()
     await interaction.response.send_message(embed=embed, view=view)
@@ -117,7 +111,7 @@ class SabaccChoiceView(ui.View):
     - View Rules (ephemeral help info)
     '''
 
-    @ui.button(label='Start Corellian', style=discord.ButtonStyle.primary)
+    @ui.button(label='Start Corellian', style=ButtonStyle.primary)
     async def start_corellian_spike(self, interaction: Interaction, button: ui.Button):
         await interaction.response.defer()
         corellian_view = CorelliaGameView(
@@ -139,12 +133,13 @@ class SabaccChoiceView(ui.View):
             active_games,
             title='Corellian Spike Sabacc Lobby',
             description=desc,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png',
+            thumbnail_url=corellian_thumbnail,
+            footer_text=corellian_footer,
             defer_first=True,
             color=0xCBB7A0
         )
 
-    @ui.button(label='Start Coruscant', style=discord.ButtonStyle.primary)
+    @ui.button(label='Start Coruscant', style=ButtonStyle.primary)
     async def start_coruscant_shift(self, interaction: Interaction, button: ui.Button):
         await interaction.response.defer()
         coruscant_view = CoruscantGameView(
@@ -166,12 +161,13 @@ class SabaccChoiceView(ui.View):
             active_games,
             title='Coruscant Shift Sabacc Lobby',
             description=desc,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/coruscant_shift.png',
+            thumbnail_url=coruscant_thumbnail,
+            footer_text=coruscant_footer,
             defer_first=True,
             color=0xAB9032
         )
 
-    @ui.button(label='Start Kessel', style=discord.ButtonStyle.primary)
+    @ui.button(label='Start Kessel', style=ButtonStyle.primary)
     async def start_kessel(self, interaction: Interaction, button: ui.Button):
         await interaction.response.defer()
         kessel_view = KesselGameView(rounds=3, active_games=active_games, channel=interaction.channel)
@@ -188,12 +184,13 @@ class SabaccChoiceView(ui.View):
             active_games,
             title='Kessel Sabacc Lobby',
             description=desc,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel.png',
+            thumbnail_url=kessel_thumbnail,
+            footer_text=kessel_footer,
             defer_first=True,
             color=0x7F3335
         )
 
-    @ui.button(label='Start Traditional', style=discord.ButtonStyle.primary)
+    @ui.button(label='Start Traditional', style=ButtonStyle.primary)
     async def start_traditional(self, interaction: Interaction, button: ui.Button):
         await interaction.response.defer()
         traditional_view = TraditionalGameView(
@@ -214,22 +211,23 @@ class SabaccChoiceView(ui.View):
             active_games,
             title='Traditional Sabacc Lobby',
             description=desc,
-            thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png',
+            thumbnail_url=traditional_thumbnail,
+            footer_text=traditional_footer,
             defer_first=True,
             color=0x7A9494
         )
 
-    @ui.button(label='View Rules', style=discord.ButtonStyle.secondary)
+    @ui.button(label='View Rules', style=ButtonStyle.secondary)
     async def view_rules(self, interaction: Interaction, button: ui.Button):
         '''Shows the same info as the /help command.'''
-        embed = discord.Embed(
+        embed = Embed(
             title='Sabacc Droid Help',
             description=RULES_DESCRIPTION,
             color=0x764920
         )
-        embed.set_thumbnail(
-            url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png'
-        )
+        embed.set_thumbnail(url=sabacc_thumbnail)
+        embed.set_footer(text=sabacc_footer)
+
         view = HelpView()
         await interaction.response.send_message(embed=embed, view=view)
 
@@ -262,7 +260,8 @@ async def corellian_command(interaction: Interaction, rounds: int = 3, num_cards
         active_games,
         title='Corellian Spike Sabacc Lobby',
         description=desc,
-        thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/corellian_spike.png',
+        thumbnail_url=corellian_thumbnail,
+        footer_text=corellian_footer,
         defer_first=False,
         color=0xCBB7A0
     )
@@ -296,7 +295,8 @@ async def coruscant_shift_command(interaction: Interaction, rounds: int = 2, num
         active_games,
         title='Coruscant Shift Sabacc Lobby',
         description=desc,
-        thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/coruscant_shift.png',
+        thumbnail_url=coruscant_thumbnail,
+        footer_text=coruscant_footer,
         defer_first=False,
         color=0xAB9032
     )
@@ -323,7 +323,8 @@ async def kessel_command(interaction: Interaction, rounds: int = 3) -> None:
         active_games,
         title='Kessel Sabacc Lobby',
         description=desc,
-        thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/kessel.png',
+        thumbnail_url=kessel_thumbnail,
+        footer_text=kessel_footer,
         defer_first=False,
         color=0x7F3335
     )
@@ -351,7 +352,8 @@ async def traditional_command(interaction: Interaction, num_cards: int = 2) -> N
         active_games,
         title='Traditional Sabacc Lobby',
         description=desc,
-        thumbnail_url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/traditional.png',
+        thumbnail_url=traditional_thumbnail,
+        footer_text=traditional_footer,
         defer_first=False,
         color=0x7A9494
     )
@@ -363,14 +365,13 @@ async def help_command(interaction: Interaction) -> None:
     (Corellian Spike, Kessel Sabacc, and Coruscant Shift),
     along with credits and repository links.
     '''
-    embed = discord.Embed(
+    embed = Embed(
         title='Sabacc Droid Help',
         description=RULES_DESCRIPTION,
         color=0x764920
     )
-    embed.set_thumbnail(
-        url='https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/refs/heads/main/src/sabacc_droid/images/sabacc.png'
-    )
+    embed.set_thumbnail(url=sabacc_thumbnail)
+    embed.set_footer(text=sabacc_footer)
 
     view = HelpView()
     await interaction.response.send_message(embed=embed, view=view)
@@ -382,27 +383,27 @@ class HelpView(ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @ui.button(label='Corellian Rules', style=discord.ButtonStyle.primary)
+    @ui.button(label='Corellian Rules', style=ButtonStyle.primary)
     async def corellian_spike_button(self, interaction: Interaction, button: ui.Button):
         rules_embed = get_corellian_spike_rules_embed()
         await interaction.response.send_message(embed=rules_embed, ephemeral=True)
 
-    @ui.button(label='Coruscant Rules', style=discord.ButtonStyle.primary)
+    @ui.button(label='Coruscant Rules', style=ButtonStyle.primary)
     async def coruscant_button(self, interaction: Interaction, button: ui.Button):
         rules_embed = get_coruscant_shift_rules_embed()
         await interaction.response.send_message(embed=rules_embed, ephemeral=True)
 
-    @ui.button(label='Kessel Rules', style=discord.ButtonStyle.primary)
+    @ui.button(label='Kessel Rules', style=ButtonStyle.primary)
     async def kessel_button(self, interaction: Interaction, button: ui.Button):
         rules_embed = get_kessel_rules_embed()
         await interaction.response.send_message(embed=rules_embed, ephemeral=True)
 
-    @ui.button(label='Traditional Rules', style=discord.ButtonStyle.primary)
+    @ui.button(label='Traditional Rules', style=ButtonStyle.primary)
     async def traditional_button(self, interaction: Interaction, button: ui.Button):
         rules_embed = get_traditional_rules_embed()
         await interaction.response.send_message(embed=rules_embed, ephemeral=True)
 
-    @ui.button(label='Comparison', style=discord.ButtonStyle.secondary)
+    @ui.button(label='Comparison', style=ButtonStyle.secondary)
     async def comparison_button(self, interaction: Interaction, button: ui.Button):
         comparison_embed = get_comparison_embed()
         await interaction.response.send_message(embed=comparison_embed, ephemeral=True)
