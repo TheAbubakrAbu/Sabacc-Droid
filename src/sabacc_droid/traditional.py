@@ -82,7 +82,7 @@ async def create_embed_with_cards(title: str, description: str, cards: list[int]
 
     embed = Embed(title=title, description=description, color=0x7A9494)
     embed.set_thumbnail(url=traditional_thumbnail)
-    embed.set_footer(url=traditional_footer)
+    embed.set_footer(text=traditional_footer)
 
     if image_bytes:
         embed.set_image(url='attachment://combined_cards.png')
@@ -179,7 +179,7 @@ class TraditionalGameView(ui.View):
             color=0x7A9494
         )
         embed.set_thumbnail(url=traditional_thumbnail)
-        embed.set_footer(url=traditional_footer)
+        embed.set_footer(text=traditional_footer)
 
         await interaction.response.edit_message(embed=embed, view=self)
 
@@ -219,7 +219,7 @@ class TraditionalGameView(ui.View):
             color=0x7A9494
         )
         embed.set_thumbnail(url=traditional_thumbnail)
-        embed.set_footer(url=traditional_footer)
+        embed.set_footer(text=traditional_footer)
 
         self.start_game_button.disabled = (len(self.players) < 1 or self.game_started)
         self.play_game_button.disabled = (len(self.players) >= self.max_players or self.game_started)
@@ -388,7 +388,7 @@ class TraditionalGameView(ui.View):
             color=0x7A9494
         )
         embed.set_thumbnail(url=traditional_thumbnail)
-        embed.set_footer(url=traditional_footer)
+        embed.set_footer(text=traditional_footer)
 
         if image_bytes:
             embed.set_image(url='attachment://combined_cards.png')
@@ -746,7 +746,7 @@ class TurnView(ui.View):
 
         embed = Embed(title=title_new, description=description_new, color=0x7A9494)
         embed.set_thumbnail(url=traditional_thumbnail)
-        embed.set_footer(url=traditional_footer)
+        embed.set_footer(text=traditional_footer)
         
         await interaction.channel.send(embed=embed)
         self.stop()
@@ -825,7 +825,7 @@ class CardSelectView(ui.View):
             else:
                 embed = Embed(title='Unknown Action', description='An error occurred.', color=0xFF0000)
                 embed.set_thumbnail(url=traditional_thumbnail)
-                embed.set_footer(url=traditional_footer)
+                embed.set_footer(text=traditional_footer)
 
                 await interaction.followup.edit_message(interaction.message.id, embed=embed, view=None)
                 return
