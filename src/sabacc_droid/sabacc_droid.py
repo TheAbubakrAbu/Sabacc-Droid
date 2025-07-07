@@ -220,8 +220,7 @@ class SabaccChoiceView(ui.View):
         )
 
     @ui.button(label='View Rules', style=ButtonStyle.secondary)
-    async def view_rules(self, interaction: Interaction, button: ui.Button):
-        '''Shows the same info as the /help command.'''
+    async def view_rules(self, interaction: Interaction, button: ui.Button):        
         embed = Embed(
             title='Sabacc Droid Help',
             description=RULES_DESCRIPTION,
@@ -240,6 +239,7 @@ class SabaccChoiceView(ui.View):
 )
 async def corellian_command(interaction: Interaction, rounds: int = 3, num_cards: int = 2) -> None:
     '''Initiate a new Corellian Spike Sabacc game with optional custom settings.'''
+
     rounds = max(1, min(rounds, 10))
     num_cards = max(1, min(num_cards, 5))
 
@@ -276,6 +276,7 @@ async def corellian_command(interaction: Interaction, rounds: int = 3, num_cards
 )
 async def coruscant_shift_command(interaction: Interaction, rounds: int = 2, num_cards: int = 5) -> None:
     '''Initiate a new Coruscant Shift Sabacc game with optional custom settings.'''
+
     rounds = max(1, min(rounds, 5))
     num_cards = max(1, min(num_cards, 10))
 
@@ -310,6 +311,7 @@ async def coruscant_shift_command(interaction: Interaction, rounds: int = 2, num
 )
 async def kessel_command(interaction: Interaction, rounds: int = 3) -> None:
     '''Initiate a new Kessel Sabacc game with optional custom settings.'''
+
     rounds = max(1, min(rounds, 10))
     view = KesselGameView(rounds=rounds, active_games=active_games, channel=interaction.channel)
 
@@ -338,6 +340,7 @@ async def kessel_command(interaction: Interaction, rounds: int = 3) -> None:
 )
 async def traditional_command(interaction: Interaction, num_cards: int = 2) -> None:
     '''Initiate a new Traditional Sabacc game with optional custom settings.'''
+
     num_cards = max(1, min(num_cards, 5))
 
     view = TraditionalGameView(
@@ -373,6 +376,7 @@ async def help_command(interaction: Interaction) -> None:
     (Corellian Spike, Kessel Sabacc, and Coruscant Shift),
     along with credits and repository links.
     '''
+
     embed = Embed(
         title='Sabacc Droid Help',
         description=RULES_DESCRIPTION,
@@ -419,11 +423,13 @@ class HelpView(ui.View):
 @bot.event
 async def on_ready() -> None:
     '''Event handler for when the bot is ready.'''
+
     await bot.tree.sync()
     print(f'{bot.user} is now running!')
 
 def main() -> None:
     '''Run the Discord bot.'''
+    
     bot.run(TOKEN)
 
 if __name__ == '__main__':

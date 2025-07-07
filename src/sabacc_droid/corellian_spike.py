@@ -19,6 +19,7 @@ def get_card_image_urls(cards: list[int]) -> list[str]:
     Generate image URLs for the given card values.
     Positive cards are prefixed with '+', negative as-is, and zero as '0'.
     '''
+
     base_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/corellian_spike/triangle/'
 
     return [f'''{base_url}{quote(f'+{card}' if card > 0 else str(card))}.png''' for card in cards]
@@ -28,6 +29,7 @@ def download_and_process_image(url: str, resize_width: int, resize_height: int) 
     Download and resize an image, converting it to RGBA format.
     Returns the processed Image object or None on failure.
     '''
+
     try:
         response = requests.get(url, stream=True, timeout=5)
         response.raise_for_status()
@@ -43,6 +45,7 @@ def combine_card_images(card_image_urls: list[str], resize_width: int = 80, resi
     Combine multiple card images into a single horizontal image.
     Returns a BytesIO containing the combined PNG image.
     '''
+
     with ThreadPoolExecutor(max_workers=12) as executor:
         futures = [(i, executor.submit(download_and_process_image, url, resize_width, resize_height)) for i, url in enumerate(card_image_urls)]
         results = []
@@ -73,6 +76,7 @@ async def create_embed_with_cards(title: str, description: str, cards: list[int]
     Create an embed showing card images for the given hand.
     Returns an Embed and a File if images are available, else just an Embed.
     '''
+
     card_image_urls = get_card_image_urls(cards)
     image_bytes = None
     try:
@@ -105,6 +109,7 @@ class Player:
         Draw one card from the deck and add it to the player's hand.
         Raises ValueError if the deck is empty.
         '''
+
         if not deck:
             raise ValueError('The deck is empty. Cannot draw more cards.')
         card = deck.pop()
@@ -114,12 +119,14 @@ class Player:
         '''
         Return a formatted string of the player's cards with separators.
         '''
+
         return ' | ' + ' | '.join(f'''{('+' if c > 0 else '')}{c}''' for c in self.cards) + ' |'
 
     def get_total(self) -> int:
         '''
         Return the sum of the player's card values.
         '''
+
         return sum(self.cards)
 
 class CorelliaGameView(ui.View):
@@ -158,6 +165,7 @@ class CorelliaGameView(ui.View):
         '''
         Reset the lobby to initial state and update the lobby message.
         '''
+
         self.game_started = False
         self.players.clear()
         self.current_player_index = -1
@@ -190,6 +198,7 @@ class CorelliaGameView(ui.View):
         '''
         Send a message showing the current player's turn and card backs.
         '''
+
         if self.game_ended:
             return
 
@@ -245,6 +254,7 @@ class CorelliaGameView(ui.View):
         Update the lobby embed to show players, status, and start conditions.
         Reset if no players remain.
         '''
+
         if len(self.players) == 0:
             if interaction:
                 await self.reset_lobby(interaction)
@@ -290,6 +300,7 @@ class CorelliaGameView(ui.View):
         '''
         Add the user who clicked to the game if possible.
         '''
+
         user = interaction.user
         if self.game_started:
             await interaction.response.send_message('The game has already started.', ephemeral=True)
@@ -307,6 +318,7 @@ class CorelliaGameView(ui.View):
         '''
         Remove the user from the lobby if the game has not started yet.
         '''
+
         user = interaction.user
         if self.game_started:
             await interaction.response.send_message('You can\'t leave the game after it has started.', ephemeral=True)
@@ -323,6 +335,7 @@ class CorelliaGameView(ui.View):
         '''
         Start the game if conditions are met, deal cards, and proceed.
         '''
+
         if self.game_started:
             await interaction.response.send_message('The game has already started.', ephemeral=True)
             return
@@ -365,6 +378,7 @@ class CorelliaGameView(ui.View):
         '''
         Generate and return a shuffled deck of Corellian Spike Sabacc cards.
         '''
+
         deck = [i for i in range(1, 11) for _ in range(3)]
         deck += [-i for i in range(1, 11) for _ in range(3)]
         deck += [0, 0]
@@ -377,6 +391,7 @@ class CorelliaGameView(ui.View):
         '''
         Move to the next player's turn, or end the game if the final round is completed.
         '''
+
         if self.game_ended:
             return
 
@@ -398,6 +413,7 @@ class CorelliaGameView(ui.View):
         Evaluate a player's hand and return a tuple of sorting criteria, hand type, and total.
         Used for comparing final hands to determine the winner.
         '''
+
         cards = player.cards
         total = sum(cards)
 
@@ -540,6 +556,7 @@ class CorelliaGameView(ui.View):
         '''
         End the game, evaluate all hands, determine the winner(s), and show results.
         '''
+
         if self.game_ended:
             return
 
@@ -645,6 +662,7 @@ class EndGameView(ui.View):
         '''
         Create a new lobby and add the player who clicked as the first player.
         '''
+
         if self.play_again_clicked:
             await interaction.response.send_message('Play Again has already been initiated.', ephemeral=True)
             return
@@ -693,6 +711,7 @@ class PlayTurnButton(ui.Button):
         '''
         Show the current player's hand when they choose to play their turn.
         '''
+
         current_player = self.game_view.players[self.game_view.current_player_index]
         if interaction.user.id != current_player.user.id:
             await interaction.response.send_message('It\'s not your turn.', ephemeral=True)
@@ -743,6 +762,7 @@ class TurnView(ui.View):
         '''
         Ensure only the current player interacts with these options.
         '''
+
         if interaction.user.id != self.player.user.id:
             await interaction.response.send_message('It\'s not your turn.', ephemeral=True)
             return False
@@ -753,6 +773,7 @@ class TurnView(ui.View):
         '''
         Draw a card from the deck and end the current player's turn.
         '''
+
         await interaction.response.defer()
         self.player.draw_card(self.game_view.deck)
 
@@ -777,6 +798,7 @@ class TurnView(ui.View):
         '''
         Discard a card from the player's hand.
         '''
+
         if len(self.player.cards) <= 1:
             await interaction.response.send_message(
                 "You cannot discard when you have only one card.", ephemeral=True
@@ -816,6 +838,7 @@ class TurnView(ui.View):
         '''
         Replace one of the player's cards with a new draw.
         '''
+
         await interaction.response.defer()
         card_select_view = CardSelectView(self, action='replace')
 
@@ -840,6 +863,7 @@ class TurnView(ui.View):
         '''
         Stand without taking additional actions.
         '''
+
         await interaction.response.defer()
 
         title = f'You Chose to Stand | Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}'
@@ -864,6 +888,7 @@ class TurnView(ui.View):
         '''
         Junk your hand and leave the game.
         '''
+
         await interaction.response.defer()
 
         title = f'You Chose to Junk | Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}'
@@ -892,7 +917,7 @@ class CardSelectView(ui.View):
     '''
     A view for selecting a specific card from the player's hand for discard or replace.
     '''
-
+    
     def __init__(self, turn_view: TurnView, action: str):
         super().__init__(timeout=None)
         self.turn_view = turn_view
@@ -905,6 +930,7 @@ class CardSelectView(ui.View):
         '''
         Create a button for each card to select for discard/replace, plus a Go Back button.
         '''
+
         for idx, card in enumerate(self.player.cards):
             button_label = f'''{('+' if card > 0 else '')}{card}'''
             button = ui.Button(label=button_label, style=ButtonStyle.primary)
@@ -918,6 +944,7 @@ class CardSelectView(ui.View):
         '''
         Return a callback for the chosen card that handles the discard/replace action.
         '''
+
         async def callback(interaction: Interaction) -> None:
             await interaction.response.defer()
             if self.action == 'discard':
@@ -963,6 +990,7 @@ class CardSelectView(ui.View):
         '''
         Only the current player can select a card.
         '''
+
         if interaction.user.id != self.player.user.id:
             await interaction.response.send_message('This is not your card selection.', ephemeral=True)
             return False
@@ -981,6 +1009,7 @@ class GoBackButton(ui.Button):
         '''
         Return to the TurnView without discarding or replacing a card.
         '''
+
         await interaction.response.defer()
         turn_view = self.card_select_view.turn_view
 
@@ -1012,6 +1041,7 @@ class ViewRulesButton(ui.Button):
         '''
         Show the rules embed as an ephemeral message.
         '''
+        
         rules_embed = get_corellian_spike_rules_embed()
         await interaction.response.send_message(embed=rules_embed, ephemeral=True)
 

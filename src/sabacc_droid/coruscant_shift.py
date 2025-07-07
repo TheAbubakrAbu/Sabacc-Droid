@@ -26,6 +26,7 @@ class Card:
     Coruscant Shift card with suit (●, ▲, ■, Sylop) and value (−10..−1, 0, +1..+10).
     locked_in indicates it cannot be unselected in future rounds.
     '''
+
     def __init__(self, value: int, suit: str, locked_in: bool = False):
         self.value = value
         self.suit = suit
@@ -103,6 +104,7 @@ class CoruscantGameView(ui.View):
       - If solo_game=True and there's only one real player, we add Lando Calrissian AI at game end.
       - No extra public embed messages unless it's turn mention or final results mention.
     '''
+
     def __init__(
         self,
         rounds: int = 2,
@@ -156,6 +158,7 @@ class CoruscantGameView(ui.View):
         Updates the lobby embed with current players. 
         (Allowed to send embed here, since it's the game-lobby pre-start.)
         '''
+
         if not self.players:
             if interaction:
                 await self.reset_lobby(interaction)
@@ -199,6 +202,7 @@ class CoruscantGameView(ui.View):
         '''
         Resets the lobby if no players remain, or forcibly.
         '''
+
         self.players.clear()
         self.deck.clear()
         self.current_round = 1
@@ -313,6 +317,7 @@ class CoruscantGameView(ui.View):
         '''
         Move to next player's turn, or next round, or end game.
         '''
+
         if not self.game_started or self.game_ended:
             return
 
@@ -339,6 +344,7 @@ class CoruscantGameView(ui.View):
         '''
         Announces whose turn it is (mention + embed).
         '''
+
         desc = f'**Players:**\n'
         desc += '\n'.join(p.user.mention for p in self.players)
         desc += f'\n\n**Round {self.current_round}/{self.rounds}**\n'
@@ -393,6 +399,7 @@ class CoruscantGameView(ui.View):
         4) highest single positive card
         5) otherwise tie
         '''
+
         if self.game_ended:
             return
         self.game_ended = True
@@ -490,6 +497,7 @@ class TurnView(ui.View):
     '''
     Public ephemeral-later view with Play Turn + View Rules only
     '''
+
     def __init__(self, game_view: CoruscantGameView):
         super().__init__(timeout=None)
         self.game_view = game_view
@@ -500,6 +508,7 @@ class TurnButton(ui.Button):
     '''
     Play Turn ephemeral: shows your hand, toggles, confirm, junk, etc.
     '''
+
     def __init__(self, game_view: CoruscantGameView):
         super().__init__(label='Play Turn', style=ButtonStyle.primary)
         self.game_view = game_view
@@ -531,6 +540,7 @@ async def ephemeral_hand_embed(player: Player, game_view: CoruscantGameView, tog
     If a card is locked_in, we do not show a checkmark and do not allow unselecting.
     Also forbid the final scenario of 0 cards.
     '''
+
     if toggles is None:
         toggles = [True for _ in player.hand]
 
@@ -584,6 +594,7 @@ class EphemeralSelectView(ui.View):
     If a card is locked_in, we do not let you unselect it.
     Also cannot reduce total selected to 0.
     '''
+
     def __init__(self, game_view: CoruscantGameView, player: Player):
         super().__init__(timeout=None)
         self.game_view = game_view
@@ -739,6 +750,7 @@ class EndGameView(ui.View):
     End-of-game with Play Again + View Rules.
     No extra mention is done here (the mention was in end_game).
     '''
+
     def __init__(self, active_games, channel):
         super().__init__(timeout=None)
         self.active_games = active_games
@@ -777,6 +789,7 @@ class CoruscantShiftViewRulesButton(ui.Button):
     '''
     Button to show rules ephemeral
     '''
+    
     def __init__(self):
         super().__init__(label='View Rules', style=ButtonStyle.secondary)
 
