@@ -178,7 +178,7 @@ class TraditionalGameView(ui.View):
                 '• No set number of rounds\n'
                 '• Call Alderaan to end the game\n'
                 f'• {self.num_cards} starting cards\n'
-                f'• Discarding cards is {"enabled" if self.allow_discard else "disabled"}.\n\n'
+                f'• Discarding cards is {"enabled" if self.allow_discard else "disabled"}\n\n'
                 'Once someone joins, **Start Game** will be enabled.'
             ),
             color=0x7A9494
@@ -210,7 +210,7 @@ class TraditionalGameView(ui.View):
             '• No set number of rounds\n'
             '• Call Alderaan to end the game\n'
             f'• {self.num_cards} starting cards\n'
-            f'• Discarding cards is {"enabled" if self.allow_discard else "disabled"}.\n\n'
+            f'• Discarding cards is {"enabled" if self.allow_discard else "disabled"}\n\n'
         )
 
         if len(self.players) < 2:

@@ -125,7 +125,7 @@ class SabaccChoiceView(ui.View):
             '**Game Settings:**\n'
             '• 3 rounds\n'
             '• 2 starting cards\n'
-            f'• Discarding cards is {"enabled" if corellian_view.allow_discard else "disabled"}.\n\n'
+            f'• Discarding cards is {"enabled" if corellian_view.allow_discard else "disabled"}\n\n'
             'Once someone has joined, **Start Game** will be enabled.'
         )
         await _send_sabacc_lobby(
@@ -204,7 +204,7 @@ class SabaccChoiceView(ui.View):
             '• No set number of rounds\n'
             '• Call Alderaan to end the game\n'
             '• 2 starting cards\n'
-            f'• Discarding cards is {"enabled" if traditional_view.allow_discard else "disabled"}.\n\n'
+            f'• Discarding cards is {"enabled" if traditional_view.allow_discard else "disabled"}\n\n'
             'Once someone has joined, **Start Game** will be enabled.'
         )
         await _send_sabacc_lobby(
@@ -254,7 +254,7 @@ async def corellian_command(interaction: Interaction, rounds: int = 3, num_cards
         f'**Game Settings:**\n'
         f'• {rounds} rounds\n'
         f'• {num_cards} starting cards\n'
-        f'• Discarding cards is {"enabled" if view.allow_discard else "disabled"}.\n\n'
+        f'• Discarding cards is {"enabled" if view.allow_discard else "disabled"}\n\n'
         'Once someone has joined, the **Start Game** button will be enabled.'
     )
     await _send_sabacc_lobby(
@@ -351,7 +351,7 @@ async def traditional_command(interaction: Interaction, num_cards: int = 2) -> N
         f'• No set number of rounds\n'
         f'• Call Alderaan to end the game\n'
         f'• {num_cards} starting cards\n'
-        f'• Discarding cards is {"enabled" if view.allow_discard else "disabled"}.\n\n'
+        f'• Discarding cards is {"enabled" if view.allow_discard else "disabled"}\n\n'
         'Once someone has joined, the **Start Game** button will be enabled.'
     )
     await _send_sabacc_lobby(

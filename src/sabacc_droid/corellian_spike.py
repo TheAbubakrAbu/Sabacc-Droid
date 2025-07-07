@@ -177,7 +177,7 @@ class CorelliaGameView(ui.View):
                          f'**Game Settings:**\n'
                          f'• {self.rounds} rounds\n'
                          f'• {self.num_cards} starting cards\n'
-                         f'• Discarding cards is {"enabled" if self.allow_discard else "disabled"}.\n\n'
+                         f'• Discarding cards is {"enabled" if self.allow_discard else "disabled"}\n\n'
                          'Once someone has joined, **Start Game** will be enabled.'),
             color=0xCBB7A0
         )
@@ -260,7 +260,7 @@ class CorelliaGameView(ui.View):
             f'**Game Settings:**\n'
             f'• {self.rounds} rounds\n'
             f'• {self.num_cards} starting cards\n'
-            f'• Discarding cards is {"enabled" if self.allow_discard else "disabled"}.\n\n'
+            f'• Discarding cards is {"enabled" if self.allow_discard else "disabled"}\n\n'
         )
 
         if len(self.players) < 2:
@@ -734,14 +734,8 @@ class TurnView(ui.View):
         self.game_view = game_view
         self.player = player
 
-        self.add_item(self.draw_card_button)
-        
-        if game_view.allow_discard:
-            self.add_item(self.discard_card_button)
-
-        self.add_item(self.replace_card_button)
-        self.add_item(self.stand_button)
-        self.add_item(self.junk_button)
+        if not game_view.allow_discard:
+            self.remove_item(self.discard_card_button)
 
     async def interaction_check(self, interaction: Interaction) -> bool:
         '''
