@@ -124,7 +124,8 @@ class SabaccChoiceView(ui.View):
             'Click **Join Game** to join.\n\n'
             '**Game Settings:**\n'
             '• 3 rounds\n'
-            '• 2 starting cards\n\n'
+            '• 2 starting cards\n'
+            f'• Discarding cards is {"enabled" if corellian_view.allow_discard else "disabled"}.\n\n'
             'Once someone has joined, **Start Game** will be enabled.'
         )
         await _send_sabacc_lobby(
@@ -202,7 +203,8 @@ class SabaccChoiceView(ui.View):
             '**Game Settings:**\n'
             '• No set number of rounds\n'
             '• Call Alderaan to end the game\n'
-            '• 2 starting cards\n\n'
+            '• 2 starting cards\n'
+            f'• Discarding cards is {"enabled" if traditional_view.allow_discard else "disabled"}.\n\n'
             'Once someone has joined, **Start Game** will be enabled.'
         )
         await _send_sabacc_lobby(
@@ -251,7 +253,8 @@ async def corellian_command(interaction: Interaction, rounds: int = 3, num_cards
         'Click **Join Game** to join the game.\n\n'
         f'**Game Settings:**\n'
         f'• {rounds} rounds\n'
-        f'• {num_cards} starting cards\n\n'
+        f'• {num_cards} starting cards\n'
+        f'• Discarding cards is {"enabled" if view.allow_discard else "disabled"}.\n\n'
         'Once someone has joined, the **Start Game** button will be enabled.'
     )
     await _send_sabacc_lobby(
@@ -337,13 +340,18 @@ async def traditional_command(interaction: Interaction, num_cards: int = 2) -> N
     '''Initiate a new Traditional Sabacc game with optional custom settings.'''
     num_cards = max(1, min(num_cards, 5))
 
-    view = TraditionalGameView(num_cards=num_cards, active_games=active_games, channel=interaction.channel)
+    view = TraditionalGameView(
+        num_cards=num_cards,
+        active_games=active_games,
+        channel=interaction.channel
+    )
     desc = (
         'Click **Join Game** to join.\n\n'
         '**Game Settings:**\n'
         f'• No set number of rounds\n'
         f'• Call Alderaan to end the game\n'
-        f'• {num_cards} starting cards\n\n'
+        f'• {num_cards} starting cards\n'
+        f'• Discarding cards is {"enabled" if view.allow_discard else "disabled"}.\n\n'
         'Once someone has joined, the **Start Game** button will be enabled.'
     )
     await _send_sabacc_lobby(

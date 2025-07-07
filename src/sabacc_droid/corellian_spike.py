@@ -143,8 +143,14 @@ class CorelliaGameView(ui.View):
         self.active_games = active_games if active_games is not None else []
         self.solo_game = False
         self.channel = channel
+
         self.view_rules_button = ViewRulesButton()
         self.add_item(self.view_rules_button)
+
+        self.allow_discard = False
+        self.discard_toggle_button = DiscardToggleButton(self)
+        self.add_item(self.discard_toggle_button)
+
         self.game_ended = False
         self.message = None
 
@@ -170,7 +176,8 @@ class CorelliaGameView(ui.View):
             description=('Click **Join Game** to join the game!\n\n'
                          f'**Game Settings:**\n'
                          f'• {self.rounds} rounds\n'
-                         f'• {self.num_cards} starting cards\n\n'
+                         f'• {self.num_cards} starting cards\n'
+                         f'• Discarding cards is {"enabled" if self.allow_discard else "disabled"}.\n\n'
                          'Once someone has joined, **Start Game** will be enabled.'),
             color=0xCBB7A0
         )
@@ -252,7 +259,8 @@ class CorelliaGameView(ui.View):
         description += (
             f'**Game Settings:**\n'
             f'• {self.rounds} rounds\n'
-            f'• {self.num_cards} starting cards\n\n'
+            f'• {self.num_cards} starting cards\n'
+            f'• Discarding cards is {"enabled" if self.allow_discard else "disabled"}.\n\n'
         )
 
         if len(self.players) < 2:
@@ -726,6 +734,15 @@ class TurnView(ui.View):
         self.game_view = game_view
         self.player = player
 
+        self.add_item(self.draw_card_button)
+        
+        if game_view.allow_discard:
+            self.add_item(self.discard_card_button)
+
+        self.add_item(self.replace_card_button)
+        self.add_item(self.stand_button)
+        self.add_item(self.junk_button)
+
     async def interaction_check(self, interaction: Interaction) -> bool:
         '''
         Ensure only the current player interacts with these options.
@@ -990,3 +1007,25 @@ class ViewRulesButton(ui.Button):
         '''
         rules_embed = get_corellian_spike_rules_embed()
         await interaction.response.send_message(embed=rules_embed, ephemeral=True)
+
+class DiscardToggleButton(ui.Button):
+    '''
+    A toggle button for enabling/disabling discarding in Corellian Spike.
+    '''
+
+    def __init__(self, game_view):
+        self.game_view = game_view
+        super().__init__(
+            label='Discard Cards: Off',
+            style=ButtonStyle.secondary
+        )
+
+    async def callback(self, interaction: Interaction) -> None:
+        '''
+        Toggle discard on/off and update the button + embed.
+        '''
+        
+        self.game_view.allow_discard = not self.game_view.allow_discard
+        self.label = 'Discard Cards: On' if self.game_view.allow_discard else 'Discard Cards: Off'
+
+        await self.game_view.update_lobby_embed(interaction)

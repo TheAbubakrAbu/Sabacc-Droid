@@ -141,6 +141,10 @@ class TraditionalGameView(ui.View):
         self.view_rules_button = ViewRulesButton()
         self.add_item(self.view_rules_button)
 
+        self.allow_discard = False
+        self.discard_toggle_button = DiscardToggleButton(self)
+        self.add_item(self.discard_toggle_button)
+
         self.message = None
 
         self.round = 1
@@ -173,7 +177,8 @@ class TraditionalGameView(ui.View):
                 '**Game Settings:**\n'
                 '• No set number of rounds\n'
                 '• Call Alderaan to end the game\n'
-                f'• {self.num_cards} starting cards\n\n'
+                f'• {self.num_cards} starting cards\n'
+                f'• Discarding cards is {"enabled" if self.allow_discard else "disabled"}.\n\n'
                 'Once someone joins, **Start Game** will be enabled.'
             ),
             color=0x7A9494
@@ -204,7 +209,8 @@ class TraditionalGameView(ui.View):
             '**Game Settings:**\n'
             '• No set number of rounds\n'
             '• Call Alderaan to end the game\n'
-            f'• {self.num_cards} starting cards\n\n'
+            f'• {self.num_cards} starting cards\n'
+            f'• Discarding cards is {"enabled" if self.allow_discard else "disabled"}.\n\n'
         )
 
         if len(self.players) < 2:
@@ -613,9 +619,15 @@ class TurnView(ui.View):
         self.draw_card_button.callback = self.draw_card_callback
         self.add_item(self.draw_card_button)
 
+        if self.game_view.allow_discard:
+            self.discard_card_button = ui.Button(label='Discard Card', style=ButtonStyle.secondary)
+            self.discard_card_button.callback = self.discard_card_callback
+            self.add_item(self.discard_card_button)
+
         self.replace_card_button = ui.Button(label='Replace Card', style=ButtonStyle.secondary)
         self.replace_card_button.callback = self.replace_card_callback
         self.add_item(self.replace_card_button)
+
 
         self.stand_button = ui.Button(label='Stand', style=ButtonStyle.success)
         self.stand_button.callback = self.stand_callback
@@ -666,6 +678,29 @@ class TurnView(ui.View):
 
         self.stop()
         await self.game_view.proceed_to_next_player()
+
+    async def discard_card_callback(self, interaction: Interaction):
+        '''
+        Let the player discard a card from their hand.
+        '''
+        if len(self.player.cards) <= 1:
+            await interaction.response.send_message('You cannot discard when you have only one card.', ephemeral=True)
+            return
+
+        await interaction.response.defer()
+        card_select_view = CardSelectView(self, 'discard')
+
+        title = f'Discard a Card | Round {self.game_view.round}'
+        description = (f'**Your Hand:** {self.player.get_cards_string()}\n'
+                    f'**Total:** {self.player.get_total()}\n\n'
+                    'Click the card you want to discard.')
+
+        embed, file = await create_embed_with_cards(title, description, self.player.cards)
+
+        if file:
+            await interaction.followup.edit_message(interaction.message.id, embed=embed, view=card_select_view, attachments=[file])
+        else:
+            await interaction.followup.edit_message(interaction.message.id, embed=embed, view=card_select_view)
 
     async def replace_card_callback(self, interaction: Interaction):
         '''
@@ -810,7 +845,11 @@ class CardSelectView(ui.View):
         '''
         async def callback(interaction: Interaction) -> None:
             await interaction.response.defer()
-            if self.action == 'replace':
+            if self.action == 'discard':
+                discarded = self.player.cards.pop(card_index)
+                title = f'You Discarded {discarded} | Round {self.game_view.round}'
+                description = f'**Your Hand:** {self.player.get_cards_string()}\n**Total:** {self.player.get_total()}'
+            elif self.action == 'replace':
                 old_card = self.player.cards.pop(card_index)
                 self.game_view.deck.insert(0, old_card)
                 try:
@@ -899,3 +938,23 @@ class ViewRulesButton(ui.Button):
         '''
         rules_embed = get_traditional_rules_embed()
         await interaction.response.send_message(embed=rules_embed, ephemeral=True)
+
+class DiscardToggleButton(ui.Button):
+    '''
+    A toggle button for enabling/disabling discarding in Traditional.
+    '''
+    def __init__(self, game_view):
+        self.game_view = game_view
+        super().__init__(
+            label='Discard Cards: Off',
+            style=ButtonStyle.secondary
+        )
+
+    async def callback(self, interaction: Interaction) -> None:
+        '''
+        Toggle discard on/off and update the button + embed.
+        '''
+        self.game_view.allow_discard = not self.game_view.allow_discard
+        self.label = 'Discard Cards: On' if self.game_view.allow_discard else 'Discard Cards: Off'
+
+        await self.game_view.update_lobby_embed(interaction)
