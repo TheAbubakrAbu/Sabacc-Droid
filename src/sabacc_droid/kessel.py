@@ -15,7 +15,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def download_and_process_image(url: str, resize_width: int = 80, resize_height: int = 120) -> Image.Image:
-    '''Download an image and resize it.'''
+    '''
+    Download an image and resize it.
+    '''
+
     try:
         response = requests.get(url, stream=True, timeout=5)
         response.raise_for_status()
@@ -27,7 +30,10 @@ def download_and_process_image(url: str, resize_width: int = 80, resize_height: 
         return None
 
 def combine_card_images(card_image_urls: list[str], resize_width: int = 80, resize_height: int = 120, padding: int = 10) -> BytesIO|None:
-    '''Combine multiple card images horizontally into a single image while preserving order.'''
+    '''
+    Combine multiple card images horizontally into a single image while preserving order.
+    '''
+
     if not card_image_urls:
         return None
 
@@ -58,12 +64,11 @@ def combine_card_images(card_image_urls: list[str], resize_width: int = 80, resi
     return image_bytes
 
 class Player:
-    '''Represents a player in the Kessel Sabacc game.'''
+    '''
+    Represents a player in the Kessel Sabacc game.
+    '''
 
     def __init__(self, user: discord.User) -> None:
-        '''
-        Initialize the player with a Discord User.
-        '''
         self.user = user
         self.positive_card = None
         self.negative_card = None
@@ -76,6 +81,7 @@ class Player:
         '''
         Draw a card from the specified deck and store it temporarily.
         '''
+
         if not deck:
             raise ValueError('The deck is empty. Cannot draw more cards.')
         card = deck.pop()
@@ -86,6 +92,7 @@ class Player:
         '''
         Discard the temporarily stored drawn card.
         '''
+
         self.drawn_card = None
         self.drawn_card_type = None
 
@@ -93,6 +100,7 @@ class Player:
         '''
         Get a string representation of the player's hand.
         '''
+
         def card_to_str(card: int|str, sign: str) -> str:
             if card == 'Impostor':
                 value = self.impostor_values.get(sign)
@@ -124,6 +132,7 @@ class Player:
         '''
         Calculate the total sum of the player's hand.
         '''
+
         positive_value = self.positive_card_value()
         negative_value = self.negative_card_value()
 
@@ -135,6 +144,7 @@ class Player:
         '''
         Get the value of the positive card.
         '''
+
         if self.positive_card == 'Impostor':
             return self.impostor_values.get('+', 0)
         elif self.positive_card == 'Sylop':
@@ -146,6 +156,7 @@ class Player:
         '''
         Get the value of the negative card.
         '''
+
         if self.negative_card == 'Impostor':
             return self.impostor_values.get('-', 0)
         elif self.negative_card == 'Sylop':
@@ -157,6 +168,7 @@ class Player:
         '''
         Get the URLs for the player's cards images.
         '''
+
         base_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/'
         card_image_urls = []
 
@@ -208,6 +220,7 @@ class Player:
         '''
         Return the display string for a card, using symbols if necessary.
         '''
+
         if card == 'Impostor':
             return 'Ψ'
         elif card == 'Sylop':
@@ -218,12 +231,11 @@ class Player:
             return str(card)
 
 class KesselGameView(ui.View):
-    '''Manages the game state and user interactions for Kessel Sabacc.'''
+    '''
+    Manages the game state and user interactions for Kessel Sabacc.
+    '''
 
     def __init__(self, rounds: int=3, active_games: list=None, channel=None) -> None:
-        '''
-        Initialize the game view with game settings.
-        '''
         super().__init__(timeout=None)
         self.players: list[Player] = []
         self.game_started = False
@@ -243,6 +255,7 @@ class KesselGameView(ui.View):
         '''
         Reset the game lobby to its initial state.
         '''
+
         self.game_started = False
         self.players.clear()
         self.current_player_index = -1
@@ -269,10 +282,10 @@ class KesselGameView(ui.View):
         '''
         Update the game embed to reflect the current player's turn.
         '''
+
         current_player = self.players[self.current_player_index]
 
-        description = f'**Players:**\n' + '\n'.join(
-            player.user.mention for player in self.players) + '\n\n'
+        description = f'**Players:**\n' + '\n'.join(player.user.mention for player in self.players) + '\n\n'
         description += f'**Round {self.rounds_completed + 1}/{self.rounds}**\n'
         description += f'It\'s now {current_player.user.mention}\'s turn.\n'
         description += 'Click **Play Turn** to proceed.\n\n'
@@ -313,6 +326,7 @@ class KesselGameView(ui.View):
         '''
         Update the lobby embed with the current list of players and custom settings.
         '''
+
         if len(self.players) == 0:
             if interaction:
                 await self.reset_lobby(interaction)
@@ -362,6 +376,7 @@ class KesselGameView(ui.View):
         '''
         Add the user to the game when they press Join Game.
         '''
+        
         user = interaction.user
         if self.game_started:
             await interaction.response.send_message('The game has already started.', ephemeral=True)
@@ -379,6 +394,7 @@ class KesselGameView(ui.View):
         '''
         Remove the user from the game when they press Leave Game.
         '''
+        
         user = interaction.user
         if self.game_started:
             await interaction.response.send_message('You can\'t leave the game after it has started.', ephemeral=True)
@@ -395,6 +411,7 @@ class KesselGameView(ui.View):
         '''
         Start the game when the Start Game button is pressed.
         '''
+
         if self.game_started:
             await interaction.response.send_message('The game has already started.', ephemeral=True)
             return
@@ -431,6 +448,7 @@ class KesselGameView(ui.View):
         '''
         Generate and shuffle new decks for the game.
         '''
+        
         positive_deck = [i for i in range(1, 7) for _ in range(3)]
         positive_deck += ['Impostor'] * 3
         positive_deck += ['Sylop']
@@ -451,6 +469,7 @@ class KesselGameView(ui.View):
         '''
         Proceed to the next player's turn or end the round if necessary.
         '''
+
         self.current_player_index = (self.current_player_index + 1) % len(self.players)
 
         if self.current_player_index == 0 and not self.first_turn:
@@ -468,6 +487,7 @@ class KesselGameView(ui.View):
         '''
         Evaluate a player's hand to determine its rank and type.
         '''
+
         positive_value = player.positive_card_value()
         negative_value = player.negative_card_value()
 
@@ -508,6 +528,7 @@ class KesselGameView(ui.View):
         '''
         Determine the winner of the game and end it.
         '''
+
         players_with_impostors = [player for player in self.players if 'Impostor' in (player.positive_card, player.negative_card)]
 
         if players_with_impostors:
@@ -524,6 +545,7 @@ class KesselGameView(ui.View):
         '''
         Assign values to Sylop cards after Impostor values have been assigned.
         '''
+
         for player in self.players:
             if player.positive_card == 'Sylop' and player.negative_card == 'Sylop':
                 player.sylop_values['+'] = 0
@@ -539,6 +561,7 @@ class KesselGameView(ui.View):
         '''
         Evaluate hands and display the game over screen.
         '''
+
         if self.solo_game and not hasattr(self, 'ai_player_added'):
             lando_user = type('AIUser', (object,), {'mention': 'Lando Calrissian AI', 'name': 'Lando Calrissian AI'})
             lando = Player(user=lando_user())
@@ -622,12 +645,11 @@ class KesselGameView(ui.View):
             self.active_games.remove(self)
 
 class EndGameView(ui.View):
-    '''Provide buttons for actions after the game ends.'''
+    '''
+    Provide buttons for actions after the game ends.
+    '''
 
     def __init__(self, rounds: int, active_games: list, channel) -> None:
-        '''
-        Initialize the view with a Play Again button and a View Rules button.
-        '''
         super().__init__(timeout=None)
         self.rounds = rounds
         self.active_games = active_games
@@ -643,6 +665,7 @@ class EndGameView(ui.View):
         '''
         Handle the Play Again button press.
         '''
+        
         if self.play_again_clicked:
             await interaction.response.send_message('Play Again has already been initiated.', ephemeral=True)
             return
@@ -659,12 +682,11 @@ class EndGameView(ui.View):
         self.active_games.append(new_game_view)
 
 class PlayTurnView(ui.View):
-    '''View for the player to start their turn.'''
+    '''
+    View for the player to start their turn.
+    '''
 
     def __init__(self, game_view: KesselGameView) -> None:
-        '''
-        Initialize the play turn view.
-        '''
         super().__init__(timeout=None)
         self.game_view = game_view
         self.play_turn_button = PlayTurnButton(game_view)
@@ -672,12 +694,11 @@ class PlayTurnView(ui.View):
         self.add_item(ViewRulesButton())
 
 class PlayTurnButton(ui.Button):
-    '''Button for the player to begin their turn.'''
+    '''
+    Button for the player to begin their turn.
+    '''
 
     def __init__(self, game_view: KesselGameView) -> None:
-        '''
-        Initialize the play turn button.
-        '''
         super().__init__(label='Play Turn', style=discord.ButtonStyle.primary)
         self.game_view = game_view
 
@@ -685,6 +706,7 @@ class PlayTurnButton(ui.Button):
         '''
         Handle the Play Turn button press.
         '''
+
         current_player = self.game_view.players[self.game_view.current_player_index]
         if interaction.user.id != current_player.user.id:
             await interaction.response.send_message('It\'s not your turn.', ephemeral=True)
@@ -711,6 +733,7 @@ async def send_embed_with_hand(player: Player, title: str, description: str, inc
     '''
     Prepare the embed (and image file if any) for the player's hand, but do not send it yet.
     '''
+
     card_image_urls = player.get_card_image_urls(include_drawn_card=include_drawn_card, include_both_positive_cards=include_both_positive_cards)
     files = []
 
@@ -747,12 +770,11 @@ async def send_embed_with_hand(player: Player, title: str, description: str, inc
     return embed, files
 
 class TurnView(ui.View):
-    '''Provide action buttons for the player's turn.'''
+    '''
+    Provide action buttons for the player's turn.
+    '''
 
     def __init__(self, game_view: KesselGameView, player: Player) -> None:
-        '''
-        Initialize the turn view.
-        '''
         super().__init__(timeout=None)
         self.game_view = game_view
         self.player = player
@@ -777,6 +799,7 @@ class TurnView(ui.View):
         '''
         Ensure that only the current player can interact with this view.
         '''
+
         if interaction.user.id != self.player.user.id:
             await interaction.response.send_message('It\'s not your turn.', ephemeral=True)
             return False
@@ -894,12 +917,11 @@ class TurnView(ui.View):
         super().stop()
 
 class DiscardCardView(ui.View):
-    '''Provide buttons to choose which card to keep after drawing.'''
+    '''
+    Provide buttons to choose which card to keep after drawing.
+    '''
 
     def __init__(self, game_view: KesselGameView, player: Player) -> None:
-        '''
-        Initialize the discard card view.
-        '''
         super().__init__(timeout=None)
         self.game_view = game_view
         self.player = player
@@ -976,12 +998,11 @@ class DiscardCardView(ui.View):
         super().stop()
 
 class ChooseImpostorValueView(ui.View):
-    '''View for players to choose their Impostor card values.'''
+    '''
+    View for players to choose their Impostor card values.
+    '''
 
     def __init__(self, game_view: KesselGameView, player: Player) -> None:
-        '''
-        Initialize the view.
-        '''
         super().__init__(timeout=None)
         self.game_view = game_view
         self.player = player
@@ -1062,7 +1083,9 @@ class ChooseImpostorValueView(ui.View):
         super().stop()
 
 class ViewRulesButton(ui.Button):
-    '''Button to view the game rules.'''
+    '''
+    Button to view the game rules.
+    '''
 
     def __init__(self) -> None:
         super().__init__(label='View Rules', style=discord.ButtonStyle.secondary)

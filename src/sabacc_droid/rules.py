@@ -35,7 +35,7 @@ sabacc_footer = 'The Star Wars card game'
 
 def get_comparison_embed() -> Embed:
     '''
-    Create an embed comparing Corellian Spike, Kessel, Coruscant Shift, and Traditional Sabacc game modes.
+    Create an embed comparing Corellian Spike, Coruscant Shift, Kessel, and Traditional Sabacc game modes.
     '''
 
     comparison_embed = Embed(
@@ -178,8 +178,7 @@ coruscant_footer = 'As seen on the Halcyon at Galactic Starcruiser'
 
 def get_coruscant_shift_rules_embed() -> Embed:
     '''
-    Create an embed containing the Coruscant Shift Sabacc game rules,
-    formatted similarly to Corellian Spike and Kessel.
+    Create an embed containing the Coruscant Shift Sabacc game rules.
     '''
 
     rules_embed = Embed(
