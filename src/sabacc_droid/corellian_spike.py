@@ -734,8 +734,10 @@ class TurnView(ui.View):
         self.game_view = game_view
         self.player = player
 
-        if not game_view.allow_discard:
-            self.remove_item(self.discard_card_button)
+        if game_view.allow_discard:
+            discard_button = ui.Button(label="Discard Card", style=ButtonStyle.secondary)
+            discard_button.callback = self.discard_card_button_callback
+            self.add_item(discard_button)
 
     async def interaction_check(self, interaction: Interaction) -> bool:
         '''
@@ -771,32 +773,43 @@ class TurnView(ui.View):
         self.stop()
         await self.game_view.proceed_to_next_player()
 
-    @ui.button(label='Discard Card', style=ButtonStyle.secondary)
-    async def discard_card_button(self, interaction: Interaction, button: ui.Button):
+    async def discard_card_button_callback(self, interaction: Interaction):
         '''
         Discard a card from the player's hand.
         '''
         if len(self.player.cards) <= 1:
-            await interaction.response.send_message('You cannot discard when you have only one card.', ephemeral=True)
+            await interaction.response.send_message(
+                "You cannot discard when you have only one card.", ephemeral=True
+            )
             return
+
         await interaction.response.defer()
 
-        card_select_view = CardSelectView(self, action='discard')
-        title = f'Discard a Card | Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}'
-        description = (f'**Your Hand:** {self.player.get_cards_string()}\n'
-                       f'**Total:** {self.player.get_total()}\n\n'
-                       'Click the button corresponding to the card you want to discard.')
+        card_select_view = CardSelectView(self, action="discard")
 
-        embed, file = await create_embed_with_cards(
-            title=title,
-            description=description,
-            cards=self.player.cards,
+        title = (
+            f"Discard a Card | Round {self.game_view.rounds_completed}/"
+            f"{self.game_view.total_rounds}"
+        )
+        description = (
+            f"**Your Hand:** {self.player.get_cards_string()}\n"
+            f"**Total:** {self.player.get_total()}\n\n"
+            "Click the button corresponding to the card you want to discard."
         )
 
+        embed, file = await create_embed_with_cards(title, description, self.player.cards)
+
         if file:
-            await interaction.followup.edit_message(interaction.message.id, embed=embed, view=card_select_view, attachments=[file])
+            await interaction.followup.edit_message(
+                interaction.message.id,
+                embed=embed,
+                view=card_select_view,
+                attachments=[file],
+            )
         else:
-            await interaction.followup.edit_message(interaction.message.id, embed=embed, view=card_select_view)
+            await interaction.followup.edit_message(
+                interaction.message.id, embed=embed, view=card_select_view
+            )
 
     @ui.button(label='Replace Card', style=ButtonStyle.secondary)
     async def replace_card_button(self, interaction: Interaction, button: ui.Button):
