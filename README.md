@@ -9,15 +9,13 @@ Welcome to the **Sabacc Droid**! This project brings the classic Star Wars card 
 
 Experience the thrill of Sabacc as seen in _Galaxy's Edge_, _Solo: A Star Wars Story_, _Star Wars Outlaws_, and _Star Wars: Rebels_.
 
+Created by **Abubakr Elmallah** on **November 14, 2024**.
+
 [**Add Sabacc Droid to Your Server**](https://discord.ly/sabacc-droid)
 
 <a href="https://discord.ly/sabacc-droid">
   <img src="logo.png" alt="Logo" width="120" style="border-radius:10px;"/>
 </a>
-
-Created by **Abubakr Elmallah** on **November 14, 2024**.
-
----
 
 ## Features
 
@@ -39,8 +37,6 @@ Created by **Abubakr Elmallah** on **November 14, 2024**.
   - **[Traditional Sabacc](https://starwars.fandom.com/wiki/Sabacc)** – Featured in *Star Wars: Rebels*, including a high-stakes game aiming for a total of **+23 or -23**.
 - **Rulebook Access**: View game rules directly in Discord for all variants.
 
----
-
 ## Getting Started
 
 ### Console Version
@@ -56,8 +52,6 @@ Created by **Abubakr Elmallah** on **November 14, 2024**.
 
 - **Add the Bot to Your Server**: [Invite Link](https://discord.ly/sabaac-droid)
 - If you want to make your own Discord Sabacc bot, watch this video: https://www.youtube.com/watch?v=UYJDKSah-Ww&t=330s, then replace the `.py` files you created with the modules in `src`.
-
----
 
 ## Game Rules & Variations
 
@@ -109,15 +103,11 @@ For more details on Sabacc rules, card designs, and gameplay resources, visit **
   - **Natural Sabacc (+23/-23)** beats all except Idiot’s Array.
   - **Fairy Empress (-2, -2, totaling -22)** beats a normal 22 but loses to Sabacc hands.
 
----
-
 ## Privacy & Data
 
 **Sabacc Droid** respects your privacy:
 - **No Personal Data Collected** – Only temporary game data is stored.
 - **Secure & Compliant** – Fully adheres to Discord’s Terms of Service and Privacy Policy.
-
----
 
 ## License
 
