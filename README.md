@@ -11,6 +11,10 @@ Experience the thrill of Sabacc as seen in _Galaxy's Edge_, _Solo: A Star Wars S
 
 [**Add Sabacc Droid to Your Server**](https://discord.ly/sabacc-droid)
 
+<a href="https://discord.ly/sabacc-droid">
+  <img src="logo.png" alt="Logo" width="120" style="border-radius:10px;"/>
+</a>
+
 Created by **Abubakr Elmallah** on **November 14, 2024**.
 
 ---
