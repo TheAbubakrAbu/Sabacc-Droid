@@ -524,10 +524,32 @@ class KesselGameView(ui.View):
 
         return (hand_rank, *tie_breakers), hand_type, total
 
+    def _add_ai_if_needed(self) -> None:
+        if self.solo_game and not hasattr(self, 'ai_player_added'):
+            lando_user = type('AIUser', (object,), {'mention': 'Lando Calrissian AI', 'name': 'Lando Calrissian AI'})
+            lando = Player(user=lando_user())
+
+            non_impostor_positive_cards = [card for card in self.positive_deck if card != 'Impostor']
+            lando.positive_card = (random.choice(non_impostor_positive_cards)
+                                if non_impostor_positive_cards else random.randint(1, 6))
+            if non_impostor_positive_cards:
+                self.positive_deck.remove(lando.positive_card)
+
+            non_impostor_negative_cards = [card for card in self.negative_deck if card != 'Impostor']
+            lando.negative_card = (random.choice(non_impostor_negative_cards)
+                                if non_impostor_negative_cards else -random.randint(1, 6))
+            if non_impostor_negative_cards:
+                self.negative_deck.remove(lando.negative_card)
+
+            self.players.append(lando)
+            self.ai_player_added = True
+
     async def end_game(self) -> None:
         '''
         Determine the winner of the game and end it.
         '''
+
+        self._add_ai_if_needed()
 
         players_with_impostors = [player for player in self.players if 'Impostor' in (player.positive_card, player.negative_card)]
 
@@ -561,29 +583,6 @@ class KesselGameView(ui.View):
         '''
         Evaluate hands and display the game over screen.
         '''
-
-        if self.solo_game and not hasattr(self, 'ai_player_added'):
-            lando_user = type('AIUser', (object,), {'mention': 'Lando Calrissian AI', 'name': 'Lando Calrissian AI'})
-            lando = Player(user=lando_user())
-
-            non_impostor_positive_cards = [card for card in self.positive_deck if card != 'Impostor']
-            if not non_impostor_positive_cards:
-                lando.positive_card = random.randint(1, 6)
-            else:
-                lando_positive_card = random.choice(non_impostor_positive_cards)
-                self.positive_deck.remove(lando_positive_card)
-                lando.positive_card = lando_positive_card
-
-            non_impostor_negative_cards = [card for card in self.negative_deck if card != 'Impostor']
-            if not non_impostor_negative_cards:
-                lando.negative_card = -random.randint(1, 6)
-            else:
-                lando_negative_card = random.choice(non_impostor_negative_cards)
-                self.negative_deck.remove(lando_negative_card)
-                lando.negative_card = lando_negative_card
-
-            self.players.append(lando)
-            self.ai_player_added = True
 
         if not self.players:
             embed = Embed(
