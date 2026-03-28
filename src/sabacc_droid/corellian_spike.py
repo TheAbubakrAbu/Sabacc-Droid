@@ -417,12 +417,11 @@ class CorelliaGameView(ui.View):
         cards = player.cards
         total = sum(cards)
 
+        # Count occurrences for hand detection
         counts = {}
-        for card in cards:
-            counts[card] = counts.get(card, 0) + 1
-
         abs_counts = {}
         for card in cards:
+            counts[card] = counts.get(card, 0) + 1
             abs_card = abs(card)
             abs_counts[abs_card] = abs_counts.get(abs_card, 0) + 1
 
@@ -437,7 +436,6 @@ class CorelliaGameView(ui.View):
 
         zeros = counts.get(0, 0)
         positive_cards = [c for c in cards if c > 0]
-
         pairs = [v for v, c in abs_counts.items() if c >= 2]
         trips = [v for v, c in abs_counts.items() if c >= 3]
         quads = [v for v, c in abs_counts.items() if c >= 4]
@@ -450,91 +448,61 @@ class CorelliaGameView(ui.View):
         hand_rank = None
         tie_breakers = []
 
+        # Hand ranking and tiebreakers
         if total == 0:
             if zeros == 2 and len(cards) == 2:
                 hand_type = 'Pure Sabacc'
                 hand_rank = 1
                 tie_breakers = []
-
             elif zeros >= 2:
                 hand_type = 'Sarlacc Sabacc'
                 hand_rank = 2
                 tie_breakers = []
-
             elif sorted(cards) == [-10, -10, 0, 10, 10]:
                 hand_type = 'Full Sabacc'
                 hand_rank = 3
                 tie_breakers = []
-
             elif zeros == 1 and has_four_of_a_kind():
                 hand_type = 'Fleet'
                 hand_rank = 4
-                if lowest_quad_value is not None:
-                    tie_breakers = [lowest_quad_value]
-                else:
-                    tie_breakers = [min(abs(c) for c in cards if c != 0)]
-
+                tie_breakers = [lowest_quad_value if lowest_quad_value is not None else min(abs(c) for c in cards if c != 0)]
             elif zeros == 1 and has_two_pairs():
                 hand_type = 'Twin Sun'
                 hand_rank = 5
-                if len(pairs) >= 2:
-                    tie_breakers = [min(pairs)]
-                else:
-                    tie_breakers = [min(abs(c) for c in cards if c != 0)]
-
+                tie_breakers = [min(pairs) if len(pairs) >= 2 else min(abs(c) for c in cards if c != 0)]
             elif zeros == 1 and len(cards) == 3 and any(c >= 2 for v, c in abs_counts.items() if v != 0):
                 hand_type = 'Yee-Ha'
                 hand_rank = 6
-                if lowest_pair_value is not None:
-                    tie_breakers = [lowest_pair_value]
-                else:
-                    tie_breakers = [min(abs(c) for c in cards if c != 0)]
-
+                tie_breakers = [lowest_pair_value if lowest_pair_value is not None else min(abs(c) for c in cards if c != 0)]
             elif zeros == 1 and any(c >= 2 for v, c in abs_counts.items() if v != 0):
                 hand_type = 'Kessel Run'
                 hand_rank = 7
-                if lowest_pair_value is not None:
-                    tie_breakers = [lowest_pair_value]
-                else:
-                    tie_breakers = [min(abs(c) for c in cards if c != 0)]
-
+                tie_breakers = [lowest_pair_value if lowest_pair_value is not None else min(abs(c) for c in cards if c != 0)]
             elif has_four_of_a_kind():
                 hand_type = 'Squadron'
                 hand_rank = 8
-                if lowest_quad_value is not None:
-                    tie_breakers = [lowest_quad_value]
-                else:
-                    tie_breakers = [min(abs(c) for c in cards)]
-
+                tie_breakers = [lowest_quad_value if lowest_quad_value is not None else min(abs(c) for c in cards)]
             elif has_three_of_a_kind():
-                hand_type = 'Bantha\'s Wild'
+                hand_type = "Bantha's Wild"
                 hand_rank = 9
-                if lowest_trip_value is not None:
-                    tie_breakers = [lowest_trip_value]
-                else:
-                    tie_breakers = [min(abs(c) for c in cards)]
-
+                tie_breakers = [lowest_trip_value if lowest_trip_value is not None else min(abs(c) for c in cards)]
             elif has_two_pairs():
                 hand_type = 'Rule of Two'
                 hand_rank = 10
-                if len(pairs) >= 2:
-                    tie_breakers = [min(pairs)]
-                else:
-                    tie_breakers = [min(abs(c) for c in cards)]
-
+                tie_breakers = [min(pairs) if len(pairs) >= 2 else min(abs(c) for c in cards)]
             elif any(count >= 2 for count in abs_counts.values()):
                 hand_type = 'Sabacc Pair'
                 hand_rank = 11
-                if lowest_pair_value is not None:
-                    tie_breakers = [lowest_pair_value]
-                else:
-                    tie_breakers = [min(abs(c) for c in cards)]
-
+                # For Sabacc Pair, lowest pair value is the tiebreaker
+                tie_breakers = [lowest_pair_value if lowest_pair_value is not None else min(abs(c) for c in cards)]
             else:
                 hand_type = 'Sabacc'
                 hand_rank = 12
+                # For plain Sabacc (sum zero, no special hand):
+                # 1. Most cards in hand
+                # 2. Highest positive sum
+                # 3. Highest single positive card
                 tie_breakers = [
-                    min(abs(c) for c in cards),
                     -len(cards),
                     -sum(positive_cards),
                     -max(positive_cards) if positive_cards else float('-inf'),
@@ -542,6 +510,12 @@ class CorelliaGameView(ui.View):
         else:
             hand_type = 'Nulrhek'
             hand_rank = 13
+            # Nulrhek tiebreakers:
+            # 1. Closest to zero (absolute value)
+            # 2. Positive beats negative
+            # 3. Most cards in hand
+            # 4. Highest positive sum
+            # 5. Highest single positive card
             tie_breakers = [
                 abs(total),
                 0 if total > 0 else 1,
@@ -720,7 +694,11 @@ class PlayTurnButton(ui.Button):
         await interaction.response.defer(ephemeral=True)
 
         title = f'Your Turn | Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}'
-        description = f'**Your Hand:** {current_player.get_cards_string()}\n**Total:** {current_player.get_total()}'
+        description = (
+            f'**Your Hand:** {current_player.get_cards_string()}\n'
+            f'**Total:** {current_player.get_total()}\n'
+            f'**Target Number:** Always **0**'
+        )
 
         embed, file = await create_embed_with_cards(
             title=title,
