@@ -221,23 +221,112 @@ class SabaccChoiceView(ui.View):
 
     @ui.button(label='Play Random', style=ButtonStyle.success)
     async def play_random_button(self, interaction: Interaction, button: ui.Button):
-        # Show a random Sabacc fact or hand
         import random
-        facts = [
-            "Sabacc is the legendary card game from Star Wars!",
-            "The best hand in Kessel Sabacc is two Sylops (Ø, Ø) — Pure Sabacc!",
-            "In Corellian Spike, the deck has 62 cards, ranging from -10 to +10, plus two Sylops.",
-            "Traditional Sabacc's most famous hand is the Idiot's Array (0, 2, 3).",
-            "Impostor (Ψ) cards in Kessel Sabacc get their value from a dice roll at the end!",
-            "Coruscant Shift uses two dice to set the target number and suit each game.",
-            "Sabacc is how Han Solo won the Millennium Falcon from Lando Calrissian!",
-            "The word 'Sabacc' is pronounced 'suh-BAHK'.",
-            "You can play Sabacc in Galaxy's Edge at Disney Parks!",
-            "May the Force be with you!"
+        # Define game configs
+        game_types = [
+            {
+                'name': 'Corellian Spike',
+                'view': CorelliaGameView,
+                'rounds_range': (1, 10),
+                'num_cards_range': (1, 5),
+                'desc': lambda rounds, num_cards, allow_discard: (
+                    f'Click **Join Game** to join.\n\n'
+                    f'**Game Settings:**\n'
+                    f'• {rounds} rounds\n'
+                    f'• {num_cards} starting cards\n'
+                    f'• Discarding cards is {"enabled" if allow_discard else "disabled"}\n\n'
+                    'Once someone has joined, **Start Game** will be enabled.'
+                ),
+                'thumbnail': corellian_thumbnail,
+                'footer': corellian_footer,
+                'color': 0xCBB7A0
+            },
+            {
+                'name': 'Coruscant Shift',
+                'view': CoruscantGameView,
+                'rounds_range': (1, 5),
+                'num_cards_range': (1, 10),
+                'desc': lambda rounds, num_cards, allow_discard: (
+                    f'Click **Join Game** to join.\n\n'
+                    f'**Game Settings:**\n'
+                    f'• {rounds} rounds\n'
+                    f'• {num_cards} starting cards\n\n'
+                    'Once someone has joined, **Start Game** will be enabled.'
+                ),
+                'thumbnail': coruscant_thumbnail,
+                'footer': coruscant_footer,
+                'color': 0xAB9032
+            },
+            {
+                'name': 'Kessel',
+                'view': KesselGameView,
+                'rounds_range': (1, 10),
+                'num_cards_range': None,
+                'desc': lambda rounds, num_cards, allow_discard: (
+                    f'Click **Join Game** to join.\n\n'
+                    f'**Game Settings:**\n'
+                    f'• {rounds} rounds\n'
+                    f'• 2 starting cards\n\n'
+                    'Once someone has joined, **Start Game** will be enabled.'
+                ),
+                'thumbnail': kessel_thumbnail,
+                'footer': kessel_footer,
+                'color': 0x7F3335
+            },
+            {
+                'name': 'Traditional',
+                'view': TraditionalGameView,
+                'rounds_range': None,
+                'num_cards_range': (1, 5),
+                'desc': lambda rounds, num_cards, allow_discard: (
+                    f'Click **Join Game** to join.\n\n'
+                    f'**Game Settings:**\n'
+                    f'• No set number of rounds\n'
+                    f'• Call Alderaan to end the game\n'
+                    f'• {num_cards} starting cards\n'
+                    f'• Discarding cards is {"enabled" if allow_discard else "disabled"}\n\n'
+                    'Once someone has joined, **Start Game** will be enabled.'
+                ),
+                'thumbnail': traditional_thumbnail,
+                'footer': traditional_footer,
+                'color': 0x7A9494
+            }
         ]
-        fact = random.choice(facts)
-        embed = Embed(title="Random Sabacc Fact", description=fact, color=0x764920)
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        game = random.choice(game_types)
+        # Randomize params
+        rounds = None
+        num_cards = None
+        allow_discard = False
+        if game['rounds_range']:
+            rounds = random.randint(*game['rounds_range'])
+        if game['num_cards_range']:
+            num_cards = random.randint(*game['num_cards_range'])
+        # For games with discard toggle, randomly enable it
+        if game['name'] in ['Corellian Spike', 'Traditional']:
+            allow_discard = random.choice([True, False])
+        # Create view
+        if game['name'] == 'Corellian Spike':
+            view = game['view'](rounds=rounds, num_cards=num_cards, active_games=active_games, channel=interaction.channel)
+            view.allow_discard = allow_discard
+        elif game['name'] == 'Coruscant Shift':
+            view = game['view'](rounds=rounds, num_cards=num_cards, active_games=active_games, channel=interaction.channel)
+        elif game['name'] == 'Kessel':
+            view = game['view'](rounds=rounds, active_games=active_games, channel=interaction.channel)
+        elif game['name'] == 'Traditional':
+            view = game['view'](num_cards=num_cards, active_games=active_games, channel=interaction.channel)
+            view.allow_discard = allow_discard
+        desc = game['desc'](rounds, num_cards, allow_discard)
+        await _send_sabacc_lobby(
+            interaction,
+            view,
+            active_games,
+            title=f'{game["name"]} Sabacc Lobby',
+            description=desc,
+            thumbnail_url=game['thumbnail'],
+            footer_text=game['footer'],
+            defer_first=True,
+            color=game['color']
+        )
 
     @ui.button(label='View Rules', style=ButtonStyle.secondary)
     async def view_rules(self, interaction: Interaction, button: ui.Button):        
@@ -252,24 +341,121 @@ class SabaccChoiceView(ui.View):
         view = HelpView()
         await interaction.response.send_message(embed=embed, view=view)
 # /random command: send a random Sabacc fact or hand
-@bot.tree.command(name='random', description='Get a random Sabacc fact or hand')
-async def random_command(interaction: Interaction):
+@bot.tree.command(name='random', description='Start a random Sabacc game lobby. Use 0 for random rounds/cards.')
+@app_commands.describe(
+    rounds='Number of rounds (0 for random)',
+    num_cards='Number of starting cards (0 for random)'
+)
+async def random_command(interaction: Interaction, rounds: int = 0, num_cards: int = 0):
     import random
-    facts = [
-        "Sabacc is the legendary card game from Star Wars!",
-        "The best hand in Kessel Sabacc is two Sylops (Ø, Ø) — Pure Sabacc!",
-        "In Corellian Spike, the deck has 62 cards, ranging from -10 to +10, plus two Sylops.",
-        "Traditional Sabacc's most famous hand is the Idiot's Array (0, 2, 3).",
-        "Impostor (Ψ) cards in Kessel Sabacc get their value from a dice roll at the end!",
-        "Coruscant Shift uses two dice to set the target number and suit each game.",
-        "Sabacc is how Han Solo won the Millennium Falcon from Lando Calrissian!",
-        "The word 'Sabacc' is pronounced 'suh-BAHK'.",
-        "You can play Sabacc in Galaxy's Edge at Disney Parks!",
-        "May the Force be with you!"
+    game_types = [
+        {
+            'name': 'Corellian Spike',
+            'view': CorelliaGameView,
+            'rounds_range': (1, 10),
+            'num_cards_range': (1, 5),
+            'desc': lambda rounds, num_cards, allow_discard: (
+                f'Click **Join Game** to join.\n\n'
+                f'**Game Settings:**\n'
+                f'• {rounds} rounds\n'
+                f'• {num_cards} starting cards\n'
+                f'• Discarding cards is {"enabled" if allow_discard else "disabled"}\n\n'
+                'Once someone has joined, **Start Game** will be enabled.'
+            ),
+            'thumbnail': corellian_thumbnail,
+            'footer': corellian_footer,
+            'color': 0xCBB7A0
+        },
+        {
+            'name': 'Coruscant Shift',
+            'view': CoruscantGameView,
+            'rounds_range': (1, 5),
+            'num_cards_range': (1, 10),
+            'desc': lambda rounds, num_cards, allow_discard: (
+                f'Click **Join Game** to join.\n\n'
+                f'**Game Settings:**\n'
+                f'• {rounds} rounds\n'
+                f'• {num_cards} starting cards\n\n'
+                'Once someone has joined, **Start Game** will be enabled.'
+            ),
+            'thumbnail': coruscant_thumbnail,
+            'footer': coruscant_footer,
+            'color': 0xAB9032
+        },
+        {
+            'name': 'Kessel',
+            'view': KesselGameView,
+            'rounds_range': (1, 10),
+            'num_cards_range': None,
+            'desc': lambda rounds, num_cards, allow_discard: (
+                f'Click **Join Game** to join.\n\n'
+                f'**Game Settings:**\n'
+                f'• {rounds} rounds\n'
+                f'• 2 starting cards\n\n'
+                'Once someone has joined, **Start Game** will be enabled.'
+            ),
+            'thumbnail': kessel_thumbnail,
+            'footer': kessel_footer,
+            'color': 0x7F3335
+        },
+        {
+            'name': 'Traditional',
+            'view': TraditionalGameView,
+            'rounds_range': None,
+            'num_cards_range': (1, 5),
+            'desc': lambda rounds, num_cards, allow_discard: (
+                f'Click **Join Game** to join.\n\n'
+                f'**Game Settings:**\n'
+                f'• No set number of rounds\n'
+                f'• Call Alderaan to end the game\n'
+                f'• {num_cards} starting cards\n'
+                f'• Discarding cards is {"enabled" if allow_discard else "disabled"}\n\n'
+                'Once someone has joined, **Start Game** will be enabled.'
+            ),
+            'thumbnail': traditional_thumbnail,
+            'footer': traditional_footer,
+            'color': 0x7A9494
+        }
     ]
-    fact = random.choice(facts)
-    embed = Embed(title="Random Sabacc Fact", description=fact, color=0x764920)
-    await interaction.response.send_message(embed=embed, ephemeral=True)
+    game = random.choice(game_types)
+    allow_discard = False
+    # Handle randomization for rounds and num_cards
+    if game['rounds_range']:
+        if rounds == 0:
+            rounds = random.randint(*game['rounds_range'])
+        else:
+            rounds = max(game['rounds_range'][0], min(rounds, game['rounds_range'][1]))
+    if game['num_cards_range']:
+        if num_cards == 0:
+            num_cards = random.randint(*game['num_cards_range'])
+        else:
+            num_cards = max(game['num_cards_range'][0], min(num_cards, game['num_cards_range'][1]))
+    # For games with discard toggle, randomly enable it
+    if game['name'] in ['Corellian Spike', 'Traditional']:
+        allow_discard = random.choice([True, False])
+    # Create view
+    if game['name'] == 'Corellian Spike':
+        view = game['view'](rounds=rounds, num_cards=num_cards, active_games=active_games, channel=interaction.channel)
+        view.allow_discard = allow_discard
+    elif game['name'] == 'Coruscant Shift':
+        view = game['view'](rounds=rounds, num_cards=num_cards, active_games=active_games, channel=interaction.channel)
+    elif game['name'] == 'Kessel':
+        view = game['view'](rounds=rounds, active_games=active_games, channel=interaction.channel)
+    elif game['name'] == 'Traditional':
+        view = game['view'](num_cards=num_cards, active_games=active_games, channel=interaction.channel)
+        view.allow_discard = allow_discard
+    desc = game['desc'](rounds, num_cards, allow_discard)
+    await _send_sabacc_lobby(
+        interaction,
+        view,
+        active_games,
+        title=f'{game["name"]} Sabacc Lobby',
+        description=desc,
+        thumbnail_url=game['thumbnail'],
+        footer_text=game['footer'],
+        defer_first=False,
+        color=game['color']
+    )
 
 @bot.tree.command(name='corellian_spike', description='Start a Corellian Spike Sabacc game with optional custom settings')
 @app_commands.describe(
