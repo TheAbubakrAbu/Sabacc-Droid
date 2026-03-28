@@ -219,21 +219,8 @@ class SabaccChoiceView(ui.View):
             color=0x7A9494
         )
 
-    @ui.button(label='View Rules', style=ButtonStyle.secondary)
-    async def view_rules(self, interaction: Interaction, button: ui.Button):        
-        embed = Embed(
-            title='Sabacc Droid Help',
-            description=RULES_DESCRIPTION,
-            color=0x764920
-        )
-        embed.set_thumbnail(url=sabacc_thumbnail)
-        embed.set_footer(text=sabacc_footer)
-
-        view = HelpView()
-        await interaction.response.send_message(embed=embed, view=view)
-
-    @ui.button(label='Random', style=ButtonStyle.success)
-    async def random_button(self, interaction: Interaction, button: ui.Button):
+    @ui.button(label='Play Random', style=ButtonStyle.success)
+    async def play_random_button(self, interaction: Interaction, button: ui.Button):
         # Show a random Sabacc fact or hand
         import random
         facts = [
@@ -251,6 +238,19 @@ class SabaccChoiceView(ui.View):
         fact = random.choice(facts)
         embed = Embed(title="Random Sabacc Fact", description=fact, color=0x764920)
         await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    @ui.button(label='View Rules', style=ButtonStyle.secondary)
+    async def view_rules(self, interaction: Interaction, button: ui.Button):        
+        embed = Embed(
+            title='Sabacc Droid Help',
+            description=RULES_DESCRIPTION,
+            color=0x764920
+        )
+        embed.set_thumbnail(url=sabacc_thumbnail)
+        embed.set_footer(text=sabacc_footer)
+
+        view = HelpView()
+        await interaction.response.send_message(embed=embed, view=view)
 # /random command: send a random Sabacc fact or hand
 @bot.tree.command(name='random', description='Get a random Sabacc fact or hand')
 async def random_command(interaction: Interaction):
