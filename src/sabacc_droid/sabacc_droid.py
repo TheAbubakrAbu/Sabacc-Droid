@@ -232,6 +232,45 @@ class SabaccChoiceView(ui.View):
         view = HelpView()
         await interaction.response.send_message(embed=embed, view=view)
 
+    @ui.button(label='Random', style=ButtonStyle.success)
+    async def random_button(self, interaction: Interaction, button: ui.Button):
+        # Show a random Sabacc fact or hand
+        import random
+        facts = [
+            "Sabacc is the legendary card game from Star Wars!",
+            "The best hand in Kessel Sabacc is two Sylops (Ø, Ø) — Pure Sabacc!",
+            "In Corellian Spike, the deck has 62 cards, ranging from -10 to +10, plus two Sylops.",
+            "Traditional Sabacc's most famous hand is the Idiot's Array (0, 2, 3).",
+            "Impostor (Ψ) cards in Kessel Sabacc get their value from a dice roll at the end!",
+            "Coruscant Shift uses two dice to set the target number and suit each game.",
+            "Sabacc is how Han Solo won the Millennium Falcon from Lando Calrissian!",
+            "The word 'Sabacc' is pronounced 'suh-BAHK'.",
+            "You can play Sabacc in Galaxy's Edge at Disney Parks!",
+            "May the Force be with you!"
+        ]
+        fact = random.choice(facts)
+        embed = Embed(title="Random Sabacc Fact", description=fact, color=0x764920)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+# /random command: send a random Sabacc fact or hand
+@bot.tree.command(name='random', description='Get a random Sabacc fact or hand')
+async def random_command(interaction: Interaction):
+    import random
+    facts = [
+        "Sabacc is the legendary card game from Star Wars!",
+        "The best hand in Kessel Sabacc is two Sylops (Ø, Ø) — Pure Sabacc!",
+        "In Corellian Spike, the deck has 62 cards, ranging from -10 to +10, plus two Sylops.",
+        "Traditional Sabacc's most famous hand is the Idiot's Array (0, 2, 3).",
+        "Impostor (Ψ) cards in Kessel Sabacc get their value from a dice roll at the end!",
+        "Coruscant Shift uses two dice to set the target number and suit each game.",
+        "Sabacc is how Han Solo won the Millennium Falcon from Lando Calrissian!",
+        "The word 'Sabacc' is pronounced 'suh-BAHK'.",
+        "You can play Sabacc in Galaxy's Edge at Disney Parks!",
+        "May the Force be with you!"
+    ]
+    fact = random.choice(facts)
+    embed = Embed(title="Random Sabacc Fact", description=fact, color=0x764920)
+    await interaction.response.send_message(embed=embed, ephemeral=True)
+
 @bot.tree.command(name='corellian_spike', description='Start a Corellian Spike Sabacc game with optional custom settings')
 @app_commands.describe(
     rounds='Number of rounds (default: 3, max: 10)',
