@@ -138,7 +138,7 @@ class TraditionalGameView(ui.View):
         if hasattr(self, 'discard_toggle_button'):
             self.discard_toggle_button.label = 'Discard Cards: On' if self.allow_discard else 'Discard Cards: Off'
 
-    def __init__(self, num_cards: int = 2, active_games=None, channel=None, max_players: int = 8):
+    def __init__(self, num_cards: int = 2, active_games=None, channel=None, max_players: int = 8, allow_discard: bool = False):
         super().__init__(timeout=None)
         self.players = []
         self.game_started = False
@@ -153,7 +153,7 @@ class TraditionalGameView(ui.View):
         self.view_rules_button = ViewRulesButton()
         self.add_item(self.view_rules_button)
 
-        self.allow_discard = False
+        self.allow_discard = allow_discard
         self.discard_toggle_button = DiscardToggleButton(self)
         self.add_item(self.discard_toggle_button)
 
@@ -587,9 +587,9 @@ class EndGameView(ui.View):
         new_game_view = TraditionalGameView(
             num_cards=self.num_cards,
             active_games=self.active_games,
-            channel=self.channel
+            channel=self.channel,
+            allow_discard=self.allow_discard
         )
-        new_game_view.allow_discard = self.allow_discard
         new_game_view.sync_discard_toggle()
         new_game_view.message = await self.channel.send('New game lobby created!', view=new_game_view)
         new_game_view.players.append(Player(interaction.user))
