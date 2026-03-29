@@ -127,12 +127,16 @@ class Player:
         '''
 
         return sum(self.cards)
-
 class TraditionalGameView(ui.View):
     '''
     Represents a Traditional Sabacc game instance, managing players,
     deck, turns, and interactions. The game ends when a player calls Alderaan.
     '''
+
+    def sync_discard_toggle(self):
+        # Ensure the discard toggle button label matches allow_discard
+        if hasattr(self, 'discard_toggle_button'):
+            self.discard_toggle_button.label = 'Discard Cards: On' if self.allow_discard else 'Discard Cards: Off'
 
     def __init__(self, num_cards: int = 2, active_games=None, channel=None, max_players: int = 8):
         super().__init__(timeout=None)
@@ -586,6 +590,7 @@ class EndGameView(ui.View):
             channel=self.channel
         )
         new_game_view.allow_discard = self.allow_discard
+        new_game_view.sync_discard_toggle()
         new_game_view.message = await self.channel.send('New game lobby created!', view=new_game_view)
         new_game_view.players.append(Player(interaction.user))
         await new_game_view.update_lobby_embed()
