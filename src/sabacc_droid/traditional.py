@@ -475,7 +475,7 @@ class TraditionalGameView(ui.View):
 
         evaluated_hands.sort(key=lambda x: x[0])
 
-        results = '**Final Hands:**'
+        results = '**Target Number:** Always **+23/-23**\n\n**Final Hands:**'
         for eh in evaluated_hands:
             _, pl, name, total = eh
             line1 = f'\n- {pl.user.mention}: {pl.get_cards_string()}'
@@ -718,8 +718,9 @@ class TurnView(ui.View):
         card_select_view = CardSelectView(self, 'discard')
 
         title = f'Discard a Card | Round {self.game_view.round}'
-        description = (f'**Your Hand:** {self.player.get_cards_string()}\n'
-                    f'**Total:** {self.player.get_total()}\n\n'
+        description = (f'**Target Number:** Always **+23/-23**\n\n'
+                f'**Your Hand:** {self.player.get_cards_string()}\n'
+                f'**Total:** {self.player.get_total()}\n\n'
                     'Click the card you want to discard.')
 
         embed, file = await create_embed_with_cards(title, description, self.player.cards)
@@ -738,8 +739,9 @@ class TurnView(ui.View):
         card_select_view = CardSelectView(self, 'replace')
 
         title = f'Replace a Card | Round {self.game_view.round}'
-        description = (f'**Your Hand:** {self.player.get_cards_string()}\n'
-                       f'**Total:** {self.player.get_total()}\n\n'
+        description = (f'**Target Number:** Always **+23/-23**\n\n'
+                   f'**Your Hand:** {self.player.get_cards_string()}\n'
+                   f'**Total:** {self.player.get_total()}\n\n'
                        'Click the button corresponding to the card you want to replace.')
         embed, file = await create_embed_with_cards(
             title=title,
