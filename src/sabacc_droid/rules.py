@@ -61,7 +61,7 @@ def get_comparison_embed() -> Embed:
             '  • **Gold Die:** Sets target number (-10, +10, -5, 5, 0, 0).\n'
             '  • **Silver Die:** Sets target suit (●, ▲, ■) for tie-breakers.\n'
             '- **Rounds:** Typically **2 rounds** of card selection.\n'
-            '- **Tie-Breakers:** Closest to gold die target → most cards of silver die suit → highest positive sum → highest single positive card → sudden death.\n\n'
+            '- **Tie-Breakers:** Closest to gold die target → most cards of silver die suit → highest positive sum → highest single positive card. If still tied, the game ends in a tie.\n\n'
 
             '### **Kessel Sabacc:**\n'
             '- **Deck Composition:** Two separate decks (Sand for positives, Blood for negatives), 22 cards each (44 total), plus Sylops (not exactly a 0 card).\n'
@@ -155,7 +155,7 @@ def get_coruscant_shift_rules_embed() -> Embed:
         description='### **Objective:**\n'
                     'Achieve a final hand (between **1 and 5 cards**) whose total is as close as possible to the target number determined by the gold die.'
                     'If there is a tie, the winner is determined by who has the most cards matching the target suit (from the silver die).'
-                    'Further ties are decided by highest positive “added total,” then highest single positive card, and if still tied, sudden death draws.\n\n'
+                    'Further ties are decided by highest positive “added total” (the sum of all cards in your hand), then highest single positive card (the largest positive-value card in your hand). If still tied, the game ends in a tie.\n\n'
 
                     '### **Deck Composition:**\n'
                     '- **62 cards** total.\n'
@@ -184,10 +184,10 @@ def get_coruscant_shift_rules_embed() -> Embed:
 
                     '### **Tie-Breakers:**\n'
                     '1. Closest to the target number (absolute difference).\n'
-                    '2. Most cards matching the target suit.\n'
-                    '3. Highest total.\n'
-                    '4. Highest single positive card.\n'
-                    '5. Else it\'s a tie.\n\n'
+                    '2. Most cards matching the target suit (Sylop counts as a match).\n'
+                    '3. Highest total (if two players are equally close to the target, the higher total wins—so positive totals beat negative totals).\n'
+                    '4. Highest single positive card (largest positive-value card in hand).\n'
+                    '5. If still tied, the game ends in a tie.\n\n'
 
                     'Good luck! May the Force be with you!',
         color=0x764920
