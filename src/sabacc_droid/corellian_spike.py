@@ -128,12 +128,16 @@ class Player:
         '''
 
         return sum(self.cards)
-
 class CorelliaGameView(ui.View):
     '''
     Represents a Corellian Spike Sabacc game instance, managing players,
     deck, turns, and interactions.
     '''
+
+    def sync_discard_toggle(self):
+        # Ensure the discard toggle button label matches allow_discard
+        if hasattr(self, 'discard_toggle_button'):
+            self.discard_toggle_button.label = 'Discard Cards: On' if self.allow_discard else 'Discard Cards: Off'
 
     def __init__(self, rounds: int = 3, num_cards: int = 2, active_games=None, channel=None):
         super().__init__(timeout=None)
@@ -651,6 +655,7 @@ class EndGameView(ui.View):
             channel=self.channel
         )
         new_game_view.allow_discard = self.allow_discard
+        new_game_view.sync_discard_toggle()
         new_game_view.message = await self.channel.send('New game lobby created!', view=new_game_view)
         new_player = Player(interaction.user)
         new_game_view.players.append(new_player)
@@ -733,11 +738,7 @@ class TurnView(ui.View):
 
         # Add Draw Card button (decorator handles this)
         # Add Replace Card button (decorator handles this)
-        # Add Discard Card button after Replace Card if allowed
-        if self.game_view.allow_discard:
-            discard_button = ui.Button(label="Discard Card", style=ButtonStyle.secondary)
-            discard_button.callback = self.discard_card_button_callback
-            self.add_item(discard_button)
+        # Discard Card button is NOT added here; it will be added only after a replace action.
         # Add Stand and Junk buttons (decorators handle these)
 
     async def interaction_check(self, interaction: Interaction) -> bool:
