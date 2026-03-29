@@ -569,15 +569,14 @@ class CorelliaGameView(ui.View):
 
         evaluated_hands.sort(key=lambda x: x[0])
 
-        results = '**Final Hands:**'
+        results = '**Target Number:** Always **0**\n\n**Final Hands:**'
         for eh in evaluated_hands:
             _, player, hand_type, total = eh
-            
-            line1 = f'\n- {player.user.mention}: {player.get_cards_string()}'
-            line2 = f'   - Total: {total}\n\n     (Target Number: Always 0)'
-            line3 = f'   - Hand: {hand_type}'
-            
-            results += f'{line1}\n{line2}\n{line3}'
+            line1 = f'\n- {player.user.mention}: '
+            line2 = f'**Your Hand:** {player.get_cards_string()}'
+            line3 = f'**Total:** {total}'
+            line4 = f'   - Hand: {hand_type}'
+            results += f'{line1}\n{line2}\n{line3}\n{line4}'
 
         best_hand_value = evaluated_hands[0][0]
         winners = [eh for eh in evaluated_hands if eh[0] == best_hand_value]
@@ -695,9 +694,9 @@ class PlayTurnButton(ui.Button):
 
         title = f'Your Turn | Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}'
         description = (
+            f'**Target Number:** Always **0**\n\n'
             f'**Your Hand:** {current_player.get_cards_string()}\n'
-            f'**Total:** {current_player.get_total()}\n\n'
-            f'**Target Number:** Always **0**\n'
+            f'**Total:** {current_player.get_total()}\n'
         )
 
         embed, file = await create_embed_with_cards(
@@ -760,7 +759,11 @@ class TurnView(ui.View):
         self.player.draw_card(self.game_view.deck)
 
         title = f'You Drew a Card | Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}'
-        description = f'**Your Hand:** {self.player.get_cards_string()}\n**Total:** {self.player.get_total()}\n\n**Target Number:** Always **0**'
+        description = (
+            f'**Target Number:** Always **0**\n\n'
+            f'**Your Hand:** {self.player.get_cards_string()}\n'
+            f'**Total:** {self.player.get_total()}\n'
+        )
 
         embed, file = await create_embed_with_cards(
             title=title,
@@ -796,9 +799,9 @@ class TurnView(ui.View):
             f"{self.game_view.total_rounds}"
         )
         description = (
+            f"**Target Number:** Always **0**\n\n"
             f"**Your Hand:** {self.player.get_cards_string()}\n"
             f"**Total:** {self.player.get_total()}\n\n"
-            f"**Target Number:** Always **0**\n\n"
             "Click the button corresponding to the card you want to discard."
         )
 
@@ -826,10 +829,12 @@ class TurnView(ui.View):
         card_select_view = CardSelectView(self, action='replace')
 
         title = f'Replace a Card | Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}'
-        description = (f'**Your Hand:** {self.player.get_cards_string()}\n'
-                   f'**Total:** {self.player.get_total()}\n\n'
-                   f'**Target Number:** Always **0**\n\n'
-                   'Click the button corresponding to the card you want to replace.')
+        description = (
+            f'**Target Number:** Always **0**\n\n'
+            f'**Your Hand:** {self.player.get_cards_string()}\n'
+            f'**Total:** {self.player.get_total()}\n\n'
+            'Click the button corresponding to the card you want to replace.'
+        )
 
         embed, file = await create_embed_with_cards(
             title=title,
@@ -851,7 +856,11 @@ class TurnView(ui.View):
         await interaction.response.defer()
 
         title = f'You Chose to Stand | Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}'
-        description = f'**Your Hand:** {self.player.get_cards_string()}\n**Total:** {self.player.get_total()}\n\n**Target Number:** Always **0**'
+        description = (
+            f'**Target Number:** Always **0**\n\n'
+            f'**Your Hand:** {self.player.get_cards_string()}\n'
+            f'**Total:** {self.player.get_total()}\n'
+        )
 
         embed, file = await create_embed_with_cards(
             title=title,
@@ -938,14 +947,22 @@ class CardSelectView(ui.View):
                 card_value_discarded = self.player.cards.pop(card_index)
                 self.game_view.deck.insert(0, card_value_discarded)
                 title = f'You Discarded {card_value_discarded} | Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}'
-                description = f'**Your Hand:** {self.player.get_cards_string()}\n**Total:** {self.player.get_total()}\n\n**Target Number:** Always **0**'
+                description = (
+                    f'**Target Number:** Always **0**\n\n'
+                    f'**Your Hand:** {self.player.get_cards_string()}\n'
+                    f'**Total:** {self.player.get_total()}\n'
+                )
             elif self.action == 'replace':
                 card_value_replaced = self.player.cards.pop(card_index)
                 self.game_view.deck.insert(0, card_value_replaced)
                 self.player.draw_card(self.game_view.deck)
                 new_card = self.player.cards[-1]
                 title = f'You Replaced {card_value_replaced} with {new_card} | Round {self.game_view.rounds_completed}/{self.game_view.total_rounds}'
-                description = f'**Your Hand:** {self.player.get_cards_string()}\n**Total:** {self.player.get_total()}\n\n**Target Number:** Always **0**'
+                description = (
+                    f'**Target Number:** Always **0**\n\n'
+                    f'**Your Hand:** {self.player.get_cards_string()}\n'
+                    f'**Total:** {self.player.get_total()}\n'
+                )
             else:
                 embed = Embed(title='Unknown Action', description='An error occurred.', color=0xFF0000)
                 embed.set_thumbnail(url=corellian_thumbnail)
@@ -998,7 +1015,11 @@ class GoBackButton(ui.Button):
         turn_view = self.card_select_view.turn_view
 
         title = f'Your Turn | Round {turn_view.game_view.rounds_completed}/{turn_view.game_view.total_rounds}'
-        description = f'**Your Hand:** {turn_view.player.get_cards_string()}\n**Total:** {turn_view.player.get_total()}\n\n**Target Number:** Always **0**'
+        description = (
+            f'**Target Number:** Always **0**\n\n'
+            f'**Your Hand:** {turn_view.player.get_cards_string()}\n'
+            f'**Total:** {turn_view.player.get_total()}\n'
+        )
 
         embed, file = await create_embed_with_cards(
             title=title,

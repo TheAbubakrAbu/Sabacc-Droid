@@ -350,7 +350,7 @@ class CoruscantGameView(ui.View):
         desc += f'\n\n**Round {self.current_round}/{self.rounds}**\n'
         desc += f'It\'s now {player.user.mention}\'s turn.\n'
         desc += 'Click **Play Turn** to proceed.\n\n'
-        desc += f'**Target Number:** {self.target_number} | **Target Suit:** {self.target_suit}'
+        desc = f'**Target Number:** {self.target_number} | **Target Suit:** {self.target_suit}\n\n' + desc
 
         card_back = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/corellian_spike/card.png'
         card_count = len(player.hand)
@@ -429,8 +429,7 @@ class CoruscantGameView(ui.View):
                 self.active_games.remove(self)
             return
 
-        result_text = f'**Target Number:** {self.target_number} | **Target Suit:** {self.target_suit}\n\n'
-        result_text += '**Final Hands:**'
+        result_text = f'**Target Number:** {self.target_number} | **Target Suit:** {self.target_suit}\n\n**Final Hands:**'
 
         pure_sabacc_players = []
         suit_counts = {}
@@ -677,6 +676,7 @@ class EphemeralSelectView(ui.View):
         embed = Embed(
             title=f'Selection Confirmed | Round {self.game_view.current_round}/{self.game_view.rounds}',
             description=(
+                f'**Target Number:** {self.game_view.target_number} | **Target Suit:** {self.game_view.target_suit}\n\n'
                 f'**You chose:** {self.player.get_hand_string()}\n'
                 f'**Total:** {total}\n\n'
                 'Selection locked in for this round.'

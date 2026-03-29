@@ -289,7 +289,7 @@ class KesselGameView(ui.View):
         description += f'**Round {self.rounds_completed + 1}/{self.rounds}**\n'
         description += f'It\'s now {current_player.user.mention}\'s turn.\n'
         description += 'Click **Play Turn** to proceed.\n\n'
-        description += f'**Target Number:** Always **0**'
+        description += f'**Target Number:** Always **0**\n\n'
 
         positive_back_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/%2Bcard.png'
         negative_back_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/-card.png'
@@ -516,9 +516,12 @@ class KesselGameView(ui.View):
         else:
             hand_type = 'Nulrhek'
             hand_rank = 10
+            # Match Corellian Spike's Nulrhek tiebreakers for consistency
             tie_breakers = [
                 abs(total),
                 0 if total > 0 else 1,
+                -len([v for v in (positive_value, negative_value) if v is not None]),
+                -sum(v for v in (positive_value, negative_value) if v > 0),
                 -max(positive_value, negative_value)
             ]
 
@@ -608,7 +611,7 @@ class KesselGameView(ui.View):
         for eh in evaluated_hands:
             _, player, hand_type, total = eh
             line1 = f'\n- {player.user.mention}: {player.get_cards_string(include_special_values=True)}'
-            line2 = f'   - Total: {total}'
+                results = '**Target Number:** Always **0**\n\n**Final Hands:**'
             line3 = f'   - Hand: {hand_type}'
             results += f'{line1}\n{line2}\n{line3}'
 
@@ -714,7 +717,11 @@ class PlayTurnButton(ui.Button):
         await interaction.response.edit_message(view=self.view)
 
         title = f'Your Turn | Round {self.game_view.rounds_completed + 1}/{self.game_view.rounds}'
-        description = f'**Your Hand:** {current_player.get_cards_string()}'
+        description = (
+            f'**Your Hand:** {current_player.get_cards_string()}\n'
+            f'**Total:** {current_player.get_total()}\n\n'
+            f'**Target Number:** Always **0**\n'
+        )
 
         turn_view = TurnView(self.game_view, current_player)
         embed, files = await send_embed_with_hand(
@@ -819,9 +826,13 @@ class TurnView(ui.View):
 
         discard_view = DiscardCardView(self.game_view, self.player)
         title = 'You Drew a Positive Card'
-        description = f'You drew: **{Player.get_card_display(self.player.drawn_card)}**{special_info}\n\n' \
-                      f'**Your Hand:** {self.player.get_cards_string()}\n\n' \
-                      'Choose which card to keep.'
+        description = (
+            f'You drew: **{Player.get_card_display(self.player.drawn_card)}**{special_info}\n\n'
+            f'**Your Hand:** {self.player.get_cards_string()}\n'
+            f'**Total:** {self.player.get_total()}\n\n'
+            f'**Target Number:** Always **0**\n\n'
+            'Choose which card to keep.'
+        )
 
         embed, files = await send_embed_with_hand(
             self.player,
@@ -853,9 +864,13 @@ class TurnView(ui.View):
 
         discard_view = DiscardCardView(self.game_view, self.player)
         title = 'You Drew a Negative Card'
-        description = f'You drew: **{Player.get_card_display(self.player.drawn_card)}**{special_info}\n\n' \
-                      f'**Your Hand:** {self.player.get_cards_string()}\n\n' \
-                      'Choose which card to keep.'
+        description = (
+            f'You drew: **{Player.get_card_display(self.player.drawn_card)}**{special_info}\n\n'
+            f'**Your Hand:** {self.player.get_cards_string()}\n'
+            f'**Total:** {self.player.get_total()}\n\n'
+            f'**Target Number:** Always **0**\n\n'
+            'Choose which card to keep.'
+        )
 
         embed, files = await send_embed_with_hand(
             self.player,
@@ -873,7 +888,11 @@ class TurnView(ui.View):
 
     async def stand_button_callback(self, interaction: Interaction) -> None:
         title = f'You Chose to Stand | Round {self.game_view.rounds_completed + 1}/{self.game_view.rounds}'
-        description = f'**Your Hand:** {self.player.get_cards_string()}'
+        description = (
+            f'**Your Hand:** {self.player.get_cards_string()}\n'
+            f'**Total:** {self.player.get_total()}\n\n'
+            f'**Target Number:** Always **0**\n'
+        )
 
         embed, files = await send_embed_with_hand(
             self.player,
@@ -891,7 +910,12 @@ class TurnView(ui.View):
 
     async def junk_button_callback(self, interaction: Interaction) -> None:
         title = f'You Chose to Junk | Round {self.game_view.rounds_completed + 1}/{self.game_view.rounds}'
-        description = 'You have given up and are out of the game.'
+        description = (
+            'You have given up and are out of the game.\n\n'
+            f'**Your Hand:** {self.player.get_cards_string()}\n'
+            f'**Total:** {self.player.get_total()}\n\n'
+            f'**Target Number:** Always **0**\n'
+        )
 
         embed, files = await send_embed_with_hand(
             self.player,
@@ -971,7 +995,12 @@ class DiscardCardView(ui.View):
             self.player.discard_drawn_card()
 
             title = 'Card Selection Completed'
-            description = f'{action}\n\n**Your Hand:** {self.player.get_cards_string()}'
+            description = (
+                f'{action}\n\n'
+                f'**Your Hand:** {self.player.get_cards_string()}\n'
+                f'**Total:** {self.player.get_total()}\n\n'
+                f'**Target Number:** Always **0**\n'
+            )
             embed, files = await send_embed_with_hand(
                 self.player,
                 title,
