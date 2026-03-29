@@ -738,7 +738,11 @@ class TurnView(ui.View):
 
         # Add Draw Card button (decorator handles this)
         # Add Replace Card button (decorator handles this)
-        # Discard Card button is NOT added here; it will be added only after a replace action.
+        # Add Discard Card button if allowed (so it's always available, not just after replace)
+        if self.game_view.allow_discard:
+            discard_button = ui.Button(label="Discard Card", style=ButtonStyle.secondary)
+            discard_button.callback = self.discard_card_button_callback
+            self.add_item(discard_button)
         # Add Stand and Junk buttons (decorators handle these)
 
     async def interaction_check(self, interaction: Interaction) -> bool:
