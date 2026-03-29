@@ -527,10 +527,17 @@ class TraditionalGameView(ui.View):
         total = sum(cards)
 
         card_set = set(cards)
+
         if len(cards) == 3 and card_set == {0, 2, 3}:
             return ((1,), 'Idiot\'s Array', total)
+
         if total == 23 or total == -23:
-            return ((2,), 'Sabacc', total)
+            # Natural Sabacc tiebreakers: most cards, highest abs sum, highest single abs card
+            card_count = -len(cards)
+            abs_sum = -abs(total)
+            max_card = -max(abs(c) for c in cards)
+            return ((2, card_count, abs_sum, max_card), 'Sabacc', total)
+
         if len(cards) == 2 and cards.count(-2) == 2:
             return ((3,), 'Fairy Empress', total)
 
@@ -643,14 +650,15 @@ class TurnView(ui.View):
         self.draw_card_button.callback = self.draw_card_callback
         self.add_item(self.draw_card_button)
 
-        if self.game_view.allow_discard:
-            self.discard_card_button = ui.Button(label='Discard Card', style=ButtonStyle.secondary)
-            self.discard_card_button.callback = self.discard_card_callback
-            self.add_item(self.discard_card_button)
 
         self.replace_card_button = ui.Button(label='Replace Card', style=ButtonStyle.secondary)
         self.replace_card_button.callback = self.replace_card_callback
         self.add_item(self.replace_card_button)
+
+        if self.game_view.allow_discard:
+            self.discard_card_button = ui.Button(label='Discard Card', style=ButtonStyle.secondary)
+            self.discard_card_button.callback = self.discard_card_callback
+            self.add_item(self.discard_card_button)
 
 
         self.stand_button = ui.Button(label='Stand', style=ButtonStyle.success)
