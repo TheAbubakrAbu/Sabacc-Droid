@@ -350,7 +350,7 @@ class CoruscantGameView(ui.View):
         desc += f'\n\n**Round {self.current_round}/{self.rounds}**\n'
         desc += f'It\'s now {player.user.mention}\'s turn.\n'
         desc += 'Click **Play Turn** to proceed.\n\n'
-        desc = f'**Target Number:** {self.target_number} | **Target Suit:** {self.target_suit}\n\n' + desc
+        desc += f'**Target Number:** {self.target_number} | **Target Suit:** {self.target_suit}\n\n'
 
         card_back = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/corellian_spike/card.png'
         card_count = len(player.hand)
