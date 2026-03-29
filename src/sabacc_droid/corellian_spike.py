@@ -731,7 +731,14 @@ class TurnView(ui.View):
         self.game_view = game_view
         self.player = player
 
-        # Buttons will be added in the desired order below
+        # Add Draw Card button (decorator handles this)
+        # Add Replace Card button (decorator handles this)
+        # Add Discard Card button after Replace Card if allowed
+        if self.game_view.allow_discard:
+            discard_button = ui.Button(label="Discard Card", style=ButtonStyle.secondary)
+            discard_button.callback = self.discard_card_button_callback
+            self.add_item(discard_button)
+        # Add Stand and Junk buttons (decorators handle these)
 
     async def interaction_check(self, interaction: Interaction) -> bool:
         '''
@@ -811,11 +818,6 @@ class TurnView(ui.View):
 
     @ui.button(label='Replace Card', style=ButtonStyle.secondary)
     async def replace_card_button(self, interaction: Interaction, button: ui.Button):
-                # After Replace Card, add Discard Card if allowed
-                if self.game_view.allow_discard:
-                    discard_button = ui.Button(label="Discard Card", style=ButtonStyle.secondary)
-                    discard_button.callback = self.discard_card_button_callback
-                    self.add_item(discard_button)
         '''
         Replace one of the player's cards with a new draw.
         '''
