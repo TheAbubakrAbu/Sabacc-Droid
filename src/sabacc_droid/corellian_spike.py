@@ -569,14 +569,13 @@ class CorelliaGameView(ui.View):
 
         evaluated_hands.sort(key=lambda x: x[0])
 
-        results = '**Target Number:** Always **0**\n\n**Final Hands:**'
+        results = '**Final Hands:**'
         for eh in evaluated_hands:
             _, player, hand_type, total = eh
-            line1 = f'\n- {player.user.mention}: '
-            line2 = f'**Your Hand:** {player.get_cards_string()}'
-            line3 = f'**Total:** {total}'
-            line4 = f'   - Hand: {hand_type}'
-            results += f'{line1}\n{line2}\n{line3}\n{line4}'
+            line1 = f'\n- {player.user.mention}: {player.get_cards_string()}'
+            line2 = f'   - Total: {total}'
+            line3 = f'   - Hand: {hand_type}'
+            results += f'{line1}\n{line2}\n{line3}'
 
         best_hand_value = evaluated_hands[0][0]
         winners = [eh for eh in evaluated_hands if eh[0] == best_hand_value]
@@ -594,7 +593,7 @@ class CorelliaGameView(ui.View):
 
         embed = Embed(
             title='Game Over',
-            description=results,
+            description=f'**Target Number:** Always **0**\n\n' + results,
             color=0xCBB7A0
         )
         embed.set_thumbnail(url=corellian_thumbnail)
