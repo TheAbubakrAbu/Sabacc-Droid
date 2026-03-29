@@ -424,7 +424,7 @@ class CoruscantGameView(ui.View):
             )
             embed.set_thumbnail(url=coruscant_thumbnail)
             embed.set_footer(text='Coruscant Shift Sabacc')
-            await self.channel.send(embed=embed, view=EndGameView(self.active_games, self.channel))
+            await self.channel.send(embed=embed, view=EndGameView(self.active_games, self.channel, rounds=self.rounds, num_cards=self.num_cards))
             if self in self.active_games:
                 self.active_games.remove(self)
             return
@@ -487,7 +487,7 @@ class CoruscantGameView(ui.View):
         mention_line = ' '.join(
             pl.user.mention for pl in self.players if 'AIUser' not in type(pl.user).__name__
         )
-        await self.channel.send(content=mention_line, embed=embed, view=EndGameView(self.active_games, self.channel))
+        await self.channel.send(content=mention_line, embed=embed, view=EndGameView(self.active_games, self.channel, rounds=self.rounds, num_cards=self.num_cards))
 
         if self in self.active_games:
             self.active_games.remove(self)
@@ -751,10 +751,12 @@ class EndGameView(ui.View):
     No extra mention is done here (the mention was in end_game).
     '''
 
-    def __init__(self, active_games, channel):
+    def __init__(self, active_games, channel, rounds: int = 2, num_cards: int = 5):
         super().__init__(timeout=None)
         self.active_games = active_games
         self.channel = channel
+        self.rounds = rounds
+        self.num_cards = num_cards
         self.clicked = False
 
         again = ui.Button(label='Play Again', style=ButtonStyle.success)
@@ -775,8 +777,8 @@ class EndGameView(ui.View):
         await interaction.response.edit_message(view=self)
 
         new_g = CoruscantGameView(
-            rounds=2,
-            num_cards=5,
+            rounds=self.rounds,
+            num_cards=self.num_cards,
             active_games=self.active_games,
             channel=self.channel
         )

@@ -463,7 +463,7 @@ class TraditionalGameView(ui.View):
             )
             embed.set_thumbnail(url=traditional_thumbnail)
             embed.set_footer(text='Traditional Sabacc')
-            await self.channel.send(embed=embed, view=EndGameView(self.active_games, self.channel))
+            await self.channel.send(embed=embed, view=EndGameView(self.active_games, self.channel, allow_discard=self.allow_discard, num_cards=self.num_cards))
             if self in self.active_games:
                 self.active_games.remove(self)
             return
@@ -554,10 +554,12 @@ class EndGameView(ui.View):
     A view at the end of the game that allows starting a new game or viewing rules.
     '''
 
-    def __init__(self, active_games, channel):
+    def __init__(self, active_games, channel, allow_discard: bool = False, num_cards: int = 2):
         super().__init__(timeout=None)
         self.active_games = active_games
         self.channel = channel
+        self.allow_discard = allow_discard
+        self.num_cards = num_cards
         self.play_again_clicked = False
 
         self.play_again_button = ui.Button(label='Play Again', style=discord.ButtonStyle.success)
@@ -579,9 +581,11 @@ class EndGameView(ui.View):
         await interaction.response.edit_message(view=self)
 
         new_game_view = TraditionalGameView(
+            num_cards=self.num_cards,
             active_games=self.active_games,
             channel=self.channel
         )
+        new_game_view.allow_discard = self.allow_discard
         new_game_view.message = await self.channel.send('New game lobby created!', view=new_game_view)
         new_game_view.players.append(Player(interaction.user))
         await new_game_view.update_lobby_embed()

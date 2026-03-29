@@ -718,9 +718,9 @@ class PlayTurnButton(ui.Button):
 
         title = f'Your Turn | Round {self.game_view.rounds_completed + 1}/{self.game_view.rounds}'
         description = (
+            f'**Target Number:** Always **0**\n'
             f'**Your Hand:** {current_player.get_cards_string()}\n'
             f'**Total:** {current_player.get_total()}\n\n'
-            f'**Target Number:** Always **0**\n'
         )
 
         turn_view = TurnView(self.game_view, current_player)
@@ -827,10 +827,10 @@ class TurnView(ui.View):
         discard_view = DiscardCardView(self.game_view, self.player)
         title = 'You Drew a Positive Card'
         description = (
+            f'**Target Number:** Always **0**\n'
             f'You drew: **{Player.get_card_display(self.player.drawn_card)}**{special_info}\n\n'
             f'**Your Hand:** {self.player.get_cards_string()}\n'
             f'**Total:** {self.player.get_total()}\n\n'
-            f'**Target Number:** Always **0**\n\n'
             'Choose which card to keep.'
         )
 
@@ -865,10 +865,10 @@ class TurnView(ui.View):
         discard_view = DiscardCardView(self.game_view, self.player)
         title = 'You Drew a Negative Card'
         description = (
+            f'**Target Number:** Always **0**\n'
             f'You drew: **{Player.get_card_display(self.player.drawn_card)}**{special_info}\n\n'
             f'**Your Hand:** {self.player.get_cards_string()}\n'
             f'**Total:** {self.player.get_total()}\n\n'
-            f'**Target Number:** Always **0**\n\n'
             'Choose which card to keep.'
         )
 
@@ -889,9 +889,9 @@ class TurnView(ui.View):
     async def stand_button_callback(self, interaction: Interaction) -> None:
         title = f'You Chose to Stand | Round {self.game_view.rounds_completed + 1}/{self.game_view.rounds}'
         description = (
+            f'**Target Number:** Always **0**\n'
             f'**Your Hand:** {self.player.get_cards_string()}\n'
             f'**Total:** {self.player.get_total()}\n\n'
-            f'**Target Number:** Always **0**\n'
         )
 
         embed, files = await send_embed_with_hand(
@@ -911,10 +911,10 @@ class TurnView(ui.View):
     async def junk_button_callback(self, interaction: Interaction) -> None:
         title = f'You Chose to Junk | Round {self.game_view.rounds_completed + 1}/{self.game_view.rounds}'
         description = (
+            f'**Target Number:** Always **0**\n'
             'You have given up and are out of the game.\n\n'
             f'**Your Hand:** {self.player.get_cards_string()}\n'
             f'**Total:** {self.player.get_total()}\n\n'
-            f'**Target Number:** Always **0**\n'
         )
 
         embed, files = await send_embed_with_hand(
@@ -996,10 +996,10 @@ class DiscardCardView(ui.View):
 
             title = 'Card Selection Completed'
             description = (
+                f'**Target Number:** Always **0**\n'
                 f'{action}\n\n'
                 f'**Your Hand:** {self.player.get_cards_string()}\n'
                 f'**Total:** {self.player.get_total()}\n\n'
-                f'**Target Number:** Always **0**\n'
             )
             embed, files = await send_embed_with_hand(
                 self.player,

@@ -606,7 +606,7 @@ class CorelliaGameView(ui.View):
         await self.channel.send(
             content=f'{mentions}',
             embed=embed,
-            view=EndGameView(self.rounds, self.num_cards, self.active_games, self.channel)
+            view=EndGameView(self.rounds, self.num_cards, self.active_games, self.channel, allow_discard=self.allow_discard)
         )
 
         if self in self.active_games:
@@ -617,12 +617,13 @@ class EndGameView(ui.View):
     A view at the end of the game that allows starting a new game or viewing rules.
     '''
 
-    def __init__(self, rounds: int, num_cards: int, active_games, channel):
+    def __init__(self, rounds: int, num_cards: int, active_games, channel, allow_discard: bool = False):
         super().__init__(timeout=None)
         self.rounds = rounds
         self.num_cards = num_cards
         self.active_games = active_games
         self.channel = channel
+        self.allow_discard = allow_discard
         self.play_again_clicked = False
 
         self.play_again_button = ui.Button(label='Play Again', style=discord.ButtonStyle.success)
@@ -649,6 +650,7 @@ class EndGameView(ui.View):
             active_games=self.active_games,
             channel=self.channel
         )
+        new_game_view.allow_discard = self.allow_discard
         new_game_view.message = await self.channel.send('New game lobby created!', view=new_game_view)
         new_player = Player(interaction.user)
         new_game_view.players.append(new_player)
