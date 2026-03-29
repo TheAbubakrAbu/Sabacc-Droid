@@ -607,11 +607,11 @@ class KesselGameView(ui.View):
 
         evaluated_hands.sort(key=lambda x: x[0])
 
-        results = '**Final Hands:**'
+        results = '**Target Number:** Always **0**\n\n**Final Hands:**'
         for eh in evaluated_hands:
             _, player, hand_type, total = eh
             line1 = f'\n- {player.user.mention}: {player.get_cards_string(include_special_values=True)}'
-                results = '**Target Number:** Always **0**\n\n**Final Hands:**'
+            line2 = f'   - Total: {total}'
             line3 = f'   - Hand: {hand_type}'
             results += f'{line1}\n{line2}\n{line3}'
 
