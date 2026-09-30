@@ -9,7 +9,7 @@ import requests
 from PIL import Image
 from io import BytesIO
 from concurrent.futures import ThreadPoolExecutor
-from rules import get_corellian_spike_rules_embed, corellian_thumbnail, corellian_footer
+from rules import get_corellian_spike_rules_embed, corellian_thumbnail, corellian_footer, plural
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -128,6 +128,7 @@ class Player:
         '''
 
         return sum(self.cards)
+
 class CorelliaGameView(ui.View):
     '''
     Represents a Corellian Spike Sabacc game instance, managing players,
@@ -135,7 +136,10 @@ class CorelliaGameView(ui.View):
     '''
 
     def sync_discard_toggle(self):
-        # Ensure the discard toggle button label matches allow_discard
+        '''
+        Update the discard toggle button label to match allow_discard.
+        '''
+
         if hasattr(self, 'discard_toggle_button'):
             self.discard_toggle_button.label = 'Discard Cards: On' if self.allow_discard else 'Discard Cards: Off'
 
@@ -167,7 +171,7 @@ class CorelliaGameView(ui.View):
 
     async def reset_lobby(self, interaction: Interaction) -> None:
         '''
-        Reset the lobby to initial state and update the lobby message.
+        Reset the lobby to its initial state and update the lobby message.
         '''
 
         self.game_started = False
@@ -185,11 +189,11 @@ class CorelliaGameView(ui.View):
 
         embed = Embed(
             title='Corellian Spike Sabacc Lobby',
-            description=('Click **Join Game** to join the game!\n\n'
+            description=('Click **Join Game** to join the game.\n\n'
                          f'**Game Settings:**\n'
-                         f'• {self.rounds} rounds\n'
-                         f'• {self.num_cards} starting cards\n'
-                         f'• Discarding cards is {"enabled" if self.allow_discard else "disabled"}\n\n'
+                         f'- {plural(self.rounds, "round")}\n'
+                         f'- {plural(self.num_cards, "starting card")}\n'
+                         f'- Discarding cards is {"enabled" if self.allow_discard else "disabled"}\n\n'
                          'Once someone has joined, **Start Game** will be enabled.'),
             color=0xCBB7A0
         )
@@ -268,13 +272,13 @@ class CorelliaGameView(ui.View):
             player.user.mention for player in self.players) + '\n\n'
 
         if len(self.players) >= 8:
-            description += 'The game lobby is full.'
+            description += 'The game lobby is full.\n\n'
 
         description += (
             f'**Game Settings:**\n'
-            f'• {self.rounds} rounds\n'
-            f'• {self.num_cards} starting cards\n'
-            f'• Discarding cards is {"enabled" if self.allow_discard else "disabled"}\n\n'
+            f'- {plural(self.rounds, "round")}\n'
+            f'- {plural(self.num_cards, "starting card")}\n'
+            f'- Discarding cards is {"enabled" if self.allow_discard else "disabled"}\n\n'
         )
 
         if len(self.players) < 2:
@@ -310,9 +314,9 @@ class CorelliaGameView(ui.View):
             await interaction.response.send_message('The game has already started.', ephemeral=True)
             return
         if any(player.user.id == user.id for player in self.players):
-            await interaction.response.send_message('You are already in the game.', ephemeral=True)
+            await interaction.response.send_message('You\'re already in the game.', ephemeral=True)
         elif len(self.players) >= 8:
-            await interaction.response.send_message('The maximum number of players (8) has been reached.', ephemeral=True)
+            await interaction.response.send_message('The game lobby is full.', ephemeral=True)
         else:
             self.players.append(Player(user))
             await self.update_lobby_embed(interaction)
@@ -332,7 +336,7 @@ class CorelliaGameView(ui.View):
             self.players.remove(player)
             await self.update_lobby_embed(interaction)
         else:
-            await interaction.response.send_message('You are not in the game.', ephemeral=True)
+            await interaction.response.send_message('You\'re not in the game.', ephemeral=True)
 
     @ui.button(label='Start Game', style=ButtonStyle.success, disabled=True)
     async def start_game_button(self, interaction: Interaction, button: ui.Button) -> None:
@@ -344,7 +348,7 @@ class CorelliaGameView(ui.View):
             await interaction.response.send_message('The game has already started.', ephemeral=True)
             return
         if interaction.user.id not in [player.user.id for player in self.players]:
-            await interaction.response.send_message('Only players in the game can start the game.', ephemeral=True)
+            await interaction.response.send_message('Only players in the lobby can start the game.', ephemeral=True)
             return
         if len(self.players) >= 1:
             self.game_started = True
@@ -391,17 +395,25 @@ class CorelliaGameView(ui.View):
         random.shuffle(second_deck)
         return deck + second_deck
 
-    async def proceed_to_next_player(self) -> None:
+    async def proceed_to_next_player(self, player_removed: bool = False) -> None:
         '''
         Move to the next player's turn, or end the game if the final round is completed.
+        Pass player_removed=True after the current player junks and is removed.
         '''
 
         if self.game_ended:
             return
 
-        self.current_player_index = (self.current_player_index + 1) % len(self.players)
+        if player_removed:
+            # The next player has moved into the removed player's seat, so stay on that seat
+            # (wrapping to the first seat, and a new round, only if the last seat was removed)
+            wrapped = self.current_player_index >= len(self.players)
+            self.current_player_index %= len(self.players)
+        else:
+            self.current_player_index = (self.current_player_index + 1) % len(self.players)
+            wrapped = self.current_player_index == 0
 
-        if self.current_player_index == 0 and not self.first_turn:
+        if wrapped and not self.first_turn:
             self.rounds_completed += 1
             if self.rounds_completed > self.total_rounds:
                 await self.end_game()
@@ -414,8 +426,8 @@ class CorelliaGameView(ui.View):
 
     def evaluate_hand(self, player: Player) -> tuple:
         '''
-        Evaluate a player's hand and return a tuple of sorting criteria, hand type, and total.
-        Used for comparing final hands to determine the winner.
+        Evaluate a player's hand and return its sorting key, hand type, and total.
+        Used to compare final hands and determine the winner.
         '''
 
         cards = player.cards
@@ -475,7 +487,7 @@ class CorelliaGameView(ui.View):
                 hand_rank = 5
                 tie_breakers = [min(pairs) if len(pairs) >= 2 else min(abs(c) for c in cards if c != 0)]
             elif zeros == 1 and len(cards) == 3 and any(c >= 2 for v, c in abs_counts.items() if v != 0):
-                hand_type = 'Yee-Ha'
+                hand_type = 'Yee-Haa'
                 hand_rank = 6
                 tie_breakers = [lowest_pair_value if lowest_pair_value is not None else min(abs(c) for c in cards if c != 0)]
             elif zeros == 1 and any(c >= 2 for v, c in abs_counts.items() if v != 0):
@@ -487,7 +499,7 @@ class CorelliaGameView(ui.View):
                 hand_rank = 8
                 tie_breakers = [lowest_quad_value if lowest_quad_value is not None else min(abs(c) for c in cards)]
             elif has_three_of_a_kind():
-                hand_type = "Bantha's Wild"
+                hand_type = 'Bantha\'s Wild'
                 hand_rank = 9
                 tie_breakers = [lowest_trip_value if lowest_trip_value is not None else min(abs(c) for c in cards)]
             elif has_two_pairs():
@@ -559,7 +571,7 @@ class CorelliaGameView(ui.View):
                 color=0xCBB7A0
             )
             embed.set_thumbnail(url=corellian_thumbnail)
-            embed.set_footer(text='Corellian Spike Sabacc')
+            embed.set_footer(text=corellian_footer)
             await self.channel.send(embed=embed, view=EndGameView(self.rounds, self.num_cards, self.active_games, self.channel))
 
             if self in self.active_games:
@@ -589,7 +601,7 @@ class CorelliaGameView(ui.View):
             hand_type = winners[0][2]
             results += f'\n\n🎉 {winner.user.mention} wins with a **{hand_type}**!'
         else:
-            results += '\nIt\'s a tie between:'
+            results += '\n\nIt\'s a tie between:'
             for eh in winners:
                 player = eh[1]
                 results += f' {player.user.mention}'
@@ -601,7 +613,7 @@ class CorelliaGameView(ui.View):
             color=0xCBB7A0
         )
         embed.set_thumbnail(url=corellian_thumbnail)
-        embed.set_footer(text='Corellian Spike Sabacc')
+        embed.set_footer(text=corellian_footer)
         mentions = ' '.join(
             player.user.mention
             for player in self.players
@@ -618,7 +630,7 @@ class CorelliaGameView(ui.View):
 
 class EndGameView(ui.View):
     '''
-    A view at the end of the game that allows starting a new game or viewing rules.
+    A view shown at the end of the game with Play Again and View Rules buttons.
     '''
 
     def __init__(self, rounds: int, num_cards: int, active_games, channel, allow_discard: bool = False):
@@ -641,7 +653,7 @@ class EndGameView(ui.View):
         '''
 
         if self.play_again_clicked:
-            await interaction.response.send_message('Play Again has already been initiated.', ephemeral=True)
+            await interaction.response.send_message('A new lobby has already been created.', ephemeral=True)
             return
 
         self.play_again_clicked = True
@@ -728,7 +740,7 @@ class PlayTurnButton(ui.Button):
 
 class TurnView(ui.View):
     '''
-    A view with actions for the current player's turn: draw, discard, replace, stand, or junk.
+    A view with actions for the current player's turn: draw, replace, discard, stand, or junk.
     '''
 
     def __init__(self, game_view: CorelliaGameView, player: Player):
@@ -736,14 +748,12 @@ class TurnView(ui.View):
         self.game_view = game_view
         self.player = player
 
-        # Add Draw Card button (decorator handles this)
-        # Add Replace Card button (decorator handles this)
-        # Add Discard Card button if allowed (so it's always available, not just after replace)
+        # Draw Card, Replace Card, Stand, and Junk are added by their decorators.
+        # Discard Card is only added when discarding is turned on in the lobby.
         if self.game_view.allow_discard:
-            discard_button = ui.Button(label="Discard Card", style=ButtonStyle.secondary)
+            discard_button = ui.Button(label='Discard Card', style=ButtonStyle.secondary)
             discard_button.callback = self.discard_card_button_callback
             self.add_item(discard_button)
-        # Add Stand and Junk buttons (decorators handle these)
 
     async def interaction_check(self, interaction: Interaction) -> bool:
         '''
@@ -792,23 +802,23 @@ class TurnView(ui.View):
 
         if len(self.player.cards) <= 1:
             await interaction.response.send_message(
-                "You cannot discard when you have only one card.", ephemeral=True
+                'You can\'t discard when you only have one card.', ephemeral=True
             )
             return
 
         await interaction.response.defer()
 
-        card_select_view = CardSelectView(self, action="discard")
+        card_select_view = CardSelectView(self, action='discard')
 
         title = (
-            f"Discard a Card | Round {self.game_view.rounds_completed}/"
-            f"{self.game_view.total_rounds}"
+            f'Discard a Card | Round {self.game_view.rounds_completed}/'
+            f'{self.game_view.total_rounds}'
         )
         description = (
-            f"**Target Number:** Always **0**\n\n"
-            f"**Your Hand:** {self.player.get_cards_string()}\n"
-            f"**Total:** {self.player.get_total()}\n\n"
-            "Click the button corresponding to the card you want to discard."
+            f'**Target Number:** Always **0**\n\n'
+            f'**Your Hand:** {self.player.get_cards_string()}\n'
+            f'**Total:** {self.player.get_total()}\n\n'
+            'Click the card you want to discard.'
         )
 
         embed, file = await create_embed_with_cards(title, description, self.player.cards)
@@ -839,7 +849,7 @@ class TurnView(ui.View):
             f'**Target Number:** Always **0**\n\n'
             f'**Your Hand:** {self.player.get_cards_string()}\n'
             f'**Total:** {self.player.get_total()}\n\n'
-            'Click the button corresponding to the card you want to replace.'
+            'Click the card you want to replace.'
         )
 
         embed, file = await create_embed_with_cards(
@@ -910,13 +920,13 @@ class TurnView(ui.View):
         if len(self.game_view.players) < 2:
             await self.game_view.end_game()
         else:
-            await self.game_view.proceed_to_next_player()
+            await self.game_view.proceed_to_next_player(player_removed=True)
 
 class CardSelectView(ui.View):
     '''
-    A view for selecting a specific card from the player's hand for discard or replace.
+    A view for choosing a card from the player's hand to discard or replace.
     '''
-    
+
     def __init__(self, turn_view: TurnView, action: str):
         super().__init__(timeout=None)
         self.turn_view = turn_view
@@ -927,7 +937,7 @@ class CardSelectView(ui.View):
 
     def create_buttons(self) -> None:
         '''
-        Create a button for each card to select for discard/replace, plus a Go Back button.
+        Create a button for each card in the hand, plus a Go Back button.
         '''
 
         for idx, card in enumerate(self.player.cards):
@@ -941,14 +951,14 @@ class CardSelectView(ui.View):
 
     def make_callback(self, card_value: int, card_index: int):
         '''
-        Return a callback for the chosen card that handles the discard/replace action.
+        Return a callback that discards or replaces the chosen card.
         '''
 
         async def callback(interaction: Interaction) -> None:
             await interaction.response.defer()
             if self.action == 'discard':
                 if len(self.player.cards) <= 1:
-                    await interaction.followup.send('You cannot discard when you have only one card.', ephemeral=True)
+                    await interaction.followup.send('You can\'t discard when you only have one card.', ephemeral=True)
                     return
                 card_value_discarded = self.player.cards.pop(card_index)
                 self.game_view.deck.insert(0, card_value_discarded)
@@ -999,13 +1009,13 @@ class CardSelectView(ui.View):
         '''
 
         if interaction.user.id != self.player.user.id:
-            await interaction.response.send_message('This is not your card selection.', ephemeral=True)
+            await interaction.response.send_message('It\'s not your turn.', ephemeral=True)
             return False
         return True
 
 class GoBackButton(ui.Button):
     '''
-    A button to return to the turn view without performing discard/replace.
+    A button that returns to the turn view without discarding or replacing a card.
     '''
 
     def __init__(self, card_select_view: CardSelectView):
@@ -1014,7 +1024,7 @@ class GoBackButton(ui.Button):
 
     async def callback(self, interaction: Interaction) -> None:
         '''
-        Return to the TurnView without discarding or replacing a card.
+        Return to the turn view without discarding or replacing a card.
         '''
 
         await interaction.response.defer()
@@ -1052,13 +1062,13 @@ class ViewRulesButton(ui.Button):
         '''
         Show the rules embed as an ephemeral message.
         '''
-        
+
         rules_embed = get_corellian_spike_rules_embed()
         await interaction.response.send_message(embed=rules_embed, ephemeral=True)
 
 class DiscardToggleButton(ui.Button):
     '''
-    A toggle button for enabling/disabling discarding in Corellian Spike.
+    A button that turns discarding on or off in Corellian Spike.
     '''
 
     def __init__(self, game_view):
@@ -1070,9 +1080,9 @@ class DiscardToggleButton(ui.Button):
 
     async def callback(self, interaction: Interaction) -> None:
         '''
-        Toggle discard on/off and update the button + embed.
+        Turn discarding on or off and update the button and lobby embed.
         '''
-        
+
         self.game_view.allow_discard = not self.game_view.allow_discard
         self.label = 'Discard Cards: On' if self.game_view.allow_discard else 'Discard Cards: Off'
 

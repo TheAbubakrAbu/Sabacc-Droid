@@ -9,7 +9,7 @@ import requests
 from PIL import Image
 from io import BytesIO
 from concurrent.futures import ThreadPoolExecutor
-from rules import get_kessel_rules_embed, kessel_thumbnail, kessel_footer
+from rules import get_kessel_rules_embed, kessel_thumbnail, kessel_footer, plural
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -166,7 +166,7 @@ class Player:
 
     def get_card_image_urls(self, include_drawn_card: bool=False, include_both_positive_cards: bool=False) -> list[str]:
         '''
-        Get the URLs for the player's cards images.
+        Get the image URLs for the player's cards.
         '''
 
         base_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/kessel/'
@@ -266,10 +266,10 @@ class KesselGameView(ui.View):
 
         embed = Embed(
             title='Kessel Sabacc Lobby',
-            description='Click **Join Game** to join the game!\n\n'
+            description='Click **Join Game** to join the game.\n\n'
                         f'**Game Settings:**\n'
-                        f'• {self.rounds} rounds\n'
-                        f'• 2 starting cards\n\n'
+                        f'- {plural(self.rounds, "round")}\n'
+                        f'- 2 starting cards\n\n'
                         'Once someone has joined, **Start Game** will be enabled.',
             color=0x7F3335
         )
@@ -340,8 +340,8 @@ class KesselGameView(ui.View):
 
         description += (
             f'**Game Settings:**\n'
-            f'• {self.rounds} rounds\n'
-            f'• 2 starting cards\n\n'
+            f'- {plural(self.rounds, "round")}\n'
+            f'- 2 starting cards\n\n'
         )
 
         if len(self.players) < 2:
@@ -376,15 +376,15 @@ class KesselGameView(ui.View):
         '''
         Add the user to the game when they press Join Game.
         '''
-        
+
         user = interaction.user
         if self.game_started:
             await interaction.response.send_message('The game has already started.', ephemeral=True)
             return
         if any(player.user.id == user.id for player in self.players):
-            await interaction.response.send_message('You are already in the game.', ephemeral=True)
+            await interaction.response.send_message('You\'re already in the game.', ephemeral=True)
         elif len(self.players) >= 8:
-            await interaction.response.send_message('The maximum number of players (8) has been reached.', ephemeral=True)
+            await interaction.response.send_message('The game lobby is full.', ephemeral=True)
         else:
             self.players.append(Player(user))
             await self.update_lobby_embed(interaction)
@@ -394,7 +394,7 @@ class KesselGameView(ui.View):
         '''
         Remove the user from the game when they press Leave Game.
         '''
-        
+
         user = interaction.user
         if self.game_started:
             await interaction.response.send_message('You can\'t leave the game after it has started.', ephemeral=True)
@@ -404,7 +404,7 @@ class KesselGameView(ui.View):
             self.players.remove(player)
             await self.update_lobby_embed(interaction)
         else:
-            await interaction.response.send_message('You are not in the game.', ephemeral=True)
+            await interaction.response.send_message('You\'re not in the game.', ephemeral=True)
 
     @ui.button(label='Start Game', style=discord.ButtonStyle.success, disabled=True)
     async def start_game_button(self, interaction: Interaction, button: ui.Button) -> None:
@@ -416,7 +416,7 @@ class KesselGameView(ui.View):
             await interaction.response.send_message('The game has already started.', ephemeral=True)
             return
         if interaction.user.id not in [player.user.id for player in self.players]:
-            await interaction.response.send_message('Only players in the game can start the game.', ephemeral=True)
+            await interaction.response.send_message('Only players in the lobby can start the game.', ephemeral=True)
             return
         if len(self.players) >= 1:
             self.game_started = True
@@ -448,7 +448,7 @@ class KesselGameView(ui.View):
         '''
         Generate and shuffle new decks for the game.
         '''
-        
+
         positive_deck = [i for i in range(1, 7) for _ in range(3)]
         positive_deck += ['Impostor'] * 3
         positive_deck += ['Sylop']
@@ -465,14 +465,22 @@ class KesselGameView(ui.View):
 
         return (['Sylop'] + positive_deck + second_p_deck), (['Sylop'] + negative_deck + second_n_deck)
 
-    async def proceed_to_next_player(self) -> None:
+    async def proceed_to_next_player(self, player_removed: bool = False) -> None:
         '''
-        Proceed to the next player's turn or end the round if necessary.
+        Move to the next player's turn, or end the game if the final round is completed.
+        Pass player_removed=True after the current player junks and is removed.
         '''
 
-        self.current_player_index = (self.current_player_index + 1) % len(self.players)
+        if player_removed:
+            # The next player has moved into the removed player's seat, so stay on that seat
+            # (wrapping to the first seat, and a new round, only if the last seat was removed)
+            wrapped = self.current_player_index >= len(self.players)
+            self.current_player_index %= len(self.players)
+        else:
+            self.current_player_index = (self.current_player_index + 1) % len(self.players)
+            wrapped = self.current_player_index == 0
 
-        if self.current_player_index == 0 and not self.first_turn:
+        if wrapped and not self.first_turn:
             self.rounds_completed += 1
             if self.rounds_completed >= self.rounds:
                 await self.end_game()
@@ -506,12 +514,13 @@ class KesselGameView(ui.View):
             hand_rank = 2
             tie_breakers = [min(abs_values)]
         elif total == 0 and sorted(abs_values) == [6, 6]:
+            # Checked before Standard Sabacc, but ranked below it (the worst Sabacc hand)
             hand_type = 'Cheap Sabacc'
-            hand_rank = 3
+            hand_rank = 4
             tie_breakers = [6]
         elif total == 0:
             hand_type = 'Standard Sabacc'
-            hand_rank = 4
+            hand_rank = 3
             tie_breakers = [min(abs_values)]
         else:
             hand_type = 'Nulrhek'
@@ -528,6 +537,10 @@ class KesselGameView(ui.View):
         return (hand_rank, *tie_breakers), hand_type, total
 
     def _add_ai_if_needed(self) -> None:
+        '''
+        Add a Lando Calrissian AI opponent to a solo game if one hasn't been added yet.
+        '''
+
         if self.solo_game and not hasattr(self, 'ai_player_added'):
             lando_user = type('AIUser', (object,), {'mention': 'Lando Calrissian AI', 'name': 'Lando Calrissian AI'})
             lando = Player(user=lando_user())
@@ -594,7 +607,7 @@ class KesselGameView(ui.View):
                 color=0x7F3335
             )
             embed.set_thumbnail(url=kessel_thumbnail)
-            embed.set_footer(text='Kessel Sabacc')
+            embed.set_footer(text=kessel_footer)
             await self.channel.send(embed=embed, view=EndGameView(rounds=self.rounds, active_games=self.active_games, channel=self.channel))
             if self in self.active_games:
                 self.active_games.remove(self)
@@ -623,15 +636,15 @@ class KesselGameView(ui.View):
             hand_type = winners[0][2]
             results += f'\n\n🎉 {winner.user.mention} wins with a **{hand_type}**!'
         else:
-            results += '\nIt\'s a tie between:'
+            results += '\n\nIt\'s a tie between:'
             for eh in winners:
                 player = eh[1]
                 results += f' {player.user.mention}'
             results += '!'
 
-        results += '\n\n**Legend** (View rules for more information):\n'
-        results += 'Ψ: Impostor card (value chosen by 2 dice at the end)\n'
-        results += 'Ø: Sylop card (value is the same as other card in hand)\n'
+        results += '\n\n**Legend:**\n'
+        results += 'Ψ: Impostor card (value chosen from two dice rolls at the end of the game)\n'
+        results += 'Ø: Sylop card (takes the value of the other card in the hand)\n'
 
         embed = Embed(
             title='Game Over',
@@ -639,7 +652,7 @@ class KesselGameView(ui.View):
             color=0x7F3335
         )
         embed.set_thumbnail(url=kessel_thumbnail)
-        embed.set_footer(text='Kessel Sabacc')
+        embed.set_footer(text=kessel_footer)
         mentions = ' '.join(player.user.mention for player in self.players if 'AIUser' not in type(player.user).__name__)
         await self.channel.send(content=mentions, embed=embed, view=EndGameView(rounds=self.rounds, active_games=self.active_games, channel=self.channel))
 
@@ -648,7 +661,7 @@ class KesselGameView(ui.View):
 
 class EndGameView(ui.View):
     '''
-    Provide buttons for actions after the game ends.
+    A view shown at the end of the game with Play Again and View Rules buttons.
     '''
 
     def __init__(self, rounds: int, active_games: list, channel) -> None:
@@ -665,11 +678,11 @@ class EndGameView(ui.View):
 
     async def play_again_callback(self, interaction: Interaction) -> None:
         '''
-        Handle the Play Again button press.
+        Create a new lobby and add the player who clicked as the first player.
         '''
-        
+
         if self.play_again_clicked:
-            await interaction.response.send_message('Play Again has already been initiated.', ephemeral=True)
+            await interaction.response.send_message('A new lobby has already been created.', ephemeral=True)
             return
 
         self.play_again_clicked = True
@@ -754,11 +767,11 @@ async def send_embed_with_hand(player: Player, title: str, description: str, inc
     explanations = ''
     if junk:
         if 'Ψ' in player.get_cards_string():
-            explanations += 'Ψ: Impostor card (value chosen by 2 dice at the end)\n'
+            explanations += 'Ψ: Impostor card (value chosen from two dice rolls at the end of the game)\n'
         if 'Ø' in player.get_cards_string():
-            explanations += 'Ø: Sylop card (value is the same as other card in hand)\n'
+            explanations += 'Ø: Sylop card (takes the value of the other card in the hand)\n'
         if explanations:
-            embed.add_field(name='**Legend**:', value=explanations.strip(), inline=False)
+            embed.add_field(name='Legend', value=explanations.strip(), inline=False)
 
     embed.set_thumbnail(url=kessel_thumbnail)
     embed.set_footer(text=kessel_footer)
@@ -812,6 +825,10 @@ class TurnView(ui.View):
         return True
 
     async def draw_positive_button_callback(self, interaction: Interaction) -> None:
+        '''
+        Draw a positive card and let the player choose which positive card to keep.
+        '''
+
         if not self.game_view.positive_deck:
             await interaction.response.send_message('The positive deck is empty.', ephemeral=True)
             return
@@ -822,10 +839,10 @@ class TurnView(ui.View):
         if self.player.drawn_card == 'Impostor':
             special_info = '\n\nYou drew an **Impostor** card (Ψ)! You will choose its value at the end of the game.'
         elif self.player.drawn_card == 'Sylop':
-            special_info = '\n\nYou drew a **Sylop** card (Ø)! See rules for its special behavior.'
+            special_info = '\n\nYou drew a **Sylop** card (Ø)! It takes the value of the other card in your hand.'
 
         discard_view = DiscardCardView(self.game_view, self.player)
-        title = 'You Drew a Positive Card'
+        title = f'You Drew a Positive Card | Round {self.game_view.rounds_completed + 1}/{self.game_view.rounds}'
         description = (
             f'**Target Number:** Always **0**\n\n'
             f'You drew: **{Player.get_card_display(self.player.drawn_card)}**{special_info}\n\n'
@@ -850,6 +867,10 @@ class TurnView(ui.View):
         self.stop()
 
     async def draw_negative_button_callback(self, interaction: Interaction) -> None:
+        '''
+        Draw a negative card and let the player choose which negative card to keep.
+        '''
+
         if not self.game_view.negative_deck:
             await interaction.response.send_message('The negative deck is empty.', ephemeral=True)
             return
@@ -860,10 +881,10 @@ class TurnView(ui.View):
         if self.player.drawn_card == 'Impostor':
             special_info = '\n\nYou drew an **Impostor** card (Ψ)! You will choose its value at the end of the game.'
         elif self.player.drawn_card == 'Sylop':
-            special_info = '\n\nYou drew a **Sylop** card (Ø)! See rules for its special behavior.'
+            special_info = '\n\nYou drew a **Sylop** card (Ø)! It takes the value of the other card in your hand.'
 
         discard_view = DiscardCardView(self.game_view, self.player)
-        title = 'You Drew a Negative Card'
+        title = f'You Drew a Negative Card | Round {self.game_view.rounds_completed + 1}/{self.game_view.rounds}'
         description = (
             f'**Target Number:** Always **0**\n\n'
             f'You drew: **{Player.get_card_display(self.player.drawn_card)}**{special_info}\n\n'
@@ -887,6 +908,10 @@ class TurnView(ui.View):
         self.stop()
 
     async def stand_button_callback(self, interaction: Interaction) -> None:
+        '''
+        Stand without taking additional actions.
+        '''
+
         title = f'You Chose to Stand | Round {self.game_view.rounds_completed + 1}/{self.game_view.rounds}'
         description = (
             f'**Target Number:** Always **0**\n\n'
@@ -909,6 +934,10 @@ class TurnView(ui.View):
         await self.game_view.proceed_to_next_player()
 
     async def junk_button_callback(self, interaction: Interaction) -> None:
+        '''
+        Junk your hand and leave the game.
+        '''
+
         title = f'You Chose to Junk | Round {self.game_view.rounds_completed + 1}/{self.game_view.rounds}'
         description = (
             f'**Target Number:** Always **0**\n\n'
@@ -921,7 +950,7 @@ class TurnView(ui.View):
             self.player,
             title,
             description,
-            junk = True
+            junk=True
         )
 
         if files:
@@ -934,14 +963,14 @@ class TurnView(ui.View):
         if len(self.game_view.players) < 2:
             await self.game_view.end_game()
         else:
-            await self.game_view.proceed_to_next_player()
+            await self.game_view.proceed_to_next_player(player_removed=True)
 
     def stop(self) -> None:
         super().stop()
 
 class DiscardCardView(ui.View):
     '''
-    Provide buttons to choose which card to keep after drawing.
+    A view with buttons to choose which card to keep after drawing.
     '''
 
     def __init__(self, game_view: KesselGameView, player: Player) -> None:
@@ -970,6 +999,10 @@ class DiscardCardView(ui.View):
         self.add_item(button)
 
     def make_callback(self, choice: str):
+        '''
+        Return a callback that keeps either the existing card or the drawn card.
+        '''
+
         async def callback(interaction: Interaction) -> None:
             card_type = self.player.drawn_card_type
             drawn_card = self.player.drawn_card
@@ -994,7 +1027,7 @@ class DiscardCardView(ui.View):
 
             self.player.discard_drawn_card()
 
-            title = 'Card Selection Completed'
+            title = f'Card Selection Complete | Round {self.game_view.rounds_completed + 1}/{self.game_view.rounds}'
             description = (
                 f'**Target Number:** Always **0**\n\n'
                 f'{action}\n\n'
@@ -1017,6 +1050,10 @@ class DiscardCardView(ui.View):
         return callback
 
     async def interaction_check(self, interaction: Interaction) -> bool:
+        '''
+        Only the current player can choose a card.
+        '''
+
         if interaction.user.id != self.player.user.id:
             await interaction.response.send_message('It\'s not your turn.', ephemeral=True)
             return False
@@ -1027,7 +1064,7 @@ class DiscardCardView(ui.View):
 
 class ChooseImpostorValueView(ui.View):
     '''
-    View for players to choose their Impostor card values.
+    A view for a player to choose the values of their Impostor cards.
     '''
 
     def __init__(self, game_view: KesselGameView, player: Player) -> None:
@@ -1048,11 +1085,15 @@ class ChooseImpostorValueView(ui.View):
             self.state = 'done'
 
     async def send_initial_message(self) -> None:
+        '''
+        Send the dice roll prompt for the current Impostor card.
+        '''
+
         if self.state in ('+', '-'):
             card_type = 'positive' if self.state == '+' else 'negative'
             embed = Embed(
-                title=f'Choose your {card_type} Impostor card value.',
-                description=f'Two dice have been rolled for {self.player.user.mention} Impostor card. Choose your preferred value.',
+                title=f'Choose Your {card_type.capitalize()} Impostor Card Value',
+                description=f'Two dice have been rolled for {self.player.user.mention}\'s Impostor card. Choose one of the values below.',
                 color=0x7F3335
             )
             embed.set_thumbnail(url=kessel_thumbnail)
@@ -1061,6 +1102,10 @@ class ChooseImpostorValueView(ui.View):
             self.message = await self.game_view.channel.send(content=self.player.user.mention, embed=embed, view=self)
 
     def roll_dice(self) -> None:
+        '''
+        Roll two dice for the current Impostor card and add a button for each value.
+        '''
+
         if self.state == '+':
             self.dice_values = [random.randint(1, 6), random.randint(1, 6)]
         elif self.state == '-':
@@ -1074,6 +1119,10 @@ class ChooseImpostorValueView(ui.View):
             self.add_item(button)
 
     def make_callback(self, chosen_value: int):
+        '''
+        Return a callback that assigns the chosen value to the Impostor card.
+        '''
+
         async def callback(interaction: Interaction) -> None:
             card_type = 'positive' if self.state == '+' else 'negative'
             await interaction.response.defer()
@@ -1091,19 +1140,27 @@ class ChooseImpostorValueView(ui.View):
         return callback
 
     async def announce_choice(self, chosen_value: int, card_type: str, timed_out: bool=False) -> None:
+        '''
+        Replace the dice prompt with the chosen Impostor card value.
+        '''
+
         embed = Embed(
             title='Impostor Card Value Chosen',
-            description=f'**{chosen_value}** has been selected as the {card_type} Impostor card by {self.player.user.mention}.',
+            description=f'**{chosen_value}** was chosen for {self.player.user.mention}\'s {card_type} Impostor card.',
             color=0x7F3335
         )
         embed.set_thumbnail(url=kessel_thumbnail)
         embed.set_footer(text=kessel_footer)
-        
+
         await self.message.edit(embed=embed, view=None)
 
     async def interaction_check(self, interaction: Interaction) -> bool:
+        '''
+        Only the player who owns the Impostor card can choose its value.
+        '''
+
         if interaction.user.id != self.player.user.id:
-            await interaction.response.send_message('This is not for you.', ephemeral=True)
+            await interaction.response.send_message('This isn\'t your Impostor card.', ephemeral=True)
             return False
         return True
 
@@ -1112,12 +1169,16 @@ class ChooseImpostorValueView(ui.View):
 
 class ViewRulesButton(ui.Button):
     '''
-    Button to view the game rules.
+    A button that displays the Kessel Sabacc rules.
     '''
 
     def __init__(self) -> None:
         super().__init__(label='View Rules', style=discord.ButtonStyle.secondary)
 
     async def callback(self, interaction: Interaction) -> None:
+        '''
+        Show the rules embed as an ephemeral message.
+        '''
+
         rules_embed = get_kessel_rules_embed()
         await interaction.response.send_message(embed=rules_embed, ephemeral=True)
