@@ -10,7 +10,7 @@ import requests
 from PIL import Image
 from io import BytesIO
 from concurrent.futures import ThreadPoolExecutor
-from rules import get_coruscant_shift_rules_embed, coruscant_thumbnail, coruscant_footer
+from rules import get_coruscant_shift_rules_embed, coruscant_thumbnail, coruscant_footer, plural
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -21,10 +21,17 @@ SUIT_TO_FOLDER = {
     '■': 'square'
 }
 
+def format_signed(value: int) -> str:
+    '''
+    Return the value with a + sign if it is positive (for example, +10, -5, or 0).
+    '''
+
+    return f'+{value}' if value > 0 else str(value)
+
 class Card:
     '''
-    Coruscant Shift card with suit (●, ▲, ■, Sylop) and value (−10..−1, 0, +1..+10).
-    locked_in indicates it cannot be unselected in future rounds.
+    A Coruscant Shift card with a suit (●, ▲, ■, or Sylop) and a value (-10 to +10).
+    locked_in means the card was kept in an earlier round and can't be discarded.
     '''
 
     def __init__(self, value: int, suit: str, locked_in: bool = False):
@@ -39,16 +46,29 @@ class Card:
         return f'{self.suit} {sign}{self.value}'
 
     def image_filename(self) -> str:
+        '''
+        Return this card's image path, relative to the Corellian Spike image folder.
+        '''
+
         if self.suit == 'Sylop':
             return '0.png'
         folder = SUIT_TO_FOLDER.get(self.suit, 'circles')
         return f'''{folder}/{f'+{self.value}' if self.value > 0 else self.value}.png'''
 
 def get_card_image_url(card: Card) -> str:
+    '''
+    Generate the image URL for the given card.
+    '''
+
     base_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/corellian_spike/'
     return base_url + quote(card.image_filename())
 
 def download_and_process_image(url: str, width: int, height: int) -> Image.Image:
+    '''
+    Download and resize an image, converting it to RGBA format.
+    Returns the processed Image object or None on failure.
+    '''
+
     try:
         resp = requests.get(url, stream=True, timeout=5)
         resp.raise_for_status()
@@ -59,6 +79,11 @@ def download_and_process_image(url: str, width: int, height: int) -> Image.Image
         return None
 
 def combine_card_images(urls: list[str], width: int = 80, height: int = 120, pad: int = 10) -> BytesIO:
+    '''
+    Combine multiple card images into a single horizontal image.
+    Returns a BytesIO containing the combined PNG image.
+    '''
+
     with ThreadPoolExecutor(max_workers=12) as exe:
         futures = [(i, exe.submit(download_and_process_image, u, width, height))
                    for i, u in enumerate(urls)]
@@ -68,7 +93,7 @@ def combine_card_images(urls: list[str], width: int = 80, height: int = 120, pad
     results.sort(key=lambda x: x[0])
     images = [img for _, img in results if img is not None]
     if not images:
-        raise ValueError('No valid images to combine.')
+        raise ValueError('No valid images were provided to combine.')
     total_w = sum(im.width for im in images) + pad * (len(images) - 1)
     max_h = max(im.height for im in images)
     combined = Image.new('RGBA', (total_w, max_h), (255, 255, 255, 0))
@@ -82,27 +107,45 @@ def combine_card_images(urls: list[str], width: int = 80, height: int = 120, pad
     return buf
 
 class Player:
+    '''
+    Represents a player with a Discord user and a hand of cards.
+    '''
+
     def __init__(self, user):
         self.user = user
         self.hand: list[Card] = []
 
     def draw_card(self, deck: list[Card]):
+        '''
+        Draw one card from the deck and add it to the player's hand.
+        Raises ValueError if the deck is empty.
+        '''
+
         if not deck:
-            raise ValueError('Deck is empty; cannot draw.')
+            raise ValueError('The deck is empty. Cannot draw more cards.')
         self.hand.append(deck.pop())
 
     def get_hand_string(self) -> str:
+        '''
+        Return a formatted string of the player's cards with separators.
+        '''
+
         return ' | ' + ' | '.join(str(c) for c in self.hand) + ' |'
 
     def total_value(self) -> int:
+        '''
+        Return the sum of the player's card values.
+        '''
+
         return sum(c.value for c in self.hand)
 
 class CoruscantGameView(ui.View):
     '''
-    A Coruscant Shift multi-round game:
-      - Topping up to 5 cards after each round (except after the final round ends).
-      - If solo_game=True and there's only one real player, we add Lando Calrissian AI at game end.
-      - No extra public embed messages unless it's turn mention or final results mention.
+    Represents a Coruscant Shift Sabacc game instance, managing players,
+    deck, turns, and interactions.
+    - Players draw back up to num_cards at the start of each round after the first.
+    - In a solo game, a Lando Calrissian AI opponent is added when the game ends.
+    - Only turn announcements and final results are posted publicly.
     '''
 
     def __init__(
@@ -148,6 +191,10 @@ class CoruscantGameView(ui.View):
         self.roll_dice()
 
     def roll_dice(self):
+        '''
+        Roll the gold die for the target number and the silver die for the target suit.
+        '''
+
         gold_faces = [-10, 10, -5, 5, 0, 0]
         silver_faces = ['●', '●', '▲', '▲', '■', '■']
         self.target_number = random.choice(gold_faces)
@@ -155,8 +202,8 @@ class CoruscantGameView(ui.View):
 
     async def update_lobby(self, interaction: Interaction = None):
         '''
-        Updates the lobby embed with current players. 
-        (Allowed to send embed here, since it's the game-lobby pre-start.)
+        Update the lobby embed to show players, status, and start conditions.
+        Reset if no players remain.
         '''
 
         if not self.players:
@@ -166,14 +213,14 @@ class CoruscantGameView(ui.View):
 
         desc = f'**Players Joined ({len(self.players)}/8):**\n'
         desc += '\n'.join(p.user.mention for p in self.players)
-        desc += '\n'
+        desc += '\n\n'
         if len(self.players) >= 8:
-            desc += 'The game lobby is full.'
+            desc += 'The game lobby is full.\n\n'
 
         desc += (
-            f'\n**Game Settings:**\n'
-            f'• {self.rounds} rounds\n'
-            f'• {self.num_cards} starting cards\n\n'
+            f'**Game Settings:**\n'
+            f'- {plural(self.rounds, "round")}\n'
+            f'- {plural(self.num_cards, "starting card")}\n\n'
         )
 
         if len(self.players) < 2:
@@ -200,7 +247,7 @@ class CoruscantGameView(ui.View):
 
     async def reset_lobby(self, interaction: Interaction):
         '''
-        Resets the lobby if no players remain, or forcibly.
+        Reset the lobby to its initial state and update the lobby message.
         '''
 
         self.players.clear()
@@ -216,10 +263,10 @@ class CoruscantGameView(ui.View):
         self.roll_dice()
 
         desc = (
-            'Click **Join Game** to join the game!\n\n'
+            'Click **Join Game** to join the game.\n\n'
             f'**Game Settings:**\n'
-            f'• {self.rounds} rounds\n'
-            f'• {self.num_cards} starting cards\n\n'
+            f'- {plural(self.rounds, "round")}\n'
+            f'- {plural(self.num_cards, "starting card")}\n\n'
             'Once someone has joined, **Start Game** will be enabled.'
         )
         embed = Embed(title='Coruscant Shift Sabacc Lobby', description=desc, color=0xAB9032)
@@ -228,6 +275,10 @@ class CoruscantGameView(ui.View):
         await interaction.response.edit_message(embed=embed, view=self)
 
     async def play_callback(self, interaction: Interaction):
+        '''
+        Add the user who clicked to the game if possible.
+        '''
+
         if self.game_started:
             await interaction.response.send_message(
                 'The game has already started.', ephemeral=True
@@ -236,12 +287,12 @@ class CoruscantGameView(ui.View):
         user = interaction.user
         if any(p.user.id == user.id for p in self.players):
             await interaction.response.send_message(
-                'You are already in the game.', ephemeral=True
+                'You\'re already in the game.', ephemeral=True
             )
             return
         if len(self.players) >= 8:
             await interaction.response.send_message(
-                'Game is full (8 max).', ephemeral=True
+                'The game lobby is full.', ephemeral=True
             )
             return
 
@@ -249,9 +300,13 @@ class CoruscantGameView(ui.View):
         await self.update_lobby(interaction)
 
     async def leave_callback(self, interaction: Interaction):
+        '''
+        Remove the user from the lobby if the game has not started yet.
+        '''
+
         if self.game_started:
             await interaction.response.send_message(
-                'You cannot leave after the game has started.', ephemeral=True
+                'You can\'t leave the game after it has started.', ephemeral=True
             )
             return
         user = interaction.user
@@ -260,17 +315,21 @@ class CoruscantGameView(ui.View):
             self.players.remove(pl)
             await self.update_lobby(interaction)
         else:
-            await interaction.response.send_message('You are not in the game.', ephemeral=True)
+            await interaction.response.send_message('You\'re not in the game.', ephemeral=True)
 
     async def start_callback(self, interaction: Interaction):
+        '''
+        Start the game if conditions are met, deal cards, and proceed.
+        '''
+
         if self.game_started:
             await interaction.response.send_message('The game has already started.', ephemeral=True)
             return
         if interaction.user.id not in [p.user.id for p in self.players]:
-            await interaction.response.send_message('Only a player in the lobby can start.', ephemeral=True)
+            await interaction.response.send_message('Only players in the lobby can start the game.', ephemeral=True)
             return
         if not self.players:
-            await interaction.response.send_message('No players to start!', ephemeral=True)
+            await interaction.response.send_message('Not enough players to start the game.', ephemeral=True)
             return
 
         self.game_started = True
@@ -295,6 +354,10 @@ class CoruscantGameView(ui.View):
         await self.next_turn()
 
     def generate_deck(self) -> list[Card]:
+        '''
+        Generate and return seven shuffled 62-card Coruscant Shift decks combined into one.
+        '''
+
         suits = ['●', '▲', '■']
         deck = []
 
@@ -315,7 +378,7 @@ class CoruscantGameView(ui.View):
 
     async def next_turn(self):
         '''
-        Move to next player's turn, or next round, or end game.
+        Move to the next player's turn, start the next round, or end the game.
         '''
 
         if not self.game_started or self.game_ended:
@@ -342,7 +405,7 @@ class CoruscantGameView(ui.View):
 
     async def announce_turn(self, player: Player):
         '''
-        Announces whose turn it is (mention + embed).
+        Send a message showing the current player's turn and card backs.
         '''
 
         desc = f'**Players:**\n'
@@ -350,7 +413,7 @@ class CoruscantGameView(ui.View):
         desc += f'\n\n**Round {self.current_round}/{self.rounds}**\n'
         desc += f'It\'s now {player.user.mention}\'s turn.\n'
         desc += 'Click **Play Turn** to proceed.\n\n'
-        desc += f'**Target Number:** {self.target_number} | **Target Suit:** {self.target_suit}\n\n'
+        desc += f'**Target Number:** {format_signed(self.target_number)} | **Target Suit:** {self.target_suit}\n\n'
 
         card_back = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/corellian_spike/card.png'
         card_count = len(player.hand)
@@ -387,17 +450,15 @@ class CoruscantGameView(ui.View):
 
     async def end_game(self):
         '''
-        End the game, evaluate final results, mention all non-AI players.
-        If solo_game = True and there's only 1 real player, add Lando if not present.
+        End the game, evaluate hands, determine the winner(s), and display results.
+        In a solo game, a Lando Calrissian AI opponent is added first.
 
-        Pure Sabacc:
-        - Exactly 2 cards, both Sylops => auto-win over non-Pure-Sabacc.
-        Tie-breakers (if no Pure Sabacc):
-        1) closest to target_number (lowest abs diff)
-        2) most suit matches
-        3) highest total
-        4) highest single positive card
-        5) otherwise tie
+        Pure Sabacc (exactly two Sylops) beats every other hand. Otherwise, the tiebreakers are:
+        1. Closest to target_number
+        2. Most cards matching the target suit
+        3. Highest total
+        4. Highest single positive card
+        5. If still tied, the game ends in a tie
         '''
 
         if self.game_ended:
@@ -423,13 +484,13 @@ class CoruscantGameView(ui.View):
                 color=0xAB9032
             )
             embed.set_thumbnail(url=coruscant_thumbnail)
-            embed.set_footer(text='Coruscant Shift Sabacc')
+            embed.set_footer(text=coruscant_footer)
             await self.channel.send(embed=embed, view=EndGameView(self.active_games, self.channel, rounds=self.rounds, num_cards=self.num_cards))
             if self in self.active_games:
                 self.active_games.remove(self)
             return
 
-        result_text = f'**Target Number:** {self.target_number} | **Target Suit:** {self.target_suit}\n\n**Final Hands:**'
+        result_text = f'**Target Number:** {format_signed(self.target_number)} | **Target Suit:** {self.target_suit}\n\n**Final Hands:**'
 
         pure_sabacc_players = []
         suit_counts = {}
@@ -441,8 +502,8 @@ class CoruscantGameView(ui.View):
             if len(pl.hand) == 2 and all(c.suit == 'Sylop' for c in pl.hand):
                 pure_sabacc_players.append(pl)
                 line1 = f'\n- {pl.user.mention}: {pl.get_hand_string()}'
-                line2 = f'   - Total: Pure Sabacc (2 Sylops)'
-                result_text += f'{line1}\n{line2}\n'
+                line2 = f'   - Total: 0\n   - Hand: Pure Sabacc'
+                result_text += f'{line1}\n{line2}'
             else:
                 total = pl.total_value()
                 line1 = f'\n- {pl.user.mention}: {pl.get_hand_string()}'
@@ -455,8 +516,8 @@ class CoruscantGameView(ui.View):
                 winner = pure_sabacc_players[0]
                 result_text += f'\n\n🎉 {winner.user.mention} wins with a **Pure Sabacc**!'
             else:
-                tie_names = ', '.join(pl.user.mention for pl in pure_sabacc_players)
-                result_text += f'\n\nIt\'s a tie between: {tie_names} (all **Pure Sabacc**)'
+                tie_names = ' '.join(pl.user.mention for pl in pure_sabacc_players)
+                result_text += f'\n\nIt\'s a tie between: {tie_names}!'
         else:
             evals = []
             for pl in self.players:
@@ -469,7 +530,7 @@ class CoruscantGameView(ui.View):
                 evals.append((diff, -sc, -total, -largest_pos_card, pl))
 
             evals.sort(key=lambda x: (x[0], x[1], x[2], x[3]))
-            
+
             best_key = evals[0][:4]
             winners = [e for e in evals if e[:4] == best_key]
 
@@ -477,12 +538,12 @@ class CoruscantGameView(ui.View):
                 wpl = winners[0][4]
                 result_text += f'\n\n🎉 {wpl.user.mention} wins!'
             else:
-                tie_names = ', '.join(e[4].user.mention for e in winners)
-                result_text += f'\n\nIt\'s a tie between: {tie_names}'
+                tie_names = ' '.join(e[4].user.mention for e in winners)
+                result_text += f'\n\nIt\'s a tie between: {tie_names}!'
 
         embed = Embed(title='Game Over', description=result_text, color=0xAB9032)
         embed.set_thumbnail(url=coruscant_thumbnail)
-        embed.set_footer(text='Coruscant Shift Sabacc')
+        embed.set_footer(text=coruscant_footer)
 
         mention_line = ' '.join(
             pl.user.mention for pl in self.players if 'AIUser' not in type(pl.user).__name__
@@ -494,7 +555,7 @@ class CoruscantGameView(ui.View):
 
 class TurnView(ui.View):
     '''
-    Public ephemeral-later view with Play Turn + View Rules only
+    A view showing a button to take the current player's turn and one to view rules.
     '''
 
     def __init__(self, game_view: CoruscantGameView):
@@ -505,7 +566,7 @@ class TurnView(ui.View):
 
 class TurnButton(ui.Button):
     '''
-    Play Turn ephemeral: shows your hand, toggles, confirm, junk, etc.
+    A button that lets the current player start their turn and choose which cards to keep.
     '''
 
     def __init__(self, game_view: CoruscantGameView):
@@ -513,16 +574,20 @@ class TurnButton(ui.Button):
         self.game_view = game_view
 
     async def callback(self, interaction: Interaction):
+        '''
+        Show the current player's hand when they choose to play their turn.
+        '''
+
         if not self.game_view.game_started or self.game_view.game_ended:
-            await interaction.response.send_message('Game not active or invalid turn.', ephemeral=True)
+            await interaction.response.send_message('This game is no longer active.', ephemeral=True)
             return
         idx = self.game_view.current_player_index
         if idx < 0 or idx >= len(self.game_view.players):
-            await interaction.response.send_message('No current player to act.', ephemeral=True)
+            await interaction.response.send_message('There\'s no current player.', ephemeral=True)
             return
         player = self.game_view.players[idx]
         if player.user.id != interaction.user.id:
-            await interaction.response.send_message('It is not your turn.', ephemeral=True)
+            await interaction.response.send_message('It\'s not your turn.', ephemeral=True)
             return
 
         await interaction.response.defer(ephemeral=True)
@@ -535,9 +600,8 @@ class TurnButton(ui.Button):
 
 async def ephemeral_hand_embed(player: Player, game_view: CoruscantGameView, toggles: list[bool] = None):
     '''
-    Build ephemeral embed for the player's toggles, showing partial or full card images.
-    If a card is locked_in, we do not show a checkmark and do not allow unselecting.
-    Also forbid the final scenario of 0 cards.
+    Build the ephemeral hand embed for the player's current selection.
+    Discarded cards are shown face down.
     '''
 
     if toggles is None:
@@ -556,10 +620,10 @@ async def ephemeral_hand_embed(player: Player, game_view: CoruscantGameView, tog
     suit_matches = sum(1 for c in kept_cards if c.suit == game_view.target_suit or c.suit == 'Sylop')
 
     desc = (
-        f'**Target Number:** {game_view.target_number} | **Target Suit:** {game_view.target_suit}\n\n'
-        f'**Your Cards:** {player.get_hand_string()}\n'
+        f'**Target Number:** {format_signed(game_view.target_number)} | **Target Suit:** {game_view.target_suit}\n\n'
+        f'**Your Hand:** {player.get_hand_string()}\n'
         f'**Total:** {total} | **Suit Matches:** {suit_matches}\n\n'
-        'Toggle any card to remove or bring it back. Any card you select cannot be unselected in future rounds.'
+        'Click a card to toggle whether you keep it (✅) or discard it (❌). Cards you keep are locked in for future rounds.'
     )
 
     try:
@@ -574,11 +638,11 @@ async def ephemeral_hand_embed(player: Player, game_view: CoruscantGameView, tog
         embed.set_image(url='attachment://combined_cards.png')
         file = discord.File(fp=buf, filename='combined_cards.png')
         return embed, file
-    
+
     except Exception as e:
-        logger.error(f'ephemeral_hand_embed: {e}')
+        logger.error(f'Failed to combine card images: {e}')
         embed = Embed(
-            title='Your Turn',
+            title=f'Your Turn | Round {game_view.current_round}/{game_view.rounds}',
             description=desc,
             color=0xAB9032
         )
@@ -588,10 +652,9 @@ async def ephemeral_hand_embed(player: Player, game_view: CoruscantGameView, tog
 
 class EphemeralSelectView(ui.View):
     '''
-    The ephemeral view letting a user toggle each card or junk, confirm, etc.
-    We keep a local toggles array that we re-render each time.
-    If a card is locked_in, we do not let you unselect it.
-    Also cannot reduce total selected to 0.
+    An ephemeral view for toggling which cards to keep, confirming the selection, or junking.
+    Toggles are stored locally and re-rendered after each click.
+    Locked-in cards can't be discarded, and at least one card must be kept.
     '''
 
     def __init__(self, game_view: CoruscantGameView, player: Player):
@@ -602,6 +665,10 @@ class EphemeralSelectView(ui.View):
         self.build_buttons()
 
     def build_buttons(self):
+        '''
+        Create a button for each card, plus Confirm Selection and Junk buttons.
+        '''
+
         self.clear_items()
 
         for idx, c in enumerate(self.player.hand):
@@ -629,25 +696,33 @@ class EphemeralSelectView(ui.View):
         self.add_item(junk)
 
     def make_locked_callback(self):
+        '''
+        Return a callback explaining that locked-in cards can't be discarded.
+        '''
+
         async def callback(interaction: Interaction):
             if interaction.user.id != self.player.user.id:
-                await interaction.response.send_message('Not your selection to make!', ephemeral=True)
+                await interaction.response.send_message('It\'s not your turn.', ephemeral=True)
                 return
             await interaction.response.send_message(
-                'You cannot unselect cards locked in from previous rounds.', ephemeral=True
+                'You can\'t discard cards you kept in a previous round.', ephemeral=True
             )
         return callback
 
     def make_toggle_callback(self, i: int):
+        '''
+        Return a callback that toggles whether the card at index i is kept.
+        '''
+
         async def callback(interaction: Interaction):
             if interaction.user.id != self.player.user.id:
-                await interaction.response.send_message('Not your selection to make!', ephemeral=True)
+                await interaction.response.send_message('It\'s not your turn.', ephemeral=True)
                 return
 
             selected_count = sum(1 for x in self.toggles if x)
             if self.toggles[i]:
                 if selected_count == 1:
-                    await interaction.response.send_message('You cannot have 0 cards.', ephemeral=True)
+                    await interaction.response.send_message('You must keep at least one card.', ephemeral=True)
                     return
 
             self.toggles[i] = not self.toggles[i]
@@ -662,8 +737,12 @@ class EphemeralSelectView(ui.View):
         return callback
 
     async def confirm_callback(self, interaction: Interaction):
+        '''
+        Keep the selected cards, lock in the selection, and end the turn.
+        '''
+
         if interaction.user.id != self.player.user.id:
-            await interaction.response.send_message('Not your turn to confirm!', ephemeral=True)
+            await interaction.response.send_message('It\'s not your turn.', ephemeral=True)
             return
 
         final_cards = []
@@ -676,10 +755,10 @@ class EphemeralSelectView(ui.View):
         embed = Embed(
             title=f'Selection Confirmed | Round {self.game_view.current_round}/{self.game_view.rounds}',
             description=(
-                f'**Target Number:** {self.game_view.target_number} | **Target Suit:** {self.game_view.target_suit}\n\n'
-                f'**You chose:** {self.player.get_hand_string()}\n'
+                f'**Target Number:** {format_signed(self.game_view.target_number)} | **Target Suit:** {self.game_view.target_suit}\n\n'
+                f'**Your Hand:** {self.player.get_hand_string()}\n'
                 f'**Total:** {total}\n\n'
-                'Selection locked in for this round.'
+                'Your selection is locked in for this round.'
             ),
             color=0xAB9032
         )
@@ -693,7 +772,7 @@ class EphemeralSelectView(ui.View):
                 embed.set_image(url='attachment://chosen.png')
                 efile = discord.File(fp=fbuf, filename='chosen.png')
             except Exception as e:
-                logger.error(f'confirm_callback image error: {e}')
+                logger.error(f'Failed to combine card images: {e}')
 
         for ch in self.children:
             ch.disabled = True
@@ -705,8 +784,12 @@ class EphemeralSelectView(ui.View):
         await self.game_view.next_turn()
 
     async def junk_callback(self, interaction: Interaction):
+        '''
+        Junk your hand and leave the game.
+        '''
+
         if interaction.user.id != self.player.user.id:
-            await interaction.response.send_message('Not your turn to junk!', ephemeral=True)
+            await interaction.response.send_message('It\'s not your turn.', ephemeral=True)
             return
 
         self.game_view.players.remove(self.player)
@@ -730,7 +813,7 @@ class EphemeralSelectView(ui.View):
                 embed.set_image(url='attachment://junked.png')
                 efile = discord.File(fp=fbuf, filename='junked.png')
             except Exception as e:
-                logger.error(f'junk_callback image error: {e}')
+                logger.error(f'Failed to combine card images: {e}')
 
         for ch in self.children:
             ch.disabled = True
@@ -743,12 +826,15 @@ class EphemeralSelectView(ui.View):
             await self.game_view.next_turn()
 
     async def interaction_check(self, interaction: Interaction) -> bool:
+        '''
+        Only the current player can use this view.
+        '''
+
         return (interaction.user.id == self.player.user.id)
 
 class EndGameView(ui.View):
     '''
-    End-of-game with Play Again + View Rules.
-    No extra mention is done here (the mention was in end_game).
+    A view shown at the end of the game with Play Again and View Rules buttons.
     '''
 
     def __init__(self, active_games, channel, rounds: int = 2, num_cards: int = 5):
@@ -766,8 +852,12 @@ class EndGameView(ui.View):
         self.add_item(CoruscantShiftViewRulesButton())
 
     async def play_again(self, interaction: Interaction):
+        '''
+        Create a new lobby and add the player who clicked as the first player.
+        '''
+
         if self.clicked:
-            await interaction.response.send_message('Play Again is already in progress.', ephemeral=True)
+            await interaction.response.send_message('A new lobby has already been created.', ephemeral=True)
             return
         self.clicked = True
         for ch in self.children:
@@ -789,12 +879,16 @@ class EndGameView(ui.View):
 
 class CoruscantShiftViewRulesButton(ui.Button):
     '''
-    Button to show rules ephemeral
+    A button that displays the Coruscant Shift Sabacc rules.
     '''
-    
+
     def __init__(self):
         super().__init__(label='View Rules', style=ButtonStyle.secondary)
 
     async def callback(self, interaction: Interaction):
+        '''
+        Show the rules embed as an ephemeral message.
+        '''
+
         embed = get_coruscant_shift_rules_embed()
         await interaction.response.send_message(embed=embed, ephemeral=True)

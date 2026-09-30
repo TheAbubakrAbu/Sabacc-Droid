@@ -1,127 +1,146 @@
-# Sabacc Droid - Discord Bot
+# Sabacc Droid: Discord Bot
 
 *Supports Corellian Spike, Coruscant Shift, Kessel, and Traditional Sabacc*
 
-Welcome to the **Sabacc Droid**! This project brings the classic Star Wars card game Sabacc to life with multiple exciting versions:
+Welcome to **Sabacc Droid**! This project brings Sabacc, the classic Star Wars card game, to life in two versions:
 
-1. **Console Version (`sabacc_console.py`)**: Play the Corellian Spike variant (prototype of Sabacc Droid) in your terminal or IDE.
-2. **Discord Bot Version (`sabacc_droid.py`)**: Play Corellian Spike, Coruscant Shift, Kessel, and Traditional Sabacc by creating your own Discord bot. Or simply invite the bot to your server here: [**Invite Link**](https://discord.ly/sabaac-droid)
+1. **Console Version (`sabacc_console.py`):** Play Corellian Spike Sabacc in your terminal or IDE. This is the original prototype of Sabacc Droid.
+2. **Discord Bot Version (`sabacc_droid.py`):** Play Corellian Spike, Coruscant Shift, Kessel, and Traditional Sabacc on Discord. Run your own copy of the bot, or [**add Sabacc Droid to your server**](https://discord.ly/sabaac-droid).
 
-Experience the thrill of Sabacc as seen in _Galaxy's Edge_, _Solo: A Star Wars Story_, _Star Wars Outlaws_, and _Star Wars: Rebels_.
+Experience Sabacc as seen in *Solo: A Star Wars Story*, *Galaxy's Edge*, *Galactic Starcruiser*, *Star Wars Outlaws*, and *Star Wars Rebels*.
 
 Created by **Abubakr Elmallah** on **November 14, 2024**.
 
-[**Add Sabacc Droid to Your Discord Server**](https://discord.ly/sabacc-droid)
-
-<a href="https://discord.ly/sabacc-droid">
-  <img src="logo.png" alt="Logo" width="120" style="border-radius:10px;"/>
+<a href="https://discord.ly/sabaac-droid">
+  <img src="logo.png" alt="Sabacc Droid logo" width="120" style="border-radius:10px;"/>
 </a>
 
 ## Features
 
 ### Console Version (Corellian Spike Sabacc)
 
-- **Prototype of Sabacc Droid**: View the original prototype before Sabacc Droid existed.
-- **Classic Gameplay**: Play the Corellian Spike variant against a computer opponent.
-- **Simple Interface**: Enjoy a text-based interface that's easy to navigate.
+- **Original Prototype:** See the version that came before Sabacc Droid.
+- **Classic Gameplay:** Play Corellian Spike Sabacc against a computer opponent.
+- **Simple Interface:** A text-based interface that's easy to navigate.
 
 ### Discord Bot Version (All Four Variants)
 
-- **Multiplayer Support**: Play with up to 8 players on a Discord server.
-- **Interactive Gameplay**: Use buttons and embeds for seamless interaction.
-- **Automated Game Management**: The bot handles turn order, card dealing, and scoring.
-- **Game Variants**:  
-  - **[Corellian Spike Sabacc](https://starwars.fandom.com/wiki/Corellian_Spike)** – Featured in *Solo: A Star Wars Story* and *Galaxy’s Edge*, this is a fast-paced version of Sabacc with three rounds and a target hand sum of **zero**.
-  - **[Coruscant Shift Sabacc](https://starwars.fandom.com/wiki/Coruscant_Shift)** – Played on the **Halcyon** at *Galactic Starcruiser*, this variant uses dice mechanics to set the winning hand target.
-  - **[Kessel Sabacc](https://starwars.fandom.com/wiki/Kessel_Sabacc)** – Featured in *Star Wars Outlaws*, this mode includes unique **Impostor** and **Sylop** cards with special mechanics.
-  - **[Traditional Sabacc](https://starwars.fandom.com/wiki/Sabacc)** – Featured in *Star Wars: Rebels*, including a high-stakes game aiming for a total of **+23 or -23**.
-- **Rulebook Access**: View game rules directly in Discord for all variants.
+- **Multiplayer:** Play with up to 8 players in any Discord channel.
+- **Solo Play:** Start a game alone to play against Lando Calrissian AI.
+- **Interactive Gameplay:** Buttons and embeds for every action.
+- **Automated Game Management:** The bot handles turn order, dealing, and scoring.
+- **Game Variants:**
+  - **[Corellian Spike Sabacc](https://starwars.fandom.com/wiki/Corellian_Spike):** Seen in *Solo: A Star Wars Story* and *Galaxy's Edge*. A fast-paced, 3-round game where players aim for a total of **0**.
+  - **[Coruscant Shift Sabacc](https://starwars.fandom.com/wiki/Coruscant_Shift):** Played on the *Halcyon* at *Galactic Starcruiser*. Dice set the target number and a target suit for tiebreakers.
+  - **[Kessel Sabacc](https://starwars.fandom.com/wiki/Kessel_Sabacc):** Seen in *Star Wars Outlaws*. Each player holds exactly 2 cards, with special **Impostor** and **Sylop** cards.
+  - **[Traditional Sabacc](https://starwars.fandom.com/wiki/Sabacc):** Seen in *Star Wars Rebels*. A high-stakes game where players aim for **+23 or -23**.
+- **Built-In Rules:** View the rules for every variant directly in Discord.
+
+## Commands
+
+| Command | Description |
+| --- | --- |
+| `/sabacc` | Choose a Sabacc variant to play |
+| `/random` | Start a random Sabacc variant (use 0 for random rounds or cards) |
+| `/corellian_spike` | Start a Corellian Spike Sabacc game with optional custom settings |
+| `/coruscant_shift` | Start a Coruscant Shift Sabacc game with optional custom settings |
+| `/kessel` | Start a Kessel Sabacc game with optional custom settings |
+| `/traditional` | Start a Traditional Sabacc game with optional custom settings |
+| `/help` | Show the Sabacc rules and variants |
 
 ## Getting Started
 
 ### Console Version
 
-1. **Install Python 3.12 or Higher**: Ensure you have Python 3.12+ installed on your system (earlier versions may work but are not tested).
-
-2. **Run the Game**:
+1. **Install Python 3.12 or higher.** Earlier versions are not supported.
+2. **Run the game:**
     ```bash
-    python sabacc_console.py
+    python src/sabacc_console.py
     ```
 
 ### Discord Bot Version
 
-- **Add the Bot to Your Server**: [Invite Link](https://discord.ly/sabaac-droid)
-- If you want to make your own Discord Sabacc bot, watch this video: https://www.youtube.com/watch?v=UYJDKSah-Ww&t=330s, then replace the `.py` files you created with the modules in `src`.
+- **Add the bot to your server:** [Invite Link](https://discord.ly/sabaac-droid)
+- **Run your own copy:**
+  1. Create a Discord bot. [This video](https://www.youtube.com/watch?v=UYJDKSah-Ww&t=330s) walks through the setup.
+  2. Install the dependencies:
+      ```bash
+      pip install -r requirements.txt
+      ```
+  3. Create a `.env` file in `src/sabacc_droid` containing `DISCORD_TOKEN=your-bot-token`.
+  4. Start the bot:
+      ```bash
+      cd src/sabacc_droid
+      python sabacc_droid.py
+      ```
 
-## Game Rules & Variations
+## Game Rules
 
-Each mode aims for a hand sum close to its target (0, a dice-determined value, or +23/-23), but they differ in decks and rules.
-For more details on Sabacc rules, card designs, and gameplay resources, visit **[Hyperspace Props](https://hyperspaceprops.com/sabacc-resources/)**.
+Every variant aims for a hand total close to its target (0, a dice-determined number, or +23/-23), but each has its own deck and rules.
+For more on Sabacc rules, card designs, and gameplay resources, visit **[Hyperspace Props](https://hyperspaceprops.com/sabacc-resources/)**.
 
-### **Default Game Settings:**
-- **Corellian Spike and Kessel Sabacc** each have **3 rounds** and **2 starting cards**.
-- **Coruscant Shift Sabacc** has **2 rounds** and **5 starting cards**.
-- **Traditional Sabacc** has **2 starting cards** and an **unlimited amount** of rounds until someone calls "Alderaan" to end the game.
+### Default Settings
 
-### **Game Variations**
+- **Corellian Spike Sabacc:** 3 rounds, 2 starting cards.
+- **Coruscant Shift Sabacc:** 2 rounds, 5 starting cards.
+- **Kessel Sabacc:** 3 rounds, 2 starting cards.
+- **Traditional Sabacc:** No set number of rounds (play continues until someone calls Alderaan), 2 starting cards.
 
-#### **Corellian Spike Sabacc**
-- **Deck:** 62-card deck (-10 to -1 and +1 to +10, plus 2 Sylops (0 cards)).
-- **Rounds:** 3 rounds.
-- **Actions:** Draw, Discard, Replace, Stand, or Junk.
-- **Winning Target:** Closest to 0.
-- **Special Hands:** Pure Sabacc, Fleet, Yee-Haa, etc.
+### Corellian Spike Sabacc
 
-#### **Coruscant Shift Sabacc**
-- **Deck:** Standard 62-card deck (+1 to +10 and -1 to -10 for suits ●, ▲, ■; plus 2 Sylops (0 cards)).
-- **Dice Mechanics:**
-  - **Gold Die:** Sets target number (-10, +10, -5, 5, 0, 0).
-  - **Silver Die:** Sets target suit (●, ▲, ■) for tie-breakers.
-- **Rounds:** 2 rounds.
-- **Winning Target:** Closest to gold die target.
-- **Tie-Breakers:** Closest to gold die target → most cards of silver die suit → highest positive sum → highest single positive card → sudden death.
+- **Deck:** 62 cards: -10 to -1 and +1 to +10 (three of each), plus 2 Sylops (0).
+- **Rounds:** 3 by default.
+- **Actions:** Draw, Replace, Discard (off by default; turn it on in the lobby), Stand, or Junk.
+- **Target:** Closest to 0.
+- **Special Hands:** Pure Sabacc, Fleet, Yee-Haa, and more.
 
-#### **Kessel Sabacc**
-- **Deck:** Two separate decks (Sand for positives, Blood for negatives), 22 cards each (44 total), plus Sylops.
+### Coruscant Shift Sabacc
+
+- **Deck:** 62 cards: +1 to +10 and -1 to -10 in each of three suits (●, ▲, ■), plus 2 Sylops (0).
+- **Dice:**
+  - **Gold Die:** Sets the target number (-10, +10, -5, +5, 0, 0).
+  - **Silver Die:** Sets the target suit (●, ▲, ■) for tiebreakers.
+- **Rounds:** 2 by default.
+- **Target:** Closest to the gold die's target number.
+- **Tiebreakers:** Closest to the target number, then most cards in the target suit, then highest total, then highest single positive card. If still tied, the game ends in a tie.
+
+### Kessel Sabacc
+
+- **Deck:** Two decks, Sand (positive) and Blood (negative), with 22 cards each (44 total), including Impostors and Sylops.
 - **Hand Limit:** Exactly **2 cards** (1 positive, 1 negative).
-- **Rounds:** 3 rounds.
-- **Actions:** Draw (then discard to maintain 2 cards), Stand, or Junk.
-- **Winning Target:** Closest to 0.
-- **Special Mechanics:**
-  - **Impostor Cards (Ψ):** Roll dice to assign or modify values.
-  - **Sylop (Ø) Cards:** Mirror the value of the other card in hand.
-  - **Special Hands:** Pure Sabacc, Prime Sabacc, etc.
+- **Rounds:** 3 by default.
+- **Actions:** Draw (then keep either the drawn card or your existing one), Stand, or Junk.
+- **Target:** Closest to 0.
+- **Special Cards:**
+  - **Impostor (Ψ):** Roll two dice at the end of the game and pick one value.
+  - **Sylop (Ø):** Takes the value of the other card in your hand.
+- **Special Hands:** Pure Sabacc, Prime Sabacc, and more.
 
-#### **Traditional Sabacc**
-- **Deck:** 76-card deck (4 suits of 15 cards, plus 16 special cards with unique values).
-- **Hand Limit:** No fixed limit; players can accumulate multiple cards.
-- **Rounds:** No set number of rounds; play continues until someone calls **"Alderaan"**.
-- **Actions:** Draw, Replace, Stand, Junk, or Call "Alderaan".
-- **Winning Target:** Closest to **+23 or -23**.
+### Traditional Sabacc
+
+- **Deck:** 76 cards: 4 suits of 15 cards, plus 16 special cards with unique values.
+- **Hand Limit:** None; players can hold any number of cards.
+- **Rounds:** No set number; play continues until someone calls **Alderaan**.
+- **Actions:** Draw, Replace, Discard (off by default; turn it on in the lobby), Stand, Junk, or Call Alderaan.
+- **Target:** Closest to **+23 or -23**.
 - **Special Hands:**
-  - **Idiot’s Array (0, 2, 3)** beats all hands.
-  - **Natural Sabacc (+23/-23)** beats all except Idiot’s Array.
-  - **Fairy Empress (-2, -2, totaling -22)** beats a normal 22 but loses to Sabacc hands.
+  - **Idiot's Array (0, +2, +3):** Beats every other hand.
+  - **Natural Sabacc (+23 or -23):** Beats every hand except Idiot's Array.
+  - **Fairy Empress (-2, -2, read as -22):** Beats a normal 22 but loses to a Natural Sabacc.
 
 ## Privacy & Data
 
 **Sabacc Droid** respects your privacy:
-- **No Personal Data Collected** – Only temporary game data is stored.
-- **Secure & Compliant** – Fully adheres to Discord’s Terms of Service and Privacy Policy.
+- **No Personal Data Collected:** Only temporary game data is stored.
+- **Secure & Compliant:** Fully follows Discord's Terms of Service and Privacy Policy.
 
 ## License
 
 This project is licensed under the [MIT License](LICENSE). Feel free to use, modify, and distribute the code, but please provide attribution.
 
-## Feedback
+## Feedback & Contact
 
-I would love to hear your thoughts and suggestions! Feel free to open an issue or contact me.
-
-## Contact
-
-For feedback, feature requests, or questions, feel free to reach out:
-- **Email**: ammelmallah@icloud.com
-- **Website**: [abubakrelmallah.com](https://abubakrelmallah.com/)
-- **LinkedIn**: [linkedin.com/abubakr](https://www.linkedin.com/in/abubakr-elmallah-416a0b273/)
-
-Created by **Abubakr Elmallah**
+I'd love to hear your thoughts! Open an issue, or reach out with feedback, feature requests, or questions:
+- **Email:** ammelmallah@icloud.com
+- **Website:** [abubakrelmallah.com](https://abubakrelmallah.com/)
+- **LinkedIn:** [Abubakr Elmallah](https://www.linkedin.com/in/abubakr-elmallah-416a0b273/)
