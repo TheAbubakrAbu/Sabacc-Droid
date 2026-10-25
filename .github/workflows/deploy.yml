@@ -1,0 +1,29 @@
+# .github/workflows/deploy.yml
+
+name: Deploy Sabacc Droid to Oracle
+
+on:
+  push:
+    branches: [ main ]   # <- deploy on every push to main
+  workflow_dispatch:     # <- or run it by hand from the Actions tab
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull, install, and restart on Oracle server
+        run: |
+          # The deploy key can only run fixed targets on the server (see ~/deploy.sh there)
+          install -m 600 /dev/null "$HOME/deploy_key"
+          printf '%s\n' "$ORACLE_SSH_KEY" > "$HOME/deploy_key"
+          echo "discord-bots ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKm/hUx9SzFwNdzIE1T+B156N/GDkHljKd8+96UW7TMN" > "$HOME/known_hosts"
+          ssh -i "$HOME/deploy_key" \
+              -o UserKnownHostsFile="$HOME/known_hosts" -o HostKeyAlias=discord-bots \
+              "ubuntu@${ORACLE_HOST}" sabacc
+        env:
+          ORACLE_HOST: ${{ secrets.ORACLE_HOST }}
+          ORACLE_SSH_KEY: ${{ secrets.ORACLE_SSH_KEY }}
