@@ -63,7 +63,7 @@ Created by **Abubakr Elmallah** on **November 14, 2024**.
 - **Add the bot to your server:** [Invite Link](https://discord.ly/sabaac-droid)
 - **Run your own copy:**
   1. Create a Discord bot. [This video](https://www.youtube.com/watch?v=UYJDKSah-Ww&t=330s) walks through the setup.
-  2. Install the dependencies:
+  2. Use **Python 3.12**. The pinned discord.py 2.4.0 does not run on Python 3.13 or newer. Install the dependencies:
       ```bash
       pip install -r requirements.txt
       ```
@@ -73,6 +73,10 @@ Created by **Abubakr Elmallah** on **November 14, 2024**.
       cd src/sabacc_droid
       python sabacc_droid.py
       ```
+
+## Hosting
+
+The public bot runs on an Oracle Cloud server as a systemd service. On every push to `main`, the [GitHub Actions workflow](.github/workflows/deploy.yml) pulls the latest code on the server, installs the requirements, and restarts the bot.
 
 ## Game Rules
 

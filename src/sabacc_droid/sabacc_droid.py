@@ -23,7 +23,7 @@ intents = discord.Intents.default()
 bot = commands.Bot(
     command_prefix='/',
     intents=intents,
-    activity=discord.Game(name='Sabacc')
+    activity=discord.CustomActivity(name='Playing Sabacc')
 )
 
 active_games = []
