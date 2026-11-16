@@ -1,4 +1,14 @@
+# .gitignore
+
 .DS_Store
-.env
+
+# Python environments and caches
 venv/
+.venv/
 __pycache__/
+
+# Environment files
+.env
+
+# Logs
+*.log

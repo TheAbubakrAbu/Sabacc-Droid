@@ -11,6 +11,8 @@ Experience Sabacc as seen in *Solo: A Star Wars Story*, *Galaxy's Edge*, *Galact
 
 Created by **Abubakr Elmallah** on **November 14, 2024**.
 
+[**Add Sabacc Droid to Your Discord Server**](https://discord.ly/sabaac-droid)
+
 <a href="https://discord.ly/sabaac-droid">
   <img src="logo.png" alt="Sabacc Droid logo" width="120" style="border-radius:10px;"/>
 </a>
@@ -26,9 +28,12 @@ Created by **Abubakr Elmallah** on **November 14, 2024**.
 ### Discord Bot Version (All Four Variants)
 
 - **Multiplayer:** Play with up to 8 players in any Discord channel.
-- **Solo Play:** Start a game alone to play against Lando Calrissian AI.
-- **Interactive Gameplay:** Buttons and embeds for every action.
-- **Automated Game Management:** The bot handles turn order, dealing, and scoring.
+- **Solo Play:** Start a game alone and Lando Calrissian AI takes a seat and plays real turns against you, moving toward the target like any careful player (he never peeks at the deck).
+- **Private Hands:** Click **Play Turn** to see your own cards; nobody else can. **Ranks As** shows what your hand counts as right now ("Sabacc Pair", or "Nulrhek, 3 away from 0").
+- **Game Log:** Each turn message turns into a one-line record of what happened ("draws a card", "discards `-3`"), for players and Lando alike, so the channel reads like the table.
+- **The Reveal:** The results show every hand as one picture in finishing order, with 🥇🥈🥉 places. Coruscant Shift shows its gold and silver dice when the game starts, and Kessel shows the Impostor dice you roll.
+- **No Stuck Games:** A player gets a ping with a minute left on their turn and stands automatically after 5 minutes, and a lobby nobody starts closes after an hour.
+- **Play Again:** Reopen a lobby with the same settings from the results, even after the bot restarts. Everyone from the last game gets pinged for the rematch. If the bot restarts for an update mid-game, the table is told why and gets a Play Again button too.
 - **Game Variants:**
   - **[Corellian Spike Sabacc](https://starwars.fandom.com/wiki/Corellian_Spike):** Seen in *Solo: A Star Wars Story* and *Galaxy's Edge*. A fast-paced, 3-round game where players aim for a total of **0**.
   - **[Coruscant Shift Sabacc](https://starwars.fandom.com/wiki/Coruscant_Shift):** Played on the *Halcyon* at *Galactic Starcruiser*. Dice set the target number and a target suit for tiebreakers.
@@ -42,41 +47,11 @@ Created by **Abubakr Elmallah** on **November 14, 2024**.
 | --- | --- |
 | `/sabacc` | Choose a Sabacc variant to play |
 | `/random` | Start a random Sabacc variant (use 0 for random rounds or cards) |
-| `/corellian_spike` | Start a Corellian Spike Sabacc game with optional custom settings |
-| `/coruscant_shift` | Start a Coruscant Shift Sabacc game with optional custom settings |
-| `/kessel` | Start a Kessel Sabacc game with optional custom settings |
-| `/traditional` | Start a Traditional Sabacc game with optional custom settings |
-| `/help` | Show the Sabacc rules and variants |
-
-## Getting Started
-
-### Console Version
-
-1. **Install Python 3.12 or higher.** Earlier versions are not supported.
-2. **Run the game:**
-    ```bash
-    python src/sabacc_console.py
-    ```
-
-### Discord Bot Version
-
-- **Add the bot to your server:** [Invite Link](https://discord.ly/sabaac-droid)
-- **Run your own copy:**
-  1. Create a Discord bot. [This video](https://www.youtube.com/watch?v=UYJDKSah-Ww&t=330s) walks through the setup.
-  2. Use **Python 3.12**. The pinned discord.py 2.4.0 does not run on Python 3.13 or newer. Install the dependencies:
-      ```bash
-      pip install -r requirements.txt
-      ```
-  3. Create a `.env` file in `src/sabacc_droid` containing `DISCORD_TOKEN=your-bot-token`.
-  4. Start the bot:
-      ```bash
-      cd src/sabacc_droid
-      python sabacc_droid.py
-      ```
-
-## Hosting
-
-The public bot runs on an Oracle Cloud server as a systemd service. On every push to `main`, the [GitHub Actions workflow](.github/workflows/deploy.yml) pulls the latest code on the server, installs the requirements, and restarts the bot.
+| `/corellian_spike` | Start a Corellian Spike Sabacc game with optional custom settings (rounds, starting cards, discarding) |
+| `/coruscant_shift` | Start a Coruscant Shift Sabacc game with optional custom settings (rounds, starting cards) |
+| `/kessel` | Start a Kessel Sabacc game with optional custom settings (rounds) |
+| `/traditional` | Start a Traditional Sabacc game with optional custom settings (starting cards, discarding) |
+| `/help` | Show how to use Sabacc Droid |
 
 ## Game Rules
 
@@ -131,6 +106,62 @@ For more on Sabacc rules, card designs, and gameplay resources, visit **[Hypersp
   - **Idiot's Array (0, +2, +3):** Beats every other hand.
   - **Natural Sabacc (+23 or -23):** Beats every hand except Idiot's Array.
   - **Fairy Empress (-2, -2, read as -22):** Beats a normal 22 but loses to a Natural Sabacc.
+
+## Getting Started
+
+### Console Version
+
+1. **Install Python 3.12 or higher.** Earlier versions are not supported.
+2. **Run the game:**
+    ```bash
+    python src/sabacc_console.py
+    ```
+
+### Discord Bot Version
+
+- **Add the bot to your server:** [Invite Link](https://discord.ly/sabaac-droid)
+- **Run your own copy:**
+  1. Create a Discord bot. [This video](https://www.youtube.com/watch?v=UYJDKSah-Ww&t=330s) walks through the setup.
+  2. Use **Python 3.12 or newer**. The server and the deploy workflow use the version in [`.python-version`](.python-version). Install the dependencies:
+      ```bash
+      pip install -r requirements.txt
+      ```
+  3. Set `DISCORD_TOKEN` in the environment, or create a `.env` file in the repository folder containing `DISCORD_TOKEN=your-bot-token`.
+  4. Start the bot:
+      ```bash
+      cd src/sabacc_droid
+      python sabacc_droid.py
+      ```
+  5. To check everything without connecting to Discord (hand rankings, Lando's moves, every picture, and 240 simulated games), run `python sabacc_droid.py --self-test`.
+
+## Project Layout
+
+Each variant has one file in [`src/sabacc_droid`](src/sabacc_droid), and everything they share lives in a few small modules.
+
+| File | What it holds |
+| --- | --- |
+| `sabacc_droid.py` | Startup, the slash commands, and routing every button to its game or menu |
+| `game.py` | What every variant shares: the lobby, turns, timers, Lando's seat, and the results |
+| `corellian_spike.py`, `coruscant_shift.py`, `kessel.py`, `traditional.py` | One variant each: its deck, turn actions, hand rankings, and rules |
+| `help.py` | `/help`, the `/sabacc` menu, and the variant comparison |
+| `cards.py` | Drawing every picture: hands, the table of final hands, and dice |
+| `theme.py` | The shared colors, images, icons, links, and reply conventions |
+| `self_test.py` | The checks behind `--self-test` |
+| `images/` | Card art, 240 pixels tall with at most 256 colors |
+
+The conventions every reply follows are written at the top of [`src/sabacc_droid/theme.py`](src/sabacc_droid/theme.py), the same ones [Aurebesh Droid](https://github.com/TheAbubakrAbu/Aurebesh-Droid) follows, and the self-test checks them. On top of those, cards are written as code chips like `+5` `-3`, game log lines are in the present tense ("✋ @Han stands."), and private results of your own move start with "You" ("You Drew a Card"). Every button id is either a game's (`g:<game>:<turn>:<action>`), which stops working once that turn is over, or carries everything it needs (`start:`, `again:`, `rules:`), so it keeps working after a restart.
+
+## Hosting
+
+The public bot runs on an Oracle Cloud server as a systemd service.
+
+On every push to `main`, the [GitHub Actions workflow](.github/workflows/deploy.yml) runs the self-test, and only if it passes, moves the server to the commit it tested, installs the requirements, and restarts the bot. Before it stops, the bot tells every unfinished game why it is ending and offers Play Again. The server checks the bot every 2 minutes and messages the owner on Discord if it goes down.
+
+## More Star Wars
+
+- **[Aurebesh Droid](https://github.com/TheAbubakrAbu/Aurebesh-Droid)**: A Discord bot that translates text into Aurebesh and 13 more Star Wars scripts. [Add it to your server](https://discord.ly/aurebesh-droid).
+- **[Datapad | Aurebesh Translator](https://apps.apple.com/us/app/datapad-aurebesh-translator/id6450498054?platform=iphone)**: An immersive Aurebesh translator with a themed keyboard.
+- **[Aurebesh Translator](https://apps.apple.com/us/app/aurebesh-translator/id6670201513?platform=iphone)**: A free, offline, ad-free translator.
 
 ## Privacy & Data
 

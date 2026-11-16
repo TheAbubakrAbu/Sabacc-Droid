@@ -1,894 +1,219 @@
 # coruscant_shift.py
+#
+# Coruscant Shift Sabacc, as played on the Halcyon at Galactic Starcruiser.
+# A gold die sets the target number and a silver die sets the target suit;
+# each round, every player chooses which cards to keep.
 
+from __future__ import annotations
+
+import asyncio
 import random
-import copy
-import logging
-from urllib.parse import quote
+
 import discord
-from discord import Embed, ButtonStyle, ui, Interaction
-import requests
-from PIL import Image
-from io import BytesIO
-from concurrent.futures import ThreadPoolExecutor
-from rules import get_coruscant_shift_rules_embed, coruscant_thumbnail, coruscant_footer, plural
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-SUIT_TO_FOLDER = {
-    '●': 'circle',
-    '▲': 'triangle',
-    '■': 'square'
-}
-
-def format_signed(value: int) -> str:
-    '''
-    Return the value with a + sign if it is positive (for example, +10, -5, or 0).
-    '''
-
-    return f'+{value}' if value > 0 else str(value)
-
-class Card:
-    '''
-    A Coruscant Shift card with a suit (●, ▲, ■, or Sylop) and a value (-10 to +10).
-    locked_in means the card was kept in an earlier round and can't be discarded.
-    '''
-
-    def __init__(self, value: int, suit: str, locked_in: bool = False):
-        self.value = value
-        self.suit = suit
-        self.locked_in = locked_in
-
-    def __str__(self):
-        if self.suit == 'Sylop':
-            return '0'
-        sign = '+' if self.value > 0 else ''
-        return f'{self.suit} {sign}{self.value}'
-
-    def image_filename(self) -> str:
-        '''
-        Return this card's image path, relative to the Corellian Spike image folder.
-        '''
-
-        if self.suit == 'Sylop':
-            return '0.png'
-        folder = SUIT_TO_FOLDER.get(self.suit, 'circles')
-        return f'''{folder}/{f'+{self.value}' if self.value > 0 else self.value}.png'''
-
-def get_card_image_url(card: Card) -> str:
-    '''
-    Generate the image URL for the given card.
-    '''
-
-    base_url = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/corellian_spike/'
-    return base_url + quote(card.image_filename())
-
-def download_and_process_image(url: str, width: int, height: int) -> Image.Image:
-    '''
-    Download and resize an image, converting it to RGBA format.
-    Returns the processed Image object or None on failure.
-    '''
-
-    try:
-        resp = requests.get(url, stream=True, timeout=5)
-        resp.raise_for_status()
-        img = Image.open(BytesIO(resp.content)).convert('RGBA')
-        return img.resize((width, height), Image.LANCZOS)
-    except Exception as e:
-        logger.error(f'Error processing image from {url}: {e}')
-        return None
-
-def combine_card_images(urls: list[str], width: int = 80, height: int = 120, pad: int = 10) -> BytesIO:
-    '''
-    Combine multiple card images into a single horizontal image.
-    Returns a BytesIO containing the combined PNG image.
-    '''
-
-    with ThreadPoolExecutor(max_workers=12) as exe:
-        futures = [(i, exe.submit(download_and_process_image, u, width, height))
-                   for i, u in enumerate(urls)]
-        results = []
-        for idx, fut in futures:
-            results.append((idx, fut.result()))
-    results.sort(key=lambda x: x[0])
-    images = [img for _, img in results if img is not None]
-    if not images:
-        raise ValueError('No valid images were provided to combine.')
-    total_w = sum(im.width for im in images) + pad * (len(images) - 1)
-    max_h = max(im.height for im in images)
-    combined = Image.new('RGBA', (total_w, max_h), (255, 255, 255, 0))
-    x_off = 0
-    for im in images:
-        combined.paste(im, (x_off, 0))
-        x_off += im.width + pad
-    buf = BytesIO()
-    combined.save(buf, format='PNG')
-    buf.seek(0)
-    return buf
-
-class Player:
-    '''
-    Represents a player with a Discord user and a hand of cards.
-    '''
-
-    def __init__(self, user):
-        self.user = user
-        self.hand: list[Card] = []
-
-    def draw_card(self, deck: list[Card]):
-        '''
-        Draw one card from the deck and add it to the player's hand.
-        Raises ValueError if the deck is empty.
-        '''
-
-        if not deck:
-            raise ValueError('The deck is empty. Cannot draw more cards.')
-        self.hand.append(deck.pop())
-
-    def get_hand_string(self) -> str:
-        '''
-        Return a formatted string of the player's cards with separators.
-        '''
-
-        return ' | ' + ' | '.join(str(c) for c in self.hand) + ' |'
-
-    def total_value(self) -> int:
-        '''
-        Return the sum of the player's card values.
-        '''
-
-        return sum(c.value for c in self.hand)
-
-class CoruscantGameView(ui.View):
-    '''
-    Represents a Coruscant Shift Sabacc game instance, managing players,
-    deck, turns, and interactions.
-    - Players draw back up to num_cards at the start of each round after the first.
-    - In a solo game, a Lando Calrissian AI opponent is added when the game ends.
-    - Only turn announcements and final results are posted publicly.
-    '''
-
-    def __init__(
-        self,
-        rounds: int = 2,
-        num_cards: int = 5,
-        active_games=None,
-        channel=None,
-        solo_game: bool = False
-    ):
-        super().__init__(timeout=None)
-        self.players: list[Player] = []
-        self.rounds = rounds
-        self.num_cards = num_cards
-        self.current_round = 1
-        self.current_player_index = 0
-        self.deck: list[Card] = []
-        self.game_started = False
-        self.game_ended = False
-
-        self.active_games = active_games if active_games else []
-        self.channel = channel
-        self.message = None
-
-        self.solo_game = solo_game
-
-        self.play_button = ui.Button(label='Join Game', style=ButtonStyle.primary)
-        self.leave_button = ui.Button(label='Leave Game', style=ButtonStyle.danger)
-        self.start_button = ui.Button(label='Start Game', style=ButtonStyle.success, disabled=True)
-        self.rules_button = CoruscantShiftViewRulesButton()
-
-        self.play_button.callback = self.play_callback
-        self.leave_button.callback = self.leave_callback
-        self.start_button.callback = self.start_callback
-
-        self.add_item(self.play_button)
-        self.add_item(self.leave_button)
-        self.add_item(self.start_button)
-        self.add_item(self.rules_button)
-
-        self.target_number = None
-        self.target_suit = None
-        self.roll_dice()
-
-    def roll_dice(self):
-        '''
-        Roll the gold die for the target number and the silver die for the target suit.
-        '''
-
-        gold_faces = [-10, 10, -5, 5, 0, 0]
-        silver_faces = ['●', '●', '▲', '▲', '■', '■']
-        self.target_number = random.choice(gold_faces)
-        self.target_suit = random.choice(silver_faces)
-
-    async def update_lobby(self, interaction: Interaction = None):
-        '''
-        Update the lobby embed to show players, status, and start conditions.
-        Reset if no players remain.
-        '''
-
-        if not self.players:
-            if interaction:
-                await self.reset_lobby(interaction)
-            return
-
-        desc = f'**Players Joined ({len(self.players)}/8):**\n'
-        desc += '\n'.join(p.user.mention for p in self.players)
-        desc += '\n\n'
-        if len(self.players) >= 8:
-            desc += 'The game lobby is full.\n\n'
-
-        desc += (
-            f'**Game Settings:**\n'
-            f'- {plural(self.rounds, "round")}\n'
-            f'- {plural(self.num_cards, "starting card")}\n\n'
-        )
-
-        if len(self.players) < 2:
-            desc += 'Waiting for more players to join...\n'
-            desc += 'Click **Start Game** if you want to play with an AI.\n'
-        else:
-            desc += 'Click **Start Game** to begin!\n'
-
-        embed = Embed(
-            title='Coruscant Shift Sabacc Lobby',
-            description=desc,
-            color=0xAB9032
-        )
-        embed.set_thumbnail(url=coruscant_thumbnail)
-        embed.set_footer(text=coruscant_footer)
-
-        self.start_button.disabled = (len(self.players) < 1 or self.game_started)
-        self.play_button.disabled = (len(self.players) >= 8 or self.game_started)
-
-        if interaction:
-            await interaction.response.edit_message(embed=embed, view=self)
-        else:
-            await self.message.edit(embed=embed, view=self)
-
-    async def reset_lobby(self, interaction: Interaction):
-        '''
-        Reset the lobby to its initial state and update the lobby message.
-        '''
-
-        self.players.clear()
-        self.deck.clear()
-        self.current_round = 1
-        self.current_player_index = 0
-        self.game_started = False
-        self.game_ended = False
-
-        self.play_button.disabled = False
-        self.leave_button.disabled = False
-        self.start_button.disabled = True
-        self.roll_dice()
-
-        desc = (
-            'Click **Join Game** to join the game.\n\n'
-            f'**Game Settings:**\n'
-            f'- {plural(self.rounds, "round")}\n'
-            f'- {plural(self.num_cards, "starting card")}\n\n'
-            'Once someone has joined, **Start Game** will be enabled.'
-        )
-        embed = Embed(title='Coruscant Shift Sabacc Lobby', description=desc, color=0xAB9032)
-        embed.set_thumbnail(url=coruscant_thumbnail)
-        embed.set_footer(text=coruscant_footer)
-        await interaction.response.edit_message(embed=embed, view=self)
-
-    async def play_callback(self, interaction: Interaction):
-        '''
-        Add the user who clicked to the game if possible.
-        '''
-
-        if self.game_started:
-            await interaction.response.send_message(
-                'The game has already started.', ephemeral=True
-            )
-            return
-        user = interaction.user
-        if any(p.user.id == user.id for p in self.players):
-            await interaction.response.send_message(
-                'You\'re already in the game.', ephemeral=True
-            )
-            return
-        if len(self.players) >= 8:
-            await interaction.response.send_message(
-                'The game lobby is full.', ephemeral=True
-            )
-            return
-
-        self.players.append(Player(user))
-        await self.update_lobby(interaction)
-
-    async def leave_callback(self, interaction: Interaction):
-        '''
-        Remove the user from the lobby if the game has not started yet.
-        '''
-
-        if self.game_started:
-            await interaction.response.send_message(
-                'You can\'t leave the game after it has started.', ephemeral=True
-            )
-            return
-        user = interaction.user
-        pl = next((p for p in self.players if p.user.id == user.id), None)
-        if pl:
-            self.players.remove(pl)
-            await self.update_lobby(interaction)
-        else:
-            await interaction.response.send_message('You\'re not in the game.', ephemeral=True)
-
-    async def start_callback(self, interaction: Interaction):
-        '''
-        Start the game if conditions are met, deal cards, and proceed.
-        '''
-
-        if self.game_started:
-            await interaction.response.send_message('The game has already started.', ephemeral=True)
-            return
-        if interaction.user.id not in [p.user.id for p in self.players]:
-            await interaction.response.send_message('Only players in the lobby can start the game.', ephemeral=True)
-            return
-        if not self.players:
-            await interaction.response.send_message('Not enough players to start the game.', ephemeral=True)
-            return
-
-        self.game_started = True
-
-        if len(self.players) == 1:
-            self.solo_game = True
-
-        self.deck = self.generate_deck()
-        for p in self.players:
-            p.hand.clear()
-            for _ in range(self.num_cards):
-                p.draw_card(self.deck)
-
-        self.play_button.disabled = True
-        self.leave_button.disabled = True
-        self.start_button.disabled = True
-
-        if self.message:
-            await self.message.edit(view=self)
-
-        await interaction.response.defer()
-        await self.next_turn()
-
-    def generate_deck(self) -> list[Card]:
-        '''
-        Generate and return seven shuffled 62-card Coruscant Shift decks combined into one.
-        '''
-
-        suits = ['●', '▲', '■']
-        deck = []
-
-        base_deck = []
-        for s in suits:
-            for val in range(1, 11):
-                base_deck.append(Card(val, s))
-                base_deck.append(Card(-val, s))
-        base_deck.append(Card(0, 'Sylop'))
-        base_deck.append(Card(0, 'Sylop'))
-
-        for _ in range(7):
-            new_deck = copy.deepcopy(base_deck)
-            random.shuffle(new_deck)
-            deck.extend(new_deck)
-
-        return deck
-
-    async def next_turn(self):
-        '''
-        Move to the next player's turn, start the next round, or end the game.
-        '''
-
-        if not self.game_started or self.game_ended:
-            return
-
-        if self.current_player_index >= len(self.players):
-            self.current_round += 1
-
-            if self.current_round > self.rounds:
-                await self.end_game()
-                return
-
-            for p in self.players:
-                for c in p.hand:
-                    c.locked_in = True
-                while len(p.hand) < self.num_cards and self.deck:
-                    p.draw_card(self.deck)
-
-            self.current_player_index = 0
-
-        if self.current_player_index < len(self.players):
-            pl = self.players[self.current_player_index]
-            await self.announce_turn(pl)
-
-    async def announce_turn(self, player: Player):
-        '''
-        Send a message showing the current player's turn and card backs.
-        '''
-
-        desc = f'**Players:**\n'
-        desc += '\n'.join(p.user.mention for p in self.players)
-        desc += f'\n\n**Round {self.current_round}/{self.rounds}**\n'
-        desc += f'It\'s now {player.user.mention}\'s turn.\n'
-        desc += 'Click **Play Turn** to proceed.\n\n'
-        desc += f'**Target Number:** {format_signed(self.target_number)} | **Target Suit:** {self.target_suit}\n\n'
-
-        card_back = 'https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/corellian_spike/card.png'
-        card_count = len(player.hand)
-        try:
-            back_buf = combine_card_images([card_back] * card_count)
-        except:
-            back_buf = None
-
-        embed = Embed(
-            title='Coruscant Shift Sabacc',
-            description=desc,
-            color=0xAB9032
-        )
-        embed.set_thumbnail(url=coruscant_thumbnail)
-        embed.set_footer(text=coruscant_footer)
-
-        view = TurnView(self)
-
-        if back_buf:
-            embed.set_image(url='attachment://combined_cards.png')
-            f = discord.File(fp=back_buf, filename='combined_cards.png')
-            await self.channel.send(
-                content=player.user.mention,
-                embed=embed,
-                file=f,
-                view=view
-            )
-        else:
-            await self.channel.send(
-                content=player.user.mention,
-                embed=embed,
-                view=view
-            )
-
-    async def end_game(self):
-        '''
-        End the game, evaluate hands, determine the winner(s), and display results.
-        In a solo game, a Lando Calrissian AI opponent is added first.
-
-        Pure Sabacc (exactly two Sylops) beats every other hand. Otherwise, the tiebreakers are:
-        1. Closest to target_number
-        2. Most cards matching the target suit
-        3. Highest total
-        4. Highest single positive card
-        5. If still tied, the game ends in a tie
-        '''
-
-        if self.game_ended:
-            return
-        self.game_ended = True
-
-        if self.solo_game:
-            if not any(pl.user.name == 'Lando Calrissian AI' for pl in self.players):
-                lando_user = type('AIUser', (object,), {
-                    'mention': 'Lando Calrissian AI',
-                    'name': 'Lando Calrissian AI',
-                    'id': -1
-                })()
-                lando = Player(user=lando_user)
-                while len(lando.hand) < self.num_cards and self.deck:
-                    lando.draw_card(self.deck)
-                self.players.append(lando)
-
-        if not self.players:
-            embed = Embed(
-                title='Game Over',
-                description='Nobody won because everyone junked!',
-                color=0xAB9032
-            )
-            embed.set_thumbnail(url=coruscant_thumbnail)
-            embed.set_footer(text=coruscant_footer)
-            await self.channel.send(embed=embed, view=EndGameView(self.active_games, self.channel, rounds=self.rounds, num_cards=self.num_cards))
-            if self in self.active_games:
-                self.active_games.remove(self)
-            return
-
-        result_text = f'**Target Number:** {format_signed(self.target_number)} | **Target Suit:** {self.target_suit}\n\n**Final Hands:**'
-
-        pure_sabacc_players = []
-        suit_counts = {}
-
-        for pl in self.players:
-            suit_count = sum(1 for c in pl.hand if c.suit == self.target_suit or c.suit == 'Sylop')
-            suit_counts[pl] = suit_count
-
-            if len(pl.hand) == 2 and all(c.suit == 'Sylop' for c in pl.hand):
-                pure_sabacc_players.append(pl)
-                line1 = f'\n- {pl.user.mention}: {pl.get_hand_string()}'
-                line2 = f'   - Total: 0\n   - Hand: Pure Sabacc'
-                result_text += f'{line1}\n{line2}'
+from discord import ButtonStyle, Embed, Interaction
+
+import cards
+from corellian_spike import Card, spike_back, spike_deck, staves
+from game import Deck, Game, Player, Settings, notice
+from theme import button, icon, images, plural, signed
+
+symbols = {'circle': '●', 'triangle': '▲', 'square': '■'}
+gold_die = (-10, 10, -5, 5, 0, 0)
+
+
+class CoruscantShift(Game):
+    key = 'coruscant_shift'
+    name = 'Coruscant Shift'
+    icon = icon.coruscant_shift
+    color = 0xAB9032
+    thumbnail = images + 'coruscant_shift.png'
+    footer = 'As seen on the Halcyon at Galactic Starcruiser'
+    defaults = Settings(rounds=2, cards=5)
+    limits = {'rounds': (1, 5), 'cards': (1, 10)}
+
+    @classmethod
+    def settings_lines(cls, settings: Settings) -> list[str]:
+        return [plural(settings.rounds, 'round'), plural(settings.cards, 'starting card'),
+                'Dice set the target number and suit']
+
+    def deal(self) -> None:
+        self.deck = Deck(spike_deck)
+        self.target_number = random.choice(gold_die)
+        self.target_suit = random.choice(staves)
+        self.keep: list[bool] = []
+        self.keep_turn = -1
+        for player in self.players:
+            player.hand = [self.deck.draw() for _ in range(self.settings.cards)]
+            player.locked = 0  # how many cards at the front of the hand were kept in earlier rounds
+
+    async def start_message(self) -> tuple[Embed, list[discord.File]]:
+        embed = self.lobby_embed()
+        embed.description += (f'\n\n{icon.dice} The gold die rolled **{signed(self.target_number)}** and the silver die rolled '
+                              f'**{symbols[self.target_suit]}**: get as close to {signed(self.target_number)} as you can, '
+                              f'and {symbols[self.target_suit]} cards break ties.')
+        dice = await asyncio.to_thread(cards.render_dice, [('gold', self.target_number), ('silver', self.target_suit)])
+        embed.set_image(url='attachment://dice.png')
+        return embed, [cards.as_file(dice, 'dice.png')]
+
+    def new_round(self) -> None:
+        for player in self.players:
+            player.locked = len(player.hand)
+            while len(player.hand) < self.settings.cards:
+                player.hand.append(self.deck.draw())
+
+    def label(self, card: Card) -> str:
+        return '0' if card.suit == 'sylop' else f'{symbols[card.suit]} {signed(card.value)}'
+
+    def labels(self, player: Player) -> list[str]:
+        return [self.label(card) for card in player.hand]
+
+    def faces(self, player: Player) -> list[str]:
+        return [card.face() for card in player.hand]
+
+    def backs(self, player: Player) -> list[str]:
+        return [spike_back] * len(player.hand)
+
+    def target(self) -> str:
+        return f'**{signed(self.target_number)}**, suit {symbols[self.target_suit]}'
+
+    # Choosing cards ---------------------------------------------------------
+
+    def choosing(self, player: Player) -> bool:
+        return self.phase == 'playing' and self.keep_turn == self.turn and player is self.players[self.current]
+
+    def kept(self, player: Player) -> list[Card]:
+        if self.choosing(player):
+            return [card for card, keep in zip(player.hand, self.keep) if keep]
+        return player.hand
+
+    def matches(self, hand: list[Card]) -> int:
+        return sum(1 for card in hand if card.suit in (self.target_suit, 'sylop'))
+
+    def total(self, player: Player) -> str:
+        return signed(sum(card.value for card in self.kept(player)))
+
+    def standing(self, player: Player) -> str:
+        return f'**{self.rank(self.kept(player))[1]}**'
+
+    def turn_buttons(self, player: Player) -> list[discord.ui.Button]:
+        items = []
+        for index, card in enumerate(player.hand):
+            choice = self.id_for('toggle', str(index))
+            if index < player.locked:
+                items.append(discord.ui.Button(emoji='🔒', label=self.label(card), custom_id=choice, disabled=True))
+            elif self.keep[index]:
+                items.append(discord.ui.Button(emoji=icon.confirm, label=self.label(card), custom_id=choice, style=ButtonStyle.success))
             else:
-                total = pl.total_value()
-                line1 = f'\n- {pl.user.mention}: {pl.get_hand_string()}'
-                line2 = f'   - Total: {total}'
-                line3 = f'   - Suit Matches: {suit_count}'
-                result_text += f'{line1}\n{line2}\n{line3}'
+                items.append(discord.ui.Button(emoji=icon.error, label=self.label(card), custom_id=choice, style=ButtonStyle.danger))
+        items.append(button(icon.confirm, 'Confirm Cards', self.id_for('confirm'), ButtonStyle.primary))
+        items.append(button(icon.junk, 'Junk', self.id_for('junk'), ButtonStyle.danger))
+        return items
 
-        if pure_sabacc_players:
-            if len(pure_sabacc_players) == 1:
-                winner = pure_sabacc_players[0]
-                result_text += f'\n\n🎉 {winner.user.mention} wins with a **Pure Sabacc**!'
-            else:
-                tie_names = ' '.join(pl.user.mention for pl in pure_sabacc_players)
-                result_text += f'\n\nIt\'s a tie between: {tie_names}!'
+    async def show_turn(self, it: Interaction, player: Player, note: str = '', new: bool = False) -> None:
+        if self.keep_turn != self.turn:
+            self.keep, self.keep_turn = [True] * len(player.hand), self.turn
+        faces = [card.face() if keep else spike_back for card, keep in zip(player.hand, self.keep)]
+        note = note or ('Click a card to keep it ✅ or discard it ❌, then **Confirm Cards**.'
+                        + (' Cards kept in earlier rounds are locked 🔒.' if player.locked else ''))
+        await self.show_hand(it, player, 'Your Turn', note, self.turn_buttons(player), faces=faces, new=new)
+
+    def keep_move(self, player: Player, keep: list[bool]) -> str:
+        '''
+        Keeps the chosen cards, discards the rest, and returns the game log line.
+        '''
+
+        dropped = [card for card, kept in zip(player.hand, keep) if not kept]
+        player.hand = [card for card, kept in zip(player.hand, keep) if kept]
+        for card in dropped:
+            self.deck.discard(card)
+        return f'{icon.confirm} {player.user.mention} keeps {plural(len(player.hand), "card")} and discards {len(dropped)}.'
+
+    async def act(self, it: Interaction, player: Player, action: str, choice: str) -> None:
+        if self.keep_turn != self.turn:
+            return await notice(it, 'Click **Play Turn** to choose your cards.')
+
+        if action == 'toggle':
+            index = int(choice) if choice.isdigit() else -1
+            if not player.locked <= index < len(player.hand):
+                return await notice(it, "You can't discard cards you kept in an earlier round.")
+            if self.keep[index] and sum(self.keep) == 1:
+                return await notice(it, 'You must keep at least one card.')
+            self.keep[index] = not self.keep[index]
+            await self.show_turn(it, player)
+
+        elif action == 'confirm':
+            line = self.keep_move(player, self.keep)
+            self.keep_turn = -1
+            await self.show_hand(it, player, 'You Confirmed Your Cards', 'Your choices are locked in for this round.')
+            await self.next_turn(line)
+
         else:
-            evals = []
-            for pl in self.players:
-                total = pl.total_value()
-                diff = abs(total - self.target_number)
-                sc = suit_counts[pl]
+            await notice(it, "That action isn't available.")
 
-                largest_pos_card = max([0] + [c.value for c in pl.hand if c.value > 0])
+    def auto_play(self, player: Player) -> str:
+        self.keep_turn = -1
+        return 'keeps every card'
 
-                evals.append((diff, -sc, -total, -largest_pos_card, pl))
-
-            evals.sort(key=lambda x: (x[0], x[1], x[2], x[3]))
-
-            best_key = evals[0][:4]
-            winners = [e for e in evals if e[:4] == best_key]
-
-            if len(winners) == 1:
-                wpl = winners[0][4]
-                result_text += f'\n\n🎉 {wpl.user.mention} wins!'
-            else:
-                tie_names = ' '.join(e[4].user.mention for e in winners)
-                result_text += f'\n\nIt\'s a tie between: {tie_names}!'
-
-        embed = Embed(title='Game Over', description=result_text, color=0xAB9032)
-        embed.set_thumbnail(url=coruscant_thumbnail)
-        embed.set_footer(text=coruscant_footer)
-
-        mention_line = ' '.join(
-            pl.user.mention for pl in self.players if 'AIUser' not in type(pl.user).__name__
-        )
-        await self.channel.send(content=mention_line, embed=embed, view=EndGameView(self.active_games, self.channel, rounds=self.rounds, num_cards=self.num_cards))
-
-        if self in self.active_games:
-            self.active_games.remove(self)
-
-class TurnView(ui.View):
-    '''
-    A view showing a button to take the current player's turn and one to view rules.
-    '''
-
-    def __init__(self, game_view: CoruscantGameView):
-        super().__init__(timeout=None)
-        self.game_view = game_view
-        self.add_item(TurnButton(game_view))
-        self.add_item(CoruscantShiftViewRulesButton())
-
-class TurnButton(ui.Button):
-    '''
-    A button that lets the current player start their turn and choose which cards to keep.
-    '''
-
-    def __init__(self, game_view: CoruscantGameView):
-        super().__init__(label='Play Turn', style=ButtonStyle.primary)
-        self.game_view = game_view
-
-    async def callback(self, interaction: Interaction):
+    def ai_move(self, player: Player) -> str:
         '''
-        Show the current player's hand when they choose to play their turn.
+        Lando tries every set of cards he could keep and keeps the best hand.
+        New cards can always be discarded later, so locking in the best hand
+        now never costs him anything.
         '''
 
-        if not self.game_view.game_started or self.game_view.game_ended:
-            await interaction.response.send_message('This game is no longer active.', ephemeral=True)
-            return
-        idx = self.game_view.current_player_index
-        if idx < 0 or idx >= len(self.game_view.players):
-            await interaction.response.send_message('There\'s no current player.', ephemeral=True)
-            return
-        player = self.game_view.players[idx]
-        if player.user.id != interaction.user.id:
-            await interaction.response.send_message('It\'s not your turn.', ephemeral=True)
-            return
+        free = len(player.hand) - player.locked
+        best = None
+        for mask in range(1 << free):
+            keep = [True] * player.locked + [bool(mask >> index & 1) for index in range(free)]
+            kept = [card for card, chosen in zip(player.hand, keep) if chosen]
+            if kept and (best is None or self.rank(kept)[0] < best[0]):
+                best = (self.rank(kept)[0], keep)
+        return self.keep_move(player, best[1])
 
-        await interaction.response.defer(ephemeral=True)
-        embed, file = await ephemeral_hand_embed(player, self.game_view, None)
-        view = EphemeralSelectView(self.game_view, player)
-        if file:
-            await interaction.followup.send(embed=embed, file=file, view=view, ephemeral=True)
-        else:
-            await interaction.followup.send(embed=embed, view=view, ephemeral=True)
+    # Scoring ----------------------------------------------------------------
 
-async def ephemeral_hand_embed(player: Player, game_view: CoruscantGameView, toggles: list[bool] = None):
-    '''
-    Build the ephemeral hand embed for the player's current selection.
-    Discarded cards are shown face down.
-    '''
+    def rank(self, hand: list[Card]) -> tuple[tuple, str]:
+        if len(hand) == 2 and all(card.suit == 'sylop' for card in hand):
+            return (0,), 'Pure Sabacc'
+        total = sum(card.value for card in hand)
+        off = abs(total - self.target_number)
+        matches = self.matches(hand)
+        largest = max((card.value for card in hand if card.value > 0), default=0)
+        distance = 'On target' if off == 0 else f'Off by {off}'
+        return (1, off, -matches, -total, -largest), f'{distance}, {matches} suit match{"es" * (matches != 1)}'
 
-    if toggles is None:
-        toggles = [True for _ in player.hand]
+    def score(self, player: Player) -> tuple[tuple, str]:
+        return self.rank(player.hand)
 
-    image_urls = []
-    kept_cards = []
-    for flag, c in zip(toggles, player.hand):
-        if flag:
-            image_urls.append(get_card_image_url(c))
-            kept_cards.append(c)
-        else:
-            image_urls.append('https://raw.githubusercontent.com/TheAbubakrAbu/Sabacc-Droid/main/src/sabacc_droid/images/corellian_spike/card.png')
+    def headline(self, name: str) -> str:
+        return f'wins with **{name}**!' if name == 'Pure Sabacc' else 'wins!'
 
-    total = sum(c.value for c in kept_cards)
-    suit_matches = sum(1 for c in kept_cards if c.suit == game_view.target_suit or c.suit == 'Sylop')
-
-    desc = (
-        f'**Target Number:** {format_signed(game_view.target_number)} | **Target Suit:** {game_view.target_suit}\n\n'
-        f'**Your Hand:** {player.get_hand_string()}\n'
-        f'**Total:** {total} | **Suit Matches:** {suit_matches}\n\n'
-        'Click a card to toggle whether you keep it (✅) or discard it (❌). Cards you keep are locked in for future rounds.'
-    )
-
-    try:
-        buf = combine_card_images(image_urls)
-        embed = Embed(
-            title=f'Your Turn | Round {game_view.current_round}/{game_view.rounds}',
-            description=desc,
-            color=0xAB9032
-        )
-        embed.set_thumbnail(url=coruscant_thumbnail)
-        embed.set_footer(text=coruscant_footer)
-        embed.set_image(url='attachment://combined_cards.png')
-        file = discord.File(fp=buf, filename='combined_cards.png')
-        return embed, file
-
-    except Exception as e:
-        logger.error(f'Failed to combine card images: {e}')
-        embed = Embed(
-            title=f'Your Turn | Round {game_view.current_round}/{game_view.rounds}',
-            description=desc,
-            color=0xAB9032
-        )
-        embed.set_thumbnail(url=coruscant_thumbnail)
-        embed.set_footer(text=coruscant_footer)
-        return embed, None
-
-class EphemeralSelectView(ui.View):
-    '''
-    An ephemeral view for toggling which cards to keep, confirming the selection, or junking.
-    Toggles are stored locally and re-rendered after each click.
-    Locked-in cards can't be discarded, and at least one card must be kept.
-    '''
-
-    def __init__(self, game_view: CoruscantGameView, player: Player):
-        super().__init__(timeout=None)
-        self.game_view = game_view
-        self.player = player
-        self.toggles = [True] * len(player.hand)
-        self.build_buttons()
-
-    def build_buttons(self):
-        '''
-        Create a button for each card, plus Confirm Selection and Junk buttons.
-        '''
-
-        self.clear_items()
-
-        for idx, c in enumerate(self.player.hand):
-            if c.locked_in:
-                label = f'{str(c)}'
-                btn = ui.Button(label=label, style=ButtonStyle.secondary)
-                btn.disabled = False
-                btn.callback = self.make_locked_callback()
-            else:
-                if self.toggles[idx]:
-                    label = f'{str(c)} ✅'
-                else:
-                    label = f'{str(c)} ❌'
-                btn = ui.Button(label=label, style=ButtonStyle.primary)
-                btn.callback = self.make_toggle_callback(idx)
-
-            self.add_item(btn)
-
-        confirm = ui.Button(label='Confirm Selection', style=ButtonStyle.success)
-        confirm.callback = self.confirm_callback
-        self.add_item(confirm)
-
-        junk = ui.Button(label='Junk', style=ButtonStyle.danger)
-        junk.callback = self.junk_callback
-        self.add_item(junk)
-
-    def make_locked_callback(self):
-        '''
-        Return a callback explaining that locked-in cards can't be discarded.
-        '''
-
-        async def callback(interaction: Interaction):
-            if interaction.user.id != self.player.user.id:
-                await interaction.response.send_message('It\'s not your turn.', ephemeral=True)
-                return
-            await interaction.response.send_message(
-                'You can\'t discard cards you kept in a previous round.', ephemeral=True
-            )
-        return callback
-
-    def make_toggle_callback(self, i: int):
-        '''
-        Return a callback that toggles whether the card at index i is kept.
-        '''
-
-        async def callback(interaction: Interaction):
-            if interaction.user.id != self.player.user.id:
-                await interaction.response.send_message('It\'s not your turn.', ephemeral=True)
-                return
-
-            selected_count = sum(1 for x in self.toggles if x)
-            if self.toggles[i]:
-                if selected_count == 1:
-                    await interaction.response.send_message('You must keep at least one card.', ephemeral=True)
-                    return
-
-            self.toggles[i] = not self.toggles[i]
-
-            emb, file = await ephemeral_hand_embed(self.player, self.game_view, self.toggles)
-            self.build_buttons()
-            if file:
-                await interaction.response.edit_message(embed=emb, attachments=[file], view=self)
-            else:
-                await interaction.response.edit_message(embed=emb, attachments=[], view=self)
-
-        return callback
-
-    async def confirm_callback(self, interaction: Interaction):
-        '''
-        Keep the selected cards, lock in the selection, and end the turn.
-        '''
-
-        if interaction.user.id != self.player.user.id:
-            await interaction.response.send_message('It\'s not your turn.', ephemeral=True)
-            return
-
-        final_cards = []
-        for keep, c in zip(self.toggles, self.player.hand):
-            if keep:
-                final_cards.append(c)
-        self.player.hand = final_cards
-
-        total = sum(c.value for c in self.player.hand)
-        embed = Embed(
-            title=f'Selection Confirmed | Round {self.game_view.current_round}/{self.game_view.rounds}',
-            description=(
-                f'**Target Number:** {format_signed(self.game_view.target_number)} | **Target Suit:** {self.game_view.target_suit}\n\n'
-                f'**Your Hand:** {self.player.get_hand_string()}\n'
-                f'**Total:** {total}\n\n'
-                'Your selection is locked in for this round.'
-            ),
-            color=0xAB9032
-        )
-        embed.set_thumbnail(url=coruscant_thumbnail)
-        embed.set_footer(text=coruscant_footer)
-
-        efile = None
-        if self.player.hand:
-            try:
-                fbuf = combine_card_images([get_card_image_url(c) for c in self.player.hand])
-                embed.set_image(url='attachment://chosen.png')
-                efile = discord.File(fp=fbuf, filename='chosen.png')
-            except Exception as e:
-                logger.error(f'Failed to combine card images: {e}')
-
-        for ch in self.children:
-            ch.disabled = True
-
-        await interaction.response.edit_message(embed=embed, view=None, attachments=[efile] if efile else [])
-
-        self.game_view.current_player_index += 1
-        self.stop()
-        await self.game_view.next_turn()
-
-    async def junk_callback(self, interaction: Interaction):
-        '''
-        Junk your hand and leave the game.
-        '''
-
-        if interaction.user.id != self.player.user.id:
-            await interaction.response.send_message('It\'s not your turn.', ephemeral=True)
-            return
-
-        self.game_view.players.remove(self.player)
-
-        total = sum(c.value for c in self.player.hand)
-        desc = (
-            'You have given up and are out of the game.'
-        )
-        embed = Embed(
-            title=f'You Chose to Junk | Round {self.game_view.current_round}/{self.game_view.rounds}',
-            description=desc,
-            color=0xAB9032
-        )
-        embed.set_thumbnail(url=coruscant_thumbnail)
-        embed.set_footer(text=coruscant_footer)
-
-        efile = None
-        if self.player.hand:
-            try:
-                fbuf = combine_card_images([get_card_image_url(c) for c in self.player.hand])
-                embed.set_image(url='attachment://junked.png')
-                efile = discord.File(fp=fbuf, filename='junked.png')
-            except Exception as e:
-                logger.error(f'Failed to combine card images: {e}')
-
-        for ch in self.children:
-            ch.disabled = True
-        await interaction.response.edit_message(embed=embed, view=None, attachments=[efile] if efile else [])
-
-        if len(self.game_view.players) < 2:
-            await self.game_view.end_game()
-        else:
-            self.stop()
-            await self.game_view.next_turn()
-
-    async def interaction_check(self, interaction: Interaction) -> bool:
-        '''
-        Only the current player can use this view.
-        '''
-
-        return (interaction.user.id == self.player.user.id)
-
-class EndGameView(ui.View):
-    '''
-    A view shown at the end of the game with Play Again and View Rules buttons.
-    '''
-
-    def __init__(self, active_games, channel, rounds: int = 2, num_cards: int = 5):
-        super().__init__(timeout=None)
-        self.active_games = active_games
-        self.channel = channel
-        self.rounds = rounds
-        self.num_cards = num_cards
-        self.clicked = False
-
-        again = ui.Button(label='Play Again', style=ButtonStyle.success)
-        again.callback = self.play_again
-        self.add_item(again)
-
-        self.add_item(CoruscantShiftViewRulesButton())
-
-    async def play_again(self, interaction: Interaction):
-        '''
-        Create a new lobby and add the player who clicked as the first player.
-        '''
-
-        if self.clicked:
-            await interaction.response.send_message('A new lobby has already been created.', ephemeral=True)
-            return
-        self.clicked = True
-        for ch in self.children:
-            if isinstance(ch, ui.Button) and ch.label == 'Play Again':
-                ch.disabled = True
-
-        await interaction.response.edit_message(view=self)
-
-        new_g = CoruscantGameView(
-            rounds=self.rounds,
-            num_cards=self.num_cards,
-            active_games=self.active_games,
-            channel=self.channel
-        )
-        new_g.message = await self.channel.send('New game lobby created!', view=new_g)
-        new_g.players.append(Player(interaction.user))
-        await new_g.update_lobby()
-        self.active_games.append(new_g)
-
-class CoruscantShiftViewRulesButton(ui.Button):
-    '''
-    A button that displays the Coruscant Shift Sabacc rules.
-    '''
-
-    def __init__(self):
-        super().__init__(label='View Rules', style=ButtonStyle.secondary)
-
-    async def callback(self, interaction: Interaction):
-        '''
-        Show the rules embed as an ephemeral message.
-        '''
-
-        embed = get_coruscant_shift_rules_embed()
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+    @classmethod
+    def rules_embed(cls):
+        return cls.styled('Coruscant Shift Rules', (
+            '### Objective\n'
+            'Finish with a hand whose total is as close as possible to the **target number** rolled on the gold die. '
+            'Ties go to the player with the most cards in the **target suit** rolled on the silver die.\n\n'
+            '### Deck\n'
+            '- **62 cards:** +1 to +10 and -1 to -10 in each of **3 suits** (●, ▲, ■), plus **2 Sylops (0)**, which match any suit.\n\n'
+            '### Dice\n'
+            '- The **gold die** (faces: -10, +10, -5, +5, 0, 0) sets the target number.\n'
+            '- The **silver die** (two faces each of ●, ▲, ■) sets the target suit.\n\n'
+            '### Rounds\n'
+            'The game lasts **2 rounds** by default, and each player starts with **5 cards**.\n'
+            '- On your turn, choose which cards to keep. Cards you don\'t keep are discarded.\n'
+            '- At the start of every later round, everyone draws back up to 5 cards. Cards kept in earlier rounds are **locked in**; only new cards can be discarded.\n'
+            '- After the last round, every hand is revealed.\n\n'
+            '### Actions\n'
+            '- **Toggle a Card:** Keep it (✅) or discard it (❌). You must keep at least one card.\n'
+            '- **Confirm Cards:** Lock in your choices and end your turn.\n'
+            '- **Junk:** Give up and leave the game.\n\n'
+            '### Winning and Tiebreakers\n'
+            '1. **Pure Sabacc** (exactly two Sylops) beats every other hand.\n'
+            '2. Closest to the target number.\n'
+            '3. Most cards matching the target suit (Sylops count as a match).\n'
+            '4. Highest total.\n'
+            '5. Highest single positive card.\n'
+            '6. If still tied, the game ends in a tie.\n\n'
+            'Good luck, and may the Force be with you!'
+        ))

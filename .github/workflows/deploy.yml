@@ -1,29 +1,54 @@
 # .github/workflows/deploy.yml
+#
+# On every push to main: run the self-test, and only if it passes, pull the
+# new code onto the Oracle server and restart the bot.
+# Aurebesh Droid's workflow has the same two jobs.
 
-name: Deploy Sabacc Droid to Oracle
+name: Test and Deploy Sabacc Droid
 
 on:
   push:
-    branches: [ main ]   # <- deploy on every push to main
-  workflow_dispatch:     # <- or run it by hand from the Actions tab
+    branches: [ main ]
+  workflow_dispatch:  # or run it by hand from the Actions tab
 
 concurrency:
   group: deploy
   cancel-in-progress: false
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+  test:
+    runs-on: ubuntu-24.04
     steps:
-      - name: Pull, install, and restart on Oracle server
+      - uses: actions/checkout@v7
+
+      # The same Python as the server: both read .python-version.
+      - uses: actions/setup-python@v7
+        with:
+          python-version-file: .python-version
+          cache: pip
+
+      - name: Install the requirements
+        run: pip install -r requirements.txt
+
+      - name: Run the self-test
+        working-directory: src/sabacc_droid
+        run: python sabacc_droid.py --self-test
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Deploy to the Oracle server
         run: |
-          # The deploy key can only run fixed targets on the server (see ~/deploy.sh there)
+          # The deploy key can only run fixed targets on the server (see ~/deploy.sh there).
+          # Passing the tested commit means a push made during the test never goes live untested.
           install -m 600 /dev/null "$HOME/deploy_key"
           printf '%s\n' "$ORACLE_SSH_KEY" > "$HOME/deploy_key"
           echo "discord-bots ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKm/hUx9SzFwNdzIE1T+B156N/GDkHljKd8+96UW7TMN" > "$HOME/known_hosts"
           ssh -i "$HOME/deploy_key" \
               -o UserKnownHostsFile="$HOME/known_hosts" -o HostKeyAlias=discord-bots \
-              "ubuntu@${ORACLE_HOST}" sabacc
+              "ubuntu@${ORACLE_HOST}" "sabacc $TESTED_COMMIT"
         env:
           ORACLE_HOST: ${{ secrets.ORACLE_HOST }}
           ORACLE_SSH_KEY: ${{ secrets.ORACLE_SSH_KEY }}
+          TESTED_COMMIT: ${{ github.sha }}

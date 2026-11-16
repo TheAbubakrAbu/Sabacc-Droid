@@ -1,679 +1,287 @@
 # sabacc_droid.py
+#
+# Starts the bot, registers the slash commands, and routes every button click
+# to the game or menu it belongs to. `python sabacc_droid.py --self-test` runs
+# the checks in self_test.py instead.
 
+from __future__ import annotations
+
+import asyncio
+import dataclasses
+import logging
 import os
+import random
+import re
+import signal
+import sys
+import time
+from pathlib import Path
+
 import discord
-from dotenv import load_dotenv
-from discord import Interaction, app_commands, ui, ButtonStyle
-from discord.ext import commands
+from discord import Interaction, app_commands
 
-from corellian_spike import CorelliaGameView
-from coruscant_shift import CoruscantGameView
-from kessel import KesselGameView
-from traditional import TraditionalGameView
-from rules import *
+import corellian_spike  # noqa: F401  (each variant registers itself in game.variants)
+import coruscant_shift  # noqa: F401
+import game
+import kessel  # noqa: F401
+import traditional  # noqa: F401
+from game import Game, Settings, games, goodbye_all, notice, variants, warning_time
+from help import chooser_message, comparison_embed, help_message
+from theme import icon
 
-# Load the bot token
-load_dotenv()
-TOKEN = os.getenv('DISCORD_TOKEN')
-if TOKEN is None:
-    raise ValueError('DISCORD_TOKEN was not found in the .env file.')
+log = logging.getLogger('sabacc')
 
-# Set up the bot
-intents = discord.Intents.default()
-bot = commands.Bot(
-    command_prefix='/',
-    intents=intents,
-    activity=discord.CustomActivity(name='Playing Sabacc')
+something_went_wrong = 'Something went wrong. Please try again.'
+game_gone = 'This game has ended. Start a new one with `/sabacc`.'
+
+
+def load_token() -> str | None:
+    '''
+    DISCORD_TOKEN from the environment, or from a .env file in the repository
+    or next to this file.
+    '''
+
+    if os.getenv('DISCORD_TOKEN'):
+        return os.environ['DISCORD_TOKEN']
+    here = Path(__file__).resolve().parent
+    for env in (here / '.env', here.parent.parent / '.env'):
+        if env.is_file():
+            for line in env.read_text().splitlines():
+                name, _, value = line.partition('=')
+                if name.strip() == 'DISCORD_TOKEN':
+                    return value.strip().strip('\'"')
+    return None
+
+
+class SabaccDroid(discord.Client):
+    farewell: asyncio.Task | None = None
+    stopping: asyncio.Task | None = None
+
+    async def setup_hook(self) -> None:
+        await tree.sync()
+        loop = asyncio.get_running_loop()
+        self.sweeper = loop.create_task(sweep())
+        # systemd stops the bot with SIGTERM on every deploy. Close cleanly
+        # instead of dying, so close() can tell unfinished games first.
+        loop.add_signal_handler(signal.SIGTERM, self.stop_soon)
+
+    def stop_soon(self) -> None:
+        # Only the first signal starts the shutdown. (discord.py clears
+        # self.loop once it has closed, so later signals can't use it.)
+        if self.stopping is None:
+            self.stopping = asyncio.get_running_loop().create_task(self.close())
+
+    async def close(self) -> None:
+        # Every call waits on the same goodbyes, so a second SIGTERM (or
+        # Ctrl+C) can't close the connection while they are still sending.
+        if self.farewell is None and not self.is_closed():
+            self.farewell = asyncio.create_task(goodbye_all())
+        if self.farewell is not None:
+            await self.farewell
+        await super().close()
+
+
+# Interactions arrive without any gateway intents, and nothing here reads the
+# message or member caches, so subscribe to nothing and cache nothing.
+client = SabaccDroid(
+    intents=discord.Intents.none(),
+    max_messages=None,
+    member_cache_flags=discord.MemberCacheFlags.none(),
+    chunk_guilds_at_startup=False,
+    activity=discord.Game(f'{icon.sabacc} Sabacc'),  # "Playing 🃏 Sabacc", like Aurebesh Droid's "Playing 🔤 Aurebesh"
 )
+tree = app_commands.CommandTree(client)
 
-active_games = []
 
-async def _send_sabacc_lobby(
-    interaction: Interaction,
-    view: ui.View,
-    active_games_list: list,
-    *,
-    title: str,
-    description: str,
-    thumbnail_url: str,
-    footer_text: str,
-    defer_first: bool = False,
-    color: int = 0x764920
-):
+async def sweep() -> None:
     '''
-    Send a new game lobby embed and view, add the view to active_games, and report any errors.
-    If defer_first is True, the interaction was already deferred, so the lobby is sent with
-    interaction.channel.send; otherwise it is sent with interaction.response.send_message.
+    Every few seconds, pings players with a minute left on their turn, and
+    times out lobbies nobody started and turns nobody took.
     '''
 
-    embed = Embed(
-        title=title,
-        description=description,
-        color=color
-    )
-    embed.set_thumbnail(url=thumbnail_url)
-    embed.set_footer(text=footer_text)
+    while True:
+        await asyncio.sleep(15)
+        await sweep_once()
 
+
+async def sweep_once() -> None:
+    soon = [current for current in games.values() if current.deadline - warning_time <= time.monotonic()]
+    for current in soon:
+        try:
+            async with current.lock:
+                # Look again now that the lock is held: while an earlier game
+                # was being handled, a click may have restarted this one's timer.
+                now = time.monotonic()
+                if games.get(current.id) is not current:
+                    continue
+                if current.deadline <= now:
+                    await current.expire()
+                elif current.deadline - warning_time <= now and not current.warned and current.phase != 'lobby':
+                    await current.warn()
+        except Exception:
+            log.exception('Timing out game %s failed', current.id)
+
+
+async def open_lobby(it: Interaction, variant: type[Game], settings: Settings, first: object = None, content: str | None = None) -> bool:
+    '''
+    Opens a lobby as the reply to it. False if the bot is shutting down.
+    '''
+
+    if game.restarting:
+        await notice(it, game.restarting_notice)
+        return False
+    await variant(variant.clamp(settings), it.channel).open_lobby(it, first, content)
+    return True
+
+
+# Slash commands -----------------------------------------------------------------
+
+@tree.command(name='sabacc', description='Choose a Sabacc variant to play')
+async def sabacc_command(it: Interaction) -> None:
+    embed, view = chooser_message()
+    await it.response.send_message(embed=embed, view=view)
+
+
+@tree.command(name='random', description='Start a random Sabacc variant (use 0 for random rounds or cards)')
+@app_commands.describe(rounds='Number of rounds (0 for random)', num_cards='Number of starting cards (0 for random)')
+async def random_command(it: Interaction, rounds: app_commands.Range[int, 0, 10] = 0,
+                         num_cards: app_commands.Range[int, 0, 10] = 0) -> None:
+    variant = random.choice(list(variants.values()))
+    await open_lobby(it, variant, variant.random_settings(rounds, num_cards))
+
+
+@tree.command(name='corellian_spike', description='Start a Corellian Spike Sabacc game with optional custom settings')
+@app_commands.describe(rounds='Number of rounds (default: 3, max: 10)', num_cards='Number of starting cards (default: 2, max: 5)',
+                       discard='Allow discarding cards (default: off)')
+async def corellian_spike_command(it: Interaction, rounds: app_commands.Range[int, 1, 10] = 3,
+                                  num_cards: app_commands.Range[int, 1, 5] = 2, discard: bool = False) -> None:
+    await open_lobby(it, variants['corellian_spike'], Settings(rounds, num_cards, discard))
+
+
+@tree.command(name='coruscant_shift', description='Start a Coruscant Shift Sabacc game with optional custom settings')
+@app_commands.describe(rounds='Number of rounds (default: 2, max: 5)', num_cards='Number of starting cards (default: 5, max: 10)')
+async def coruscant_shift_command(it: Interaction, rounds: app_commands.Range[int, 1, 5] = 2,
+                                  num_cards: app_commands.Range[int, 1, 10] = 5) -> None:
+    await open_lobby(it, variants['coruscant_shift'], Settings(rounds, num_cards))
+
+
+@tree.command(name='kessel', description='Start a Kessel Sabacc game with optional custom settings')
+@app_commands.describe(rounds='Number of rounds (default: 3, max: 10)')
+async def kessel_command(it: Interaction, rounds: app_commands.Range[int, 1, 10] = 3) -> None:
+    await open_lobby(it, variants['kessel'], Settings(rounds, 2))
+
+
+@tree.command(name='traditional', description='Start a Traditional Sabacc game with optional custom settings')
+@app_commands.describe(num_cards='Number of starting cards (default: 2, max: 5)', discard='Allow discarding cards (default: off)')
+async def traditional_command(it: Interaction, num_cards: app_commands.Range[int, 1, 5] = 2, discard: bool = False) -> None:
+    await open_lobby(it, variants['traditional'], Settings(0, num_cards, discard))
+
+
+@tree.command(name='help', description='Show how to use Sabacc Droid')
+async def help_command(it: Interaction) -> None:
+    embed, view = help_message()
+    await it.response.send_message(embed=embed, view=view)
+
+
+@tree.error
+async def on_command_error(it: Interaction, error: app_commands.AppCommandError) -> None:
+    log.error('/%s failed', it.command.name if it.command else '?', exc_info=error)
     try:
-        if defer_first:
-            lobby_msg = await interaction.channel.send(embed=embed, view=view)
+        await notice(it, something_went_wrong)
+    except discord.HTTPException:
+        pass
+
+
+# Buttons ------------------------------------------------------------------------
+
+async def route(it: Interaction, custom_id: str) -> None:
+    '''
+    "g:..." buttons belong to a game in progress; the rest work on their own:
+    "start:<variant>", "again:<variant>:<settings>", "rules:<variant>", and "help".
+    '''
+
+    kind, _, rest = custom_id.partition(':')
+
+    if kind == 'g':
+        parts = rest.split(':', 3)
+        current = games.get(parts[0])
+        if current is None or len(parts) < 3:
+            return await notice(it, game_gone)
+        async with current.lock:
+            if games.get(current.id) is not current:
+                return await notice(it, game_gone)
+            await current.handle(it, parts[1], parts[2], parts[3] if len(parts) > 3 else '')
+
+    elif kind == 'start':
+        if rest == 'random':
+            variant = random.choice(list(variants.values()))
+            await open_lobby(it, variant, variant.random_settings())
+        elif rest in variants:
+            await open_lobby(it, variants[rest], dataclasses.replace(variants[rest].defaults))
         else:
-            await interaction.response.send_message(embed=embed, view=view)
-            lobby_msg = await interaction.original_response()
+            await notice(it, game_gone)
 
-        view.message = lobby_msg
-        active_games_list.append(view)
+    elif kind == 'again':
+        key, _, encoded = rest.partition(':')
+        settings = Settings.decode(encoded)
+        if key not in variants or settings is None:
+            return await notice(it, game_gone)
+        # A rematch pings everyone the results message pinged, apart from whoever clicked.
+        pinged = dict.fromkeys(re.findall(r'<@!?(\d+)>', getattr(it.message, 'content', None) or ''))
+        others = [f'<@{user_id}>' for user_id in pinged if int(user_id) != it.user.id]
+        content = (f'{icon.again} {" ".join(others)}: {it.user.mention} started a rematch. Click **Join Game** to play again.'
+                   if others else None)
+        if not await open_lobby(it, variants[key], settings, first=it.user, content=content):
+            return  # the bot is restarting, so Play Again stays clickable
+        try:
+            await it.message.edit(view=variants[key].results_view(settings, again=False))
+        except (discord.HTTPException, AttributeError):
+            pass
 
-    except Exception as e:
-        await interaction.response.send_message(
-            f'An error occurred while starting the game: {e}',
-            ephemeral=True
-        )
+    elif kind == 'rules':
+        embed = comparison_embed() if rest == 'compare' else variants[rest].rules_embed() if rest in variants else None
+        if embed is None:
+            return await notice(it, game_gone)
+        await it.response.send_message(embed=embed, ephemeral=True)
 
-@bot.tree.command(name='sabacc', description='Choose a Sabacc variant to play')
-async def sabacc_command(interaction: Interaction):
-    '''
-    Show a menu with a button for each Sabacc variant:
-    - Corellian Spike (defaults: 3 rounds, 2 starting cards)
-    - Coruscant Shift (defaults: 2 rounds, 5 starting cards)
-    - Kessel (defaults: 3 rounds, 2 starting cards)
-    - Traditional (defaults: no set number of rounds, 2 starting cards)
-    Also includes Play Random and View Rules buttons.
-    '''
+    elif custom_id == 'help':
+        embed, view = help_message()
+        await it.response.send_message(embed=embed, view=view, ephemeral=True)
 
-    embed = Embed(
-        title='Choose Your Sabacc Variant',
-        description=(
-            'Choose one of the four variants below to start a new game in this channel.\n\n'
-            '- **Corellian Spike:** 3 rounds, 2 starting cards\n'
-            '- **Coruscant Shift:** 2 rounds, 5 starting cards\n'
-            '- **Kessel:** 3 rounds, 2 starting cards\n'
-            '- **Traditional:** No set number of rounds, 2 starting cards\n\n'
-            'Click a variant to open a lobby with default settings, or click **Play Random** for a random variant with random settings.\n\n'
-            'Click **View Rules** for an overview of Sabacc.'
-        ),
-        color=0x764920
-    )
-    embed.set_thumbnail(url=sabacc_thumbnail)
-    embed.set_footer(text=sabacc_footer)
-
-    view = SabaccChoiceView()
-    await interaction.response.send_message(embed=embed, view=view)
-
-class SabaccChoiceView(ui.View):
-    '''
-    View with a button for each variant, plus Play Random and View Rules:
-    - Start Corellian (3 rounds, 2 starting cards)
-    - Start Coruscant (2 rounds, 5 starting cards)
-    - Start Kessel (3 rounds, 2 starting cards)
-    - Start Traditional (2 starting cards)
-    - Play Random (random variant and settings)
-    - View Rules (Sabacc overview)
-    '''
-
-    @ui.button(label='Start Corellian', style=ButtonStyle.primary)
-    async def start_corellian_spike(self, interaction: Interaction, button: ui.Button):
-        await interaction.response.defer()
-        corellian_view = CorelliaGameView(
-            rounds=3,
-            num_cards=2,
-            active_games=active_games,
-            channel=interaction.channel
-        )
-        desc = (
-            'Click **Join Game** to join the game.\n\n'
-            '**Game Settings:**\n'
-            '- 3 rounds\n'
-            '- 2 starting cards\n'
-            f'- Discarding cards is {"enabled" if corellian_view.allow_discard else "disabled"}\n\n'
-            'Once someone has joined, **Start Game** will be enabled.'
-        )
-        await _send_sabacc_lobby(
-            interaction,
-            corellian_view,
-            active_games,
-            title='Corellian Spike Sabacc Lobby',
-            description=desc,
-            thumbnail_url=corellian_thumbnail,
-            footer_text=corellian_footer,
-            defer_first=True,
-            color=0xCBB7A0
-        )
-
-    @ui.button(label='Start Coruscant', style=ButtonStyle.primary)
-    async def start_coruscant_shift(self, interaction: Interaction, button: ui.Button):
-        await interaction.response.defer()
-        coruscant_view = CoruscantGameView(
-            rounds=2,
-            num_cards=5,
-            active_games=active_games,
-            channel=interaction.channel
-        )
-        desc = (
-            'Click **Join Game** to join the game.\n\n'
-            '**Game Settings:**\n'
-            '- 2 rounds\n'
-            '- 5 starting cards\n\n'
-            'Once someone has joined, **Start Game** will be enabled.'
-        )
-        await _send_sabacc_lobby(
-            interaction,
-            coruscant_view,
-            active_games,
-            title='Coruscant Shift Sabacc Lobby',
-            description=desc,
-            thumbnail_url=coruscant_thumbnail,
-            footer_text=coruscant_footer,
-            defer_first=True,
-            color=0xAB9032
-        )
-
-    @ui.button(label='Start Kessel', style=ButtonStyle.primary)
-    async def start_kessel(self, interaction: Interaction, button: ui.Button):
-        await interaction.response.defer()
-        kessel_view = KesselGameView(rounds=3, active_games=active_games, channel=interaction.channel)
-        desc = (
-            'Click **Join Game** to join the game.\n\n'
-            '**Game Settings:**\n'
-            '- 3 rounds\n'
-            '- 2 starting cards\n\n'
-            'Once someone has joined, **Start Game** will be enabled.'
-        )
-        await _send_sabacc_lobby(
-            interaction,
-            kessel_view,
-            active_games,
-            title='Kessel Sabacc Lobby',
-            description=desc,
-            thumbnail_url=kessel_thumbnail,
-            footer_text=kessel_footer,
-            defer_first=True,
-            color=0x7F3335
-        )
-
-    @ui.button(label='Start Traditional', style=ButtonStyle.primary)
-    async def start_traditional(self, interaction: Interaction, button: ui.Button):
-        await interaction.response.defer()
-        traditional_view = TraditionalGameView(
-            active_games=active_games,
-            channel=interaction.channel
-        )
-        desc = (
-            'Click **Join Game** to join the game.\n\n'
-            '**Game Settings:**\n'
-            '- No set number of rounds\n'
-            '- Call Alderaan to end the game\n'
-            '- 2 starting cards\n'
-            f'- Discarding cards is {"enabled" if traditional_view.allow_discard else "disabled"}\n\n'
-            'Once someone has joined, **Start Game** will be enabled.'
-        )
-        await _send_sabacc_lobby(
-            interaction,
-            traditional_view,
-            active_games,
-            title='Traditional Sabacc Lobby',
-            description=desc,
-            thumbnail_url=traditional_thumbnail,
-            footer_text=traditional_footer,
-            defer_first=True,
-            color=0x7A9494
-        )
-
-    @ui.button(label='Play Random', style=ButtonStyle.success)
-    async def play_random_button(self, interaction: Interaction, button: ui.Button):
-        import random
-        # Define the game configs
-        game_types = [
-            {
-                'name': 'Corellian Spike',
-                'view': CorelliaGameView,
-                'rounds_range': (1, 10),
-                'num_cards_range': (1, 5),
-                'desc': lambda rounds, num_cards, allow_discard: (
-                    f'Click **Join Game** to join the game.\n\n'
-                    f'**Game Settings:**\n'
-                    f'- {plural(rounds, "round")}\n'
-                    f'- {plural(num_cards, "starting card")}\n'
-                    f'- Discarding cards is {"enabled" if allow_discard else "disabled"}\n\n'
-                    'Once someone has joined, **Start Game** will be enabled.'
-                ),
-                'thumbnail': corellian_thumbnail,
-                'footer': corellian_footer,
-                'color': 0xCBB7A0
-            },
-            {
-                'name': 'Coruscant Shift',
-                'view': CoruscantGameView,
-                'rounds_range': (1, 5),
-                'num_cards_range': (1, 10),
-                'desc': lambda rounds, num_cards, allow_discard: (
-                    f'Click **Join Game** to join the game.\n\n'
-                    f'**Game Settings:**\n'
-                    f'- {plural(rounds, "round")}\n'
-                    f'- {plural(num_cards, "starting card")}\n\n'
-                    'Once someone has joined, **Start Game** will be enabled.'
-                ),
-                'thumbnail': coruscant_thumbnail,
-                'footer': coruscant_footer,
-                'color': 0xAB9032
-            },
-            {
-                'name': 'Kessel',
-                'view': KesselGameView,
-                'rounds_range': (1, 10),
-                'num_cards_range': None,
-                'desc': lambda rounds, num_cards, allow_discard: (
-                    f'Click **Join Game** to join the game.\n\n'
-                    f'**Game Settings:**\n'
-                    f'- {plural(rounds, "round")}\n'
-                    f'- 2 starting cards\n\n'
-                    'Once someone has joined, **Start Game** will be enabled.'
-                ),
-                'thumbnail': kessel_thumbnail,
-                'footer': kessel_footer,
-                'color': 0x7F3335
-            },
-            {
-                'name': 'Traditional',
-                'view': TraditionalGameView,
-                'rounds_range': None,
-                'num_cards_range': (1, 5),
-                'desc': lambda rounds, num_cards, allow_discard: (
-                    f'Click **Join Game** to join the game.\n\n'
-                    f'**Game Settings:**\n'
-                    f'- No set number of rounds\n'
-                    f'- Call Alderaan to end the game\n'
-                    f'- {plural(num_cards, "starting card")}\n'
-                    f'- Discarding cards is {"enabled" if allow_discard else "disabled"}\n\n'
-                    'Once someone has joined, **Start Game** will be enabled.'
-                ),
-                'thumbnail': traditional_thumbnail,
-                'footer': traditional_footer,
-                'color': 0x7A9494
-            }
-        ]
-        game = random.choice(game_types)
-        # Randomize the settings
-        rounds = None
-        num_cards = None
-        allow_discard = False
-        if game['rounds_range']:
-            rounds = random.randint(*game['rounds_range'])
-        if game['num_cards_range']:
-            num_cards = random.randint(*game['num_cards_range'])
-        # For variants with a discard toggle, randomly turn it on
-        if game['name'] in ['Corellian Spike', 'Traditional']:
-            allow_discard = random.choice([True, False])
-        # Create the view
-        if game['name'] == 'Corellian Spike':
-            view = game['view'](rounds=rounds, num_cards=num_cards, active_games=active_games, channel=interaction.channel)
-            view.allow_discard = allow_discard
-        elif game['name'] == 'Coruscant Shift':
-            view = game['view'](rounds=rounds, num_cards=num_cards, active_games=active_games, channel=interaction.channel)
-        elif game['name'] == 'Kessel':
-            view = game['view'](rounds=rounds, active_games=active_games, channel=interaction.channel)
-        elif game['name'] == 'Traditional':
-            view = game['view'](num_cards=num_cards, active_games=active_games, channel=interaction.channel)
-            view.allow_discard = allow_discard
-        desc = game['desc'](rounds, num_cards, allow_discard)
-        await _send_sabacc_lobby(
-            interaction,
-            view,
-            active_games,
-            title=f'{game["name"]} Sabacc Lobby',
-            description=desc,
-            thumbnail_url=game['thumbnail'],
-            footer_text=game['footer'],
-            defer_first=True,
-            color=game['color']
-        )
-
-    @ui.button(label='View Rules', style=ButtonStyle.secondary)
-    async def view_rules(self, interaction: Interaction, button: ui.Button):
-        embed = Embed(
-            title='Sabacc Droid Help',
-            description=RULES_DESCRIPTION,
-            color=0x764920
-        )
-        embed.set_thumbnail(url=sabacc_thumbnail)
-        embed.set_footer(text=sabacc_footer)
-
-        view = HelpView()
-        await interaction.response.send_message(embed=embed, view=view)
-
-@bot.tree.command(name='random', description='Start a random Sabacc variant (use 0 for random rounds or cards)')
-@app_commands.describe(
-    rounds='Number of rounds (0 for random)',
-    num_cards='Number of starting cards (0 for random)'
-)
-async def random_command(interaction: Interaction, rounds: int = 0, num_cards: int = 0):
-    '''
-    Start a lobby for a random Sabacc variant. Settings left at 0 are randomized.
-    '''
-
-    import random
-    game_types = [
-        {
-            'name': 'Corellian Spike',
-            'view': CorelliaGameView,
-            'rounds_range': (1, 10),
-            'num_cards_range': (1, 5),
-            'desc': lambda rounds, num_cards, allow_discard: (
-                f'Click **Join Game** to join the game.\n\n'
-                f'**Game Settings:**\n'
-                f'- {plural(rounds, "round")}\n'
-                f'- {plural(num_cards, "starting card")}\n'
-                f'- Discarding cards is {"enabled" if allow_discard else "disabled"}\n\n'
-                'Once someone has joined, **Start Game** will be enabled.'
-            ),
-            'thumbnail': corellian_thumbnail,
-            'footer': corellian_footer,
-            'color': 0xCBB7A0
-        },
-        {
-            'name': 'Coruscant Shift',
-            'view': CoruscantGameView,
-            'rounds_range': (1, 5),
-            'num_cards_range': (1, 10),
-            'desc': lambda rounds, num_cards, allow_discard: (
-                f'Click **Join Game** to join the game.\n\n'
-                f'**Game Settings:**\n'
-                f'- {plural(rounds, "round")}\n'
-                f'- {plural(num_cards, "starting card")}\n\n'
-                'Once someone has joined, **Start Game** will be enabled.'
-            ),
-            'thumbnail': coruscant_thumbnail,
-            'footer': coruscant_footer,
-            'color': 0xAB9032
-        },
-        {
-            'name': 'Kessel',
-            'view': KesselGameView,
-            'rounds_range': (1, 10),
-            'num_cards_range': None,
-            'desc': lambda rounds, num_cards, allow_discard: (
-                f'Click **Join Game** to join the game.\n\n'
-                f'**Game Settings:**\n'
-                f'- {plural(rounds, "round")}\n'
-                f'- 2 starting cards\n\n'
-                'Once someone has joined, **Start Game** will be enabled.'
-            ),
-            'thumbnail': kessel_thumbnail,
-            'footer': kessel_footer,
-            'color': 0x7F3335
-        },
-        {
-            'name': 'Traditional',
-            'view': TraditionalGameView,
-            'rounds_range': None,
-            'num_cards_range': (1, 5),
-            'desc': lambda rounds, num_cards, allow_discard: (
-                f'Click **Join Game** to join the game.\n\n'
-                f'**Game Settings:**\n'
-                f'- No set number of rounds\n'
-                f'- Call Alderaan to end the game\n'
-                f'- {plural(num_cards, "starting card")}\n'
-                f'- Discarding cards is {"enabled" if allow_discard else "disabled"}\n\n'
-                'Once someone has joined, **Start Game** will be enabled.'
-            ),
-            'thumbnail': traditional_thumbnail,
-            'footer': traditional_footer,
-            'color': 0x7A9494
-        }
-    ]
-    game = random.choice(game_types)
-    allow_discard = False
-    # Randomize rounds and num_cards, or clamp them to the variant's range
-    if game['rounds_range']:
-        if rounds == 0:
-            rounds = random.randint(*game['rounds_range'])
-        else:
-            rounds = max(game['rounds_range'][0], min(rounds, game['rounds_range'][1]))
-    if game['num_cards_range']:
-        if num_cards == 0:
-            num_cards = random.randint(*game['num_cards_range'])
-        else:
-            num_cards = max(game['num_cards_range'][0], min(num_cards, game['num_cards_range'][1]))
-    # For variants with a discard toggle, randomly turn it on
-    if game['name'] in ['Corellian Spike', 'Traditional']:
-        allow_discard = random.choice([True, False])
-    # Create the view
-    if game['name'] == 'Corellian Spike':
-        view = game['view'](rounds=rounds, num_cards=num_cards, active_games=active_games, channel=interaction.channel)
-        view.allow_discard = allow_discard
-    elif game['name'] == 'Coruscant Shift':
-        view = game['view'](rounds=rounds, num_cards=num_cards, active_games=active_games, channel=interaction.channel)
-    elif game['name'] == 'Kessel':
-        view = game['view'](rounds=rounds, active_games=active_games, channel=interaction.channel)
-    elif game['name'] == 'Traditional':
-        view = game['view'](num_cards=num_cards, active_games=active_games, channel=interaction.channel)
-        view.allow_discard = allow_discard
-    desc = game['desc'](rounds, num_cards, allow_discard)
-    await _send_sabacc_lobby(
-        interaction,
-        view,
-        active_games,
-        title=f'{game["name"]} Sabacc Lobby',
-        description=desc,
-        thumbnail_url=game['thumbnail'],
-        footer_text=game['footer'],
-        defer_first=False,
-        color=game['color']
-    )
-
-@bot.tree.command(name='corellian_spike', description='Start a Corellian Spike Sabacc game with optional custom settings')
-@app_commands.describe(
-    rounds='Number of rounds (default: 3, max: 10)',
-    num_cards='Number of starting cards (default: 2, max: 5)'
-)
-async def corellian_command(interaction: Interaction, rounds: int = 3, num_cards: int = 2) -> None:
-    '''
-    Start a new Corellian Spike Sabacc game with optional custom settings.
-    '''
-
-    rounds = max(1, min(rounds, 10))
-    num_cards = max(1, min(num_cards, 5))
-
-    view = CorelliaGameView(
-        rounds=rounds,
-        num_cards=num_cards,
-        active_games=active_games,
-        channel=interaction.channel
-    )
-    desc = (
-        'Click **Join Game** to join the game.\n\n'
-        f'**Game Settings:**\n'
-        f'- {plural(rounds, "round")}\n'
-        f'- {plural(num_cards, "starting card")}\n'
-        f'- Discarding cards is {"enabled" if view.allow_discard else "disabled"}\n\n'
-        'Once someone has joined, **Start Game** will be enabled.'
-    )
-    await _send_sabacc_lobby(
-        interaction,
-        view,
-        active_games,
-        title='Corellian Spike Sabacc Lobby',
-        description=desc,
-        thumbnail_url=corellian_thumbnail,
-        footer_text=corellian_footer,
-        defer_first=False,
-        color=0xCBB7A0
-    )
-
-@bot.tree.command(name='coruscant_shift', description='Start a Coruscant Shift Sabacc game with optional custom settings')
-@app_commands.describe(
-    rounds='Number of rounds (default: 2, max: 5)',
-    num_cards='Number of starting cards (default: 5, max: 10)'
-)
-async def coruscant_shift_command(interaction: Interaction, rounds: int = 2, num_cards: int = 5) -> None:
-    '''
-    Start a new Coruscant Shift Sabacc game with optional custom settings.
-    '''
-
-    rounds = max(1, min(rounds, 5))
-    num_cards = max(1, min(num_cards, 10))
-
-    view = CoruscantGameView(
-        rounds=rounds,
-        num_cards=num_cards,
-        active_games=active_games,
-        channel=interaction.channel
-    )
-    desc = (
-        'Click **Join Game** to join the game.\n\n'
-        f'**Game Settings:**\n'
-        f'- {plural(rounds, "round")}\n'
-        f'- {plural(num_cards, "starting card")}\n\n'
-        'Once someone has joined, **Start Game** will be enabled.'
-    )
-    await _send_sabacc_lobby(
-        interaction,
-        view,
-        active_games,
-        title='Coruscant Shift Sabacc Lobby',
-        description=desc,
-        thumbnail_url=coruscant_thumbnail,
-        footer_text=coruscant_footer,
-        defer_first=False,
-        color=0xAB9032
-    )
-
-@bot.tree.command(name='kessel', description='Start a Kessel Sabacc game with optional custom settings')
-@app_commands.describe(
-    rounds='Number of rounds (default: 3, max: 10)'
-)
-async def kessel_command(interaction: Interaction, rounds: int = 3) -> None:
-    '''
-    Start a new Kessel Sabacc game with optional custom settings.
-    '''
-
-    rounds = max(1, min(rounds, 10))
-    view = KesselGameView(rounds=rounds, active_games=active_games, channel=interaction.channel)
-
-    desc = (
-        'Click **Join Game** to join the game.\n\n'
-        f'**Game Settings:**\n'
-        f'- {plural(rounds, "round")}\n'
-        f'- 2 starting cards\n\n'
-        'Once someone has joined, **Start Game** will be enabled.'
-    )
-    await _send_sabacc_lobby(
-        interaction,
-        view,
-        active_games,
-        title='Kessel Sabacc Lobby',
-        description=desc,
-        thumbnail_url=kessel_thumbnail,
-        footer_text=kessel_footer,
-        defer_first=False,
-        color=0x7F3335
-    )
-
-@bot.tree.command(name='traditional', description='Start a Traditional Sabacc game with optional custom settings')
-@app_commands.describe(
-    num_cards='Number of starting cards (default: 2, max: 5)'
-)
-async def traditional_command(interaction: Interaction, num_cards: int = 2) -> None:
-    '''
-    Start a new Traditional Sabacc game with optional custom settings.
-    '''
-
-    num_cards = max(1, min(num_cards, 5))
-
-    view = TraditionalGameView(
-        num_cards=num_cards,
-        active_games=active_games,
-        channel=interaction.channel
-    )
-    desc = (
-        'Click **Join Game** to join the game.\n\n'
-        '**Game Settings:**\n'
-        f'- No set number of rounds\n'
-        f'- Call Alderaan to end the game\n'
-        f'- {plural(num_cards, "starting card")}\n'
-        f'- Discarding cards is {"enabled" if view.allow_discard else "disabled"}\n\n'
-        'Once someone has joined, **Start Game** will be enabled.'
-    )
-    await _send_sabacc_lobby(
-        interaction,
-        view,
-        active_games,
-        title='Traditional Sabacc Lobby',
-        description=desc,
-        thumbnail_url=traditional_thumbnail,
-        footer_text=traditional_footer,
-        defer_first=False,
-        color=0x7A9494
-    )
-
-@bot.tree.command(name='help', description='Show the Sabacc rules and variants')
-async def help_command(interaction: Interaction) -> None:
-    '''
-    Show a public message summarizing the four Sabacc variants
-    (Corellian Spike, Coruscant Shift, Kessel, and Traditional),
-    along with credits and repository links.
-    '''
-
-    embed = Embed(
-        title='Sabacc Droid Help',
-        description=RULES_DESCRIPTION,
-        color=0x764920
-    )
-    embed.set_thumbnail(url=sabacc_thumbnail)
-    embed.set_footer(text=sabacc_footer)
-
-    view = HelpView()
-    await interaction.response.send_message(embed=embed, view=view)
+    else:
+        await notice(it, 'This button is from an older version of Sabacc Droid. Start a new game with `/sabacc`.')
 
 
-class HelpView(ui.View):
-    '''
-    View with buttons that show the rules for each variant and a comparison.
-    '''
+@client.event
+async def on_interaction(it: Interaction) -> None:
+    if it.type is not discord.InteractionType.component:
+        return
+    custom_id = str((it.data or {}).get('custom_id', ''))
+    try:
+        await route(it, custom_id)
+    except Exception:
+        log.exception('Button %s failed', custom_id)
+        try:
+            await notice(it, something_went_wrong)
+        except discord.HTTPException:
+            pass
 
-    def __init__(self):
-        super().__init__(timeout=None)
 
-    @ui.button(label='Corellian Rules', style=ButtonStyle.primary)
-    async def corellian_spike_button(self, interaction: Interaction, button: ui.Button):
-        rules_embed = get_corellian_spike_rules_embed()
-        await interaction.response.send_message(embed=rules_embed, ephemeral=True)
-
-    @ui.button(label='Coruscant Rules', style=ButtonStyle.primary)
-    async def coruscant_button(self, interaction: Interaction, button: ui.Button):
-        rules_embed = get_coruscant_shift_rules_embed()
-        await interaction.response.send_message(embed=rules_embed, ephemeral=True)
-
-    @ui.button(label='Kessel Rules', style=ButtonStyle.primary)
-    async def kessel_button(self, interaction: Interaction, button: ui.Button):
-        rules_embed = get_kessel_rules_embed()
-        await interaction.response.send_message(embed=rules_embed, ephemeral=True)
-
-    @ui.button(label='Traditional Rules', style=ButtonStyle.primary)
-    async def traditional_button(self, interaction: Interaction, button: ui.Button):
-        rules_embed = get_traditional_rules_embed()
-        await interaction.response.send_message(embed=rules_embed, ephemeral=True)
-
-    @ui.button(label='Comparison', style=ButtonStyle.secondary)
-    async def comparison_button(self, interaction: Interaction, button: ui.Button):
-        comparison_embed = get_comparison_embed()
-        await interaction.response.send_message(embed=comparison_embed, ephemeral=True)
-
-@bot.event
+@client.event
 async def on_ready() -> None:
-    '''
-    Sync the slash commands when the bot is ready.
-    '''
+    log.info('Sabacc Droid is online as %s', client.user)
 
-    await bot.tree.sync()
-    print(f'{bot.user} is now running!')
 
 def main() -> None:
-    '''
-    Run the Discord bot.
-    '''
+    if '--self-test' in sys.argv:
+        from self_test import self_test
+        sys.exit(asyncio.run(self_test()))
 
-    bot.run(TOKEN)
+    token = load_token()
+    if not token:
+        sys.exit('DISCORD_TOKEN is not set. Put it in the environment or in a .env file.')
+    client.run(token, root_logger=True)  # so the bot's own log lines show up, not just discord.py's
+
 
 if __name__ == '__main__':
     main()
