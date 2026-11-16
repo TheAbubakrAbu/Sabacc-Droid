@@ -176,6 +176,6 @@ This project is licensed under the [MIT License](LICENSE). Feel free to use, mod
 ## Feedback & Contact
 
 I'd love to hear your thoughts! Open an issue, or reach out with feedback, feature requests, or questions:
-- **Email:** ammelmallah@icloud.com
+- **Email:** contact@abubakrelmallah.com
 - **Website:** [abubakrelmallah.com](https://abubakrelmallah.com/)
 - **LinkedIn:** [Abubakr Elmallah](https://www.linkedin.com/in/abubakr-elmallah-416a0b273/)
