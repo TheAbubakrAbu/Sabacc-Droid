@@ -1,6 +1,6 @@
 # Discord Listing
 
-The text on Sabacc Droid's pages in the Discord Developer Portal, kept here so it can be restored or matched by the other bots ([Aurebesh Droid](https://github.com/TheAbubakrAbu/Aurebesh-Droid/blob/main/docs/discord-listing.md) and [501st War Room](https://github.com/TheAbubakrAbu/501st-War-Room/blob/main/docs/discord-listing.md)).
+The text on Sabacc Droid's pages in the Discord Developer Portal, kept here so it can be restored or matched by the other bots ([Aurebesh Droid](https://github.com/TheAbubakrAbu/Aurebesh-Droid/blob/main/docs/discord-listing.md) and [501st War Room](https://github.com/TheAbubakrAbu/501st-War-Room/blob/main/docs/discord-listing.md)). The same text is used on the bot lists in [bot-lists.md](bot-lists.md).
 
 ## General Information
 
