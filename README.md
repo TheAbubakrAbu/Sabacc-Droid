@@ -157,6 +157,10 @@ The public bot runs on an Oracle Cloud server as a systemd service.
 
 On every push to `main`, the [GitHub Actions workflow](.github/workflows/deploy.yml) runs the self-test, and only if it passes, moves the server to the commit it tested, installs the requirements, and restarts the bot. Before it stops, the bot tells every unfinished game why it is ending and offers Play Again. The server checks the bot every 2 minutes and messages the owner on Discord if it goes down.
 
+## Bot Lists
+
+Sabacc Droid is on [top.gg](https://top.gg/bot/1306557976592515163), [Discord Bot List](https://discordbotlist.com/bots/sabaac-droid), [Discord Bots](https://discord.bots.gg/bots/1306557976592515163), [Discordlist](https://discordlist.gg/bot/1306557976592515163) and Discord's App Directory. It is waiting for review on Discord Extreme List, Botlist.me, Topbot.gg, TheDiscordList and Radarcord. [`docs/bot-lists.md`](docs/bot-lists.md) has every listing's link, status and settings, and the text they all use.
+
 ## More Star Wars
 
 - **[Aurebesh Droid](https://github.com/TheAbubakrAbu/Aurebesh-Droid)**: A Discord bot that translates text into Aurebesh and 13 more Star Wars scripts. [Add it to your server](https://discord.ly/aurebesh-droid).
